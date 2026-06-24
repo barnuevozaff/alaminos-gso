@@ -27,7 +27,7 @@ export default function PurchaseOrderDetail() {
   async function load() {
     setLoading(true)
     const { data: poData, error: poErr } = await supabase.from('purchase_orders').select('*').eq('id', id).single()
-    const { data: itemsData } = await supabase.from('po_items').select('*').eq('po_id', id).order('sort_order')
+    const { data: itemsData } = await supabase.from('po_items_live').select('*').eq('po_id', id).order('sort_order')
     if (poErr) { setError(poErr.message); setLoading(false); return }
     setPo(poData)
     setItems(itemsData || [])
@@ -45,8 +45,8 @@ export default function PurchaseOrderDetail() {
     setPo((prev) => ({ ...prev, [field]: value }))
   }
 
-  function updateItem(idx, field, value) {
-    setItems((prev) => prev.map((it, i) => i === idx ? { ...it, [field]: value } : it))
+  function updateQuantity(idx, value) {
+    setItems((prev) => prev.map((it, i) => i === idx ? { ...it, quantity: value } : it))
   }
 
   async function handleSave() {
@@ -64,7 +64,7 @@ export default function PurchaseOrderDetail() {
     await supabase.from('po_items').delete().eq('po_id', id)
     const rows = items.map((it, idx) => ({
       po_id: id, stock_property_no: it.stock_property_no, unit: it.unit, description: it.description,
-      quantity: Number(it.quantity), unit_cost: Number(it.unit_cost), sort_order: idx,
+      quantity: Number(it.quantity), unit_cost: it.unit_cost, sort_order: idx,
     }))
     if (rows.length) await supabase.from('po_items').insert(rows)
 
@@ -192,18 +192,25 @@ export default function PurchaseOrderDetail() {
           <tbody>
             {items.map((it, idx) => (
               <tr key={idx}>
-                <td><input value={it.stock_property_no || ''} disabled={isLocked} onChange={(e) => updateItem(idx, 'stock_property_no', e.target.value)} /></td>
-                <td><input value={it.unit} disabled={isLocked} onChange={(e) => updateItem(idx, 'unit', e.target.value)} /></td>
-                <td><input value={it.description} disabled={isLocked} onChange={(e) => updateItem(idx, 'description', e.target.value)} /></td>
-                <td><input type="number" value={it.quantity} disabled={isLocked} onChange={(e) => updateItem(idx, 'quantity', e.target.value)} /></td>
-                <td><input type="number" step="0.01" value={it.unit_cost} disabled={isLocked} onChange={(e) => updateItem(idx, 'unit_cost', e.target.value)} /></td>
-                <td>₱{(Number(it.quantity) * Number(it.unit_cost)).toFixed(2)}</td>
+                <td className="text-muted">{it.stock_property_no || '—'}</td>
+                <td className="text-muted">{it.unit}</td>
+                <td><strong>{it.description}</strong></td>
+                <td>
+                  {isLocked ? it.quantity : (
+                    <input type="number" min="1" value={it.quantity} onChange={(e) => updateQuantity(idx, e.target.value)} style={{ width: 80 }} />
+                  )}
+                </td>
+                <td className="text-muted">₱{Number(it.unit_cost).toFixed(2)}</td>
+                <td className="text-muted">₱{(Number(it.quantity) * Number(it.unit_cost)).toFixed(2)}</td>
               </tr>
             ))}
           </tbody>
         </table>
         <div style={{ padding: 14, textAlign: 'right', fontWeight: 700, borderTop: '1px solid var(--border)' }}>Total: ₱{total.toFixed(2)}</div>
       </div>
+      {items.length > 0 && !isLocked && (
+        <p className="form-hint" style={{ marginTop: -8, marginBottom: 16 }}>Pricing, description, and unit come from Inventory and cannot be edited here.</p>
+      )}
 
       {!isLocked && (
         <div className="print-actions">
