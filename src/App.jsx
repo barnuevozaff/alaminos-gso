@@ -1,6 +1,9 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { useAuth } from './context/AuthContext'
 
+import PublicHome from './pages/PublicHome'
+import PublicPurchaseRequestForm from './pages/PublicPurchaseRequestForm'
+import TrackRequest from './pages/TrackRequest'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import PurchaseRequestsList from './pages/PurchaseRequestsList'
@@ -16,14 +19,24 @@ import AIRDetail from './pages/AIRDetail'
 function PrivateRoute({ children }) {
   const { user, loading } = useAuth()
   if (loading) return <div className="state-box"><div className="spinner"></div>Loading…</div>
-  if (!user) return <Navigate to="/login" replace />
+  if (!user) return <Navigate to="/admin/login" replace />
   return children
 }
 
 export default function App() {
   return (
     <Routes>
-      <Route path="/login" element={<Login />} />
+      {/* Public, no login required */}
+      <Route path="/" element={<PublicHome />} />
+      <Route path="/submit" element={<PublicPurchaseRequestForm />} />
+      <Route path="/track" element={<TrackRequest />} />
+
+      {/* Admin login — intentionally not linked from any public page.
+          Accessed only by typing the URL directly, similar to a router's
+          admin settings page. */}
+      <Route path="/admin/login" element={<Login />} />
+
+      {/* Admin / staff area, requires authentication */}
       <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
       <Route path="/requests" element={<PrivateRoute><PurchaseRequestsList /></PrivateRoute>} />
       <Route path="/requests/new" element={<PrivateRoute><PurchaseRequestForm /></PrivateRoute>} />
@@ -35,8 +48,8 @@ export default function App() {
       <Route path="/purchase-orders/:id" element={<PrivateRoute><PurchaseOrderDetail /></PrivateRoute>} />
       <Route path="/air/:id" element={<PrivateRoute><AIRDetail /></PrivateRoute>} />
       <Route path="/audit-logs" element={<PrivateRoute><AuditLogs /></PrivateRoute>} />
-      <Route path="/" element={<Navigate to="/dashboard" replace />} />
-      <Route path="*" element={<Navigate to="/dashboard" replace />} />
+
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )
 }
