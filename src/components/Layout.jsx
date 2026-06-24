@@ -10,6 +10,7 @@ const NAV_ITEMS = [
   { to: '/categories', label: 'Categories', icon: '🏷' },
   { to: '/purchase-orders', label: 'Purchase Orders', icon: '🛒' },
   { to: '/audit-logs', label: 'Audit Logs', icon: '📋' },
+  { to: '/settings', label: 'Settings', icon: '⚙️' },
 ]
 
 export default function Layout({ children }) {
