@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
+import { generatePurchaseRequestPDF } from '../lib/generatePrPdf'
 import StatusBadge from '../components/StatusBadge'
 
 const LOGO = 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0a/Ph_seal_alaminos_laguna.png/120px-Ph_seal_alaminos_laguna.png'
@@ -12,6 +13,7 @@ export default function TrackRequest() {
   const [items, setItems] = useState([])
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [downloadingPdf, setDownloadingPdf] = useState(false)
   const justSubmitted = params.get('submitted') === '1'
 
   useEffect(() => {
@@ -33,13 +35,20 @@ export default function TrackRequest() {
     if (error) { setError(error.message); setLoading(false); return }
     if (!data) { setError(`No request found with PR number "${value}".`); setLoading(false); return }
 
-    const { data: itemsData } = await supabase.from('pr_items').select('*').eq('pr_id', data.id).order('sort_order')
+    const { data: itemsData } = await supabase.from('pr_items_live').select('*').eq('pr_id', data.id).order('sort_order')
     setResult(data)
     setItems(itemsData || [])
     setLoading(false)
   }
 
   const grandTotal = items.reduce((sum, it) => sum + Number(it.total_cost ?? it.quantity * it.unit_cost), 0)
+
+  async function handleDownloadPdf() {
+    setDownloadingPdf(true)
+    const { data: signatories } = await supabase.from('pdf_signatories').select('*').eq('id', 1).maybeSingle()
+    generatePurchaseRequestPDF(result, items, signatories || {})
+    setDownloadingPdf(false)
+  }
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
@@ -83,7 +92,12 @@ export default function TrackRequest() {
           <div className="card" style={{ marginTop: 20 }}>
             <div className="flex-between">
               <h3 style={{ margin: 0 }}>{result.pr_number}</h3>
-              <StatusBadge status={result.status} />
+              <div className="gap-8">
+                <StatusBadge status={result.status} />
+                <button className="btn btn-secondary btn-sm" disabled={downloadingPdf} onClick={handleDownloadPdf}>
+                  {downloadingPdf ? 'Generating…' : '⬇ PDF'}
+                </button>
+              </div>
             </div>
             <div className="print-meta-grid" style={{ marginTop: 14 }}>
               <div><strong>Requester:</strong> {result.requester_name}</div>
