@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { supabase } from '../lib/supabase'
 
-export default function ItemAutocomplete({ onSelect, excludeIds = [] }) {
+export default function ItemAutocomplete({ onSelect, excludeIds = [], placeholder = 'Type item name or code to search inventory…' }) {
   const [query, setQuery] = useState('')
   const [results, setResults] = useState([])
   const [open, setOpen] = useState(false)
@@ -37,6 +37,7 @@ export default function ItemAutocomplete({ onSelect, excludeIds = [] }) {
         .from('inventory')
         .select('id, item_code, item_name, unit, quantity, unit_cost')
         .or(`item_name.ilike.%${value}%,item_code.ilike.%${value}%`)
+        .gt('quantity', 0)
         .order('item_name')
         .limit(8)
       setResults((data || []).filter((i) => !excludeIds.includes(i.id)))
@@ -74,7 +75,7 @@ export default function ItemAutocomplete({ onSelect, excludeIds = [] }) {
       <input
         type="text"
         className="form-input"
-        placeholder="Type item name or code to search inventory…"
+        placeholder={placeholder}
         value={query}
         onChange={handleChange}
         onKeyDown={handleKeyDown}
@@ -104,7 +105,7 @@ export default function ItemAutocomplete({ onSelect, excludeIds = [] }) {
                 }}
               >
                 <span><strong>{item.item_name}</strong> <span className="text-muted">({item.item_code})</span></span>
-                <span className="text-muted">{item.unit} · stock {item.quantity}</span>
+                <span className="text-muted">{item.unit} · available {item.quantity}</span>
               </div>
             ))
           )}
