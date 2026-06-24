@@ -4,13 +4,13 @@ import { useAuth } from '../context/AuthContext'
 const LOGO = 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0a/Ph_seal_alaminos_laguna.png/120px-Ph_seal_alaminos_laguna.png'
 
 const NAV_ITEMS = [
-  { to: '/dashboard', label: 'Dashboard', icon: '⬛' },
-  { to: '/requests', label: 'Purchase Requests', icon: '📄' },
-  { to: '/inventory', label: 'Inventory', icon: '📦' },
-  { to: '/categories', label: 'Categories', icon: '🏷' },
-  { to: '/purchase-orders', label: 'Purchase Orders', icon: '🛒' },
-  { to: '/audit-logs', label: 'Audit Logs', icon: '📋' },
-  { to: '/settings', label: 'Settings', icon: '⚙️' },
+  { to: '/admin/dashboard', label: 'Dashboard', icon: '⬛' },
+  { to: '/admin/requests', label: 'Purchase Requests', icon: '📄' },
+  { to: '/admin/inventory', label: 'Inventory', icon: '📦' },
+  { to: '/admin/categories', label: 'Categories', icon: '🏷' },
+  { to: '/admin/purchase-orders', label: 'Purchase Orders', icon: '🛒' },
+  { to: '/admin/audit-logs', label: 'Audit Logs', icon: '📋' },
+  { to: '/admin/settings', label: 'Settings', icon: '⚙️' },
 ]
 
 export default function Layout({ children }) {

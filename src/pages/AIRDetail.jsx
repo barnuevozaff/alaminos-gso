@@ -59,7 +59,7 @@ export default function AIRDetail() {
     <Layout>
       <div className="flex-between" style={{ marginBottom: 18 }}>
         <div>
-          <button style={{ background: 'none', border: 'none', padding: 0, marginBottom: 8, cursor: 'pointer' }} onClick={() => navigate(`/purchase-orders/${air.po_id}`)}>← Back to PO</button>
+          <button style={{ background: 'none', border: 'none', padding: 0, marginBottom: 8, cursor: 'pointer' }} onClick={() => navigate(`/admin/purchase-orders/${air.po_id}`)}>← Back to PO</button>
           <h1 className="page-title" style={{ margin: 0 }}>{air.air_number}</h1>
           <p className="page-subtitle" style={{ marginTop: 4 }}>Acceptance and Inspection Report{po ? ` for ${po.po_number}` : ''}</p>
         </div>

@@ -84,7 +84,7 @@ export default function PurchaseOrderDetail() {
   }
 
   async function handleGenerateAIR() {
-    if (existingAir) { navigate(`/air/${existingAir.id}`); return }
+    if (existingAir) { navigate(`/admin/air/${existingAir.id}`); return }
     setSaving(true)
     const { data: newAir, error } = await supabase.from('acceptance_inspection_reports').insert({
       po_id: id,
@@ -94,7 +94,7 @@ export default function PurchaseOrderDetail() {
     setSaving(false)
     if (error) { setError(error.message); return }
     await supabase.from('audit_logs').insert({ action: 'AIR_GENERATED', description: `Generated ${newAir.air_number} for ${po.po_number}`, performed_by: profile?.id })
-    navigate(`/air/${newAir.id}`)
+    navigate(`/admin/air/${newAir.id}`)
   }
 
   if (loading) return <Layout><div className="state-box"><div className="spinner"></div>Loading purchase order…</div></Layout>
@@ -107,7 +107,7 @@ export default function PurchaseOrderDetail() {
     <Layout>
       <div className="flex-between" style={{ marginBottom: 18 }}>
         <div>
-          <button style={{ background: 'none', border: 'none', padding: 0, marginBottom: 8, cursor: 'pointer' }} onClick={() => navigate('/purchase-orders')}>← Back</button>
+          <button style={{ background: 'none', border: 'none', padding: 0, marginBottom: 8, cursor: 'pointer' }} onClick={() => navigate('/admin/purchase-orders')}>← Back</button>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <h1 className="page-title" style={{ margin: 0 }}>{po.po_number}</h1>
             <StatusBadge status={po.status} />

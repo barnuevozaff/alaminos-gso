@@ -45,8 +45,8 @@ export default function Dashboard() {
           <p className="page-subtitle">Administrator overview</p>
         </div>
         <div className="gap-8">
-          <button className="btn btn-primary" onClick={() => navigate('/requests/new')}>New Request</button>
-          <button className="btn btn-secondary" onClick={() => navigate('/requests')}>View Requests</button>
+          <button className="btn btn-primary" onClick={() => navigate('/admin/requests/new')}>New Request</button>
+          <button className="btn btn-secondary" onClick={() => navigate('/admin/requests')}>View Requests</button>
         </div>
       </div>
 

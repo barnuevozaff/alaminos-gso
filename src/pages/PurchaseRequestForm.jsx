@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
+import { DEPARTMENTS } from '../lib/departments'
 import Layout from '../components/Layout'
 import ItemAutocomplete from '../components/ItemAutocomplete'
 
@@ -30,12 +31,21 @@ export default function PurchaseRequestForm() {
   async function loadExisting() {
     setLoading(true)
     const { data: pr } = await supabase.from('purchase_requests').select('*').eq('id', id).single()
-    const { data: prItems } = await supabase.from('pr_items').select('*').eq('pr_id', id).order('sort_order')
+    // Use the live-pricing view so displayed cost always reflects current Inventory price
+    const { data: prItems } = await supabase.from('pr_items_live').select('*').eq('pr_id', id).order('sort_order')
     if (pr) {
       setForm({ department: pr.department, requester_name: pr.requester_name, purpose: pr.purpose || '', fund: pr.fund })
       setStatus(pr.status)
     }
-    setItems(prItems || [])
+    setItems((prItems || []).map((it) => ({
+      inventory_id: it.inventory_id,
+      item_code: it.item_code,
+      item_description: it.item_description,
+      unit: it.unit,
+      quantity: it.quantity,
+      unit_cost: it.unit_cost,
+      available: undefined,
+    })))
     setLoading(false)
   }
 
@@ -47,18 +57,12 @@ export default function PurchaseRequestForm() {
       unit: invItem.unit,
       quantity: 1,
       unit_cost: invItem.unit_cost,
-      _stock: invItem.quantity,
+      available: invItem.quantity,
     }])
   }
 
-  function addBlankItem() {
-    setItems((prev) => [...prev, {
-      inventory_id: null, item_code: '', item_description: '', unit: '', quantity: 1, unit_cost: 0,
-    }])
-  }
-
-  function updateItem(idx, field, value) {
-    setItems((prev) => prev.map((it, i) => i === idx ? { ...it, [field]: value } : it))
+  function updateQuantity(idx, value) {
+    setItems((prev) => prev.map((it, i) => i === idx ? { ...it, quantity: value } : it))
   }
 
   function removeItem(idx) {
@@ -72,11 +76,9 @@ export default function PurchaseRequestForm() {
     if (!form.requester_name.trim()) return 'Requester is required.'
     if (items.length === 0) return 'Add at least one item.'
     for (const it of items) {
-      if (!it.item_description?.trim()) return 'Every item needs a description.'
-      if (!it.unit?.trim()) return 'Every item needs a unit.'
       if (!it.quantity || Number(it.quantity) <= 0) return 'Quantity must be greater than zero.'
-      if (it.inventory_id && it._stock !== undefined && Number(it.quantity) > it._stock) {
-        return `Requested quantity for "${it.item_description}" exceeds available stock (${it._stock}).`
+      if (it.available !== undefined && Number(it.quantity) > it.available) {
+        return `Requested quantity for "${it.item_description}" exceeds available stock (${it.available}).`
       }
     }
     return ''
@@ -107,6 +109,9 @@ export default function PurchaseRequestForm() {
         prId = inserted.id
       }
 
+      // unit_cost/item_description/unit are stored as a fallback only —
+      // the live view (pr_items_live) always prefers current Inventory
+      // pricing whenever inventory_id is present.
       const itemRows = items.map((it, idx) => ({
         pr_id: prId,
         inventory_id: it.inventory_id || null,
@@ -120,7 +125,7 @@ export default function PurchaseRequestForm() {
       const { error: itemsErr } = await supabase.from('pr_items').insert(itemRows)
       if (itemsErr) throw itemsErr
 
-      navigate(`/requests/${prId}`)
+      navigate(`/admin/requests/${prId}`)
     } catch (e) {
       setError(e.message || 'Something went wrong while saving.')
     } finally {
@@ -146,8 +151,11 @@ export default function PurchaseRequestForm() {
         <div className="form-row">
           <div className="form-group">
             <label className="form-label">Department</label>
-            <input className="form-input" value={form.department} disabled={isLocked}
-              onChange={(e) => setForm({ ...form, department: e.target.value })} placeholder="e.g. MENRO" />
+            <select className="form-select" value={form.department} disabled={isLocked}
+              onChange={(e) => setForm({ ...form, department: e.target.value })}>
+              <option value="">Select department</option>
+              {DEPARTMENTS.map((d) => <option key={d} value={d}>{d}</option>)}
+            </select>
           </div>
           <div className="form-group">
             <label className="form-label">Requester</label>
@@ -173,9 +181,6 @@ export default function PurchaseRequestForm() {
         <div className="card" style={{ marginBottom: 20 }}>
           <label className="form-label">Search inventory to add an item</label>
           <ItemAutocomplete onSelect={addInventoryItem} excludeIds={items.map((i) => i.inventory_id).filter(Boolean)} />
-          <div style={{ marginTop: 10 }}>
-            <button className="btn btn-outline btn-sm" onClick={addBlankItem}>+ Add custom item (not in inventory)</button>
-          </div>
         </div>
       )}
 
@@ -196,15 +201,17 @@ export default function PurchaseRequestForm() {
               <tr><td colSpan={6} style={{ textAlign: 'center', color: 'var(--text-muted)', padding: 24 }}>No items added yet.</td></tr>
             ) : items.map((it, idx) => (
               <tr key={idx}>
-                <td><input value={it.unit} disabled={isLocked} onChange={(e) => updateItem(idx, 'unit', e.target.value)} /></td>
-                <td><input value={it.item_description} disabled={isLocked} onChange={(e) => updateItem(idx, 'item_description', e.target.value)} /></td>
+                <td>{it.unit}</td>
+                <td><strong>{it.item_description}</strong></td>
                 <td>
-                  <input type="number" min="0" step="any" value={it.quantity} disabled={isLocked}
-                    onChange={(e) => updateItem(idx, 'quantity', e.target.value)} />
-                  {it._stock !== undefined && <div className="form-hint">stock: {it._stock}</div>}
+                  {isLocked ? it.quantity : (
+                    <input type="number" min="1" max={it.available} step="1" value={it.quantity}
+                      onChange={(e) => updateQuantity(idx, e.target.value)} style={{ width: 80 }} />
+                  )}
+                  {it.available !== undefined && !isLocked && <div className="form-hint">available: {it.available}</div>}
                 </td>
-                <td><input type="number" min="0" step="0.01" value={it.unit_cost} disabled={isLocked} onChange={(e) => updateItem(idx, 'unit_cost', e.target.value)} /></td>
-                <td>₱{((Number(it.quantity) || 0) * (Number(it.unit_cost) || 0)).toFixed(2)}</td>
+                <td className="text-muted">₱{Number(it.unit_cost).toFixed(2)}</td>
+                <td className="text-muted">₱{((Number(it.quantity) || 0) * (Number(it.unit_cost) || 0)).toFixed(2)}</td>
                 {!isLocked && <td><button className="icon-btn danger" onClick={() => removeItem(idx)}>🗑</button></td>}
               </tr>
             ))}
@@ -216,6 +223,9 @@ export default function PurchaseRequestForm() {
           </div>
         )}
       </div>
+      {items.length > 0 && !isLocked && (
+        <p className="form-hint" style={{ marginTop: 8 }}>Pricing is set by Inventory and cannot be edited here. Update prices in the Inventory module instead.</p>
+      )}
 
       {!isLocked && (
         <div className="print-actions">

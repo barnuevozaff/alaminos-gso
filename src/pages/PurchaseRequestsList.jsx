@@ -41,7 +41,7 @@ export default function PurchaseRequestsList() {
           <h1 className="page-title">Purchase Requests</h1>
           <p className="page-subtitle">Submitted by departments. Review and approve or reject.</p>
         </div>
-        <button className="btn btn-primary" onClick={() => navigate('/requests/new')}>+ New Request</button>
+        <button className="btn btn-primary" onClick={() => navigate('/admin/requests/new')}>+ New Request</button>
       </div>
 
       <div className="toolbar">
@@ -92,7 +92,7 @@ export default function PurchaseRequestsList() {
                   <td>{r.requester_name}</td>
                   <td><StatusBadge status={r.status} /></td>
                   <td>
-                    <button className="btn btn-outline btn-sm" onClick={() => navigate(`/requests/${r.id}`)}>👁 View</button>
+                    <button className="btn btn-outline btn-sm" onClick={() => navigate(`/admin/requests/${r.id}`)}>👁 View</button>
                   </td>
                 </tr>
               ))}

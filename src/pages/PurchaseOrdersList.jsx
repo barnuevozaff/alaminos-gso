@@ -41,7 +41,7 @@ export default function PurchaseOrdersList() {
                   <td>{po.supplier || <span className="text-muted">Not set</span>}</td>
                   <td>{new Date(po.po_date).toLocaleDateString()}</td>
                   <td><StatusBadge status={po.status} /></td>
-                  <td><button className="btn btn-outline btn-sm" onClick={() => navigate(`/purchase-orders/${po.id}`)}>👁 View</button></td>
+                  <td><button className="btn btn-outline btn-sm" onClick={() => navigate(`/admin/purchase-orders/${po.id}`)}>👁 View</button></td>
                 </tr>
               ))}
             </tbody>

@@ -70,7 +70,7 @@ export default function PurchaseRequestDetail() {
     setBusy(true)
     const { data: existingPO } = await supabase.from('purchase_orders').select('id').eq('pr_id', id).maybeSingle()
     if (existingPO) {
-      navigate(`/purchase-orders/${existingPO.id}`)
+      navigate(`/admin/purchase-orders/${existingPO.id}`)
       return
     }
     const { data: newPO, error } = await supabase
@@ -97,7 +97,7 @@ export default function PurchaseRequestDetail() {
       action: 'PO_CREATED', description: `Created ${newPO.po_number} from ${pr.pr_number}`, performed_by: profile?.id,
     })
 
-    navigate(`/purchase-orders/${newPO.id}`)
+    navigate(`/admin/purchase-orders/${newPO.id}`)
   }
 
   if (loading) return <Layout><div className="state-box"><div className="spinner"></div>Loading request…</div></Layout>
@@ -109,7 +109,7 @@ export default function PurchaseRequestDetail() {
     <Layout>
       <div className="flex-between" style={{ marginBottom: 18 }}>
         <div>
-          <button className="btn-signout" style={{ width: 'auto', background: 'none', border: 'none', color: 'var(--text)', padding: 0, marginBottom: 8 }} onClick={() => navigate('/requests')}>← Back</button>
+          <button className="btn-signout" style={{ width: 'auto', background: 'none', border: 'none', color: 'var(--text)', padding: 0, marginBottom: 8 }} onClick={() => navigate('/admin/requests')}>← Back</button>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <h1 className="page-title" style={{ margin: 0 }}>{pr.pr_number}</h1>
             <StatusBadge status={pr.status} />
@@ -119,7 +119,7 @@ export default function PurchaseRequestDetail() {
           </p>
         </div>
         <div className="gap-8">
-          {pr.status === 'Draft' && <button className="btn btn-secondary" onClick={() => navigate(`/requests/${id}/edit`)}>Edit</button>}
+          {pr.status === 'Draft' && <button className="btn btn-secondary" onClick={() => navigate(`/admin/requests/${id}/edit`)}>Edit</button>}
           <button className="btn btn-secondary" onClick={() => setShowPrint(true)}>🖶 Print</button>
           <button className="btn btn-secondary" disabled={generatingPdf} onClick={handleDownloadPdf}>
             {generatingPdf ? 'Generating…' : '⬇ Download PDF'}

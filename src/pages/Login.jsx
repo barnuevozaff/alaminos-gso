@@ -21,7 +21,7 @@ export default function Login() {
     if (error) {
       setError('Invalid email or password.')
     } else {
-      navigate('/dashboard')
+      navigate('/admin/dashboard')
     }
   }
 

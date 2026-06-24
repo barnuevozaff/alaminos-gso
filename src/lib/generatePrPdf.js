@@ -40,7 +40,6 @@ export function generatePurchaseRequestPDF(pr, items, signatories = {}) {
   doc.text(`Date: ${pr.pr_date ? new Date(pr.pr_date).toLocaleDateString() : ''}`, rightX, y)
   y += 16
   doc.text(`FPP: __________________`, leftX, y)
-  doc.text(`Requester: ${pr.requester_name || ''}`, rightX, y)
   y += 20
 
   // ---- Items table ----

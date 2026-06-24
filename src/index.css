@@ -367,7 +367,28 @@ p.page-subtitle { color: var(--text-muted); font-size: 14px; margin: 0 0 22px; }
 @media print {
   body * { visibility: hidden; }
   .print-sheet, .print-sheet * { visibility: visible; }
-  .print-sheet { position: absolute; top: 0; left: 0; border: none; margin: 0; }
+  .modal-overlay {
+    position: static !important;
+    background: none !important;
+    display: block !important;
+    padding: 0 !important;
+  }
+  .modal-box {
+    position: static !important;
+    overflow: visible !important;
+    max-height: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+  }
+  .print-sheet {
+    position: static !important;
+    border: none;
+    margin: 0;
+    max-width: none;
+  }
+  .modal-close, .print-actions, .modal-title, .form-row, .form-group {
+    display: none !important;
+  }
 }
 
 /* ---------- Login ---------- */
