@@ -12,6 +12,7 @@ import PurchaseRequestDetail from './pages/PurchaseRequestDetail'
 import Inventory from './pages/Inventory'
 import Categories from './pages/Categories'
 import AuditLogs from './pages/AuditLogs'
+import Settings from './pages/Settings'
 import PurchaseOrdersList from './pages/PurchaseOrdersList'
 import PurchaseOrderDetail from './pages/PurchaseOrderDetail'
 import AIRDetail from './pages/AIRDetail'
@@ -48,6 +49,7 @@ export default function App() {
       <Route path="/purchase-orders/:id" element={<PrivateRoute><PurchaseOrderDetail /></PrivateRoute>} />
       <Route path="/air/:id" element={<PrivateRoute><AIRDetail /></PrivateRoute>} />
       <Route path="/audit-logs" element={<PrivateRoute><AuditLogs /></PrivateRoute>} />
+      <Route path="/settings" element={<PrivateRoute><Settings /></PrivateRoute>} />
 
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
