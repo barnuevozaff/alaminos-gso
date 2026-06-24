@@ -29,7 +29,7 @@ export default function Login() {
     <div className="login-wrap">
       <div className="login-card">
         <img src={LOGO} alt="Alaminos seal" onError={(e) => { e.target.style.display = 'none' }} />
-        <h1>Sign In</h1>
+        <h1>Admin Sign In</h1>
         <p className="sub">Municipality of Alaminos GSO — Purchase Request &amp; Inventory Management System</p>
 
         {error && <div className="alert alert-error">{error}</div>}
