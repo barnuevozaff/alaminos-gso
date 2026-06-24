@@ -1,19 +1,44 @@
-import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
+import { useAuth } from '../context/AuthContext'
 import { DEPARTMENTS } from '../lib/departments'
+import Layout from '../components/Layout'
 import ItemAutocomplete from '../components/ItemAutocomplete'
 
-const LOGO = 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0a/Ph_seal_alaminos_laguna.png/120px-Ph_seal_alaminos_laguna.png'
-
-export default function PublicPurchaseRequestForm() {
+export default function PurchaseRequestForm() {
+  const { id } = useParams()
+  const isEdit = Boolean(id)
+  const { profile, user } = useAuth()
   const navigate = useNavigate()
-  const [requesterName, setRequesterName] = useState('')
-  const [department, setDepartment] = useState('')
-  const [purpose, setPurpose] = useState('')
+
+  const [form, setForm] = useState({
+    department: profile?.department || '',
+    requester_name: profile?.full_name || '',
+    purpose: '',
+    fund: 'General Fund',
+  })
   const [items, setItems] = useState([])
+  const [loading, setLoading] = useState(isEdit)
+  const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
-  const [submitting, setSubmitting] = useState(false)
+  const [status, setStatus] = useState('Draft')
+
+  useEffect(() => {
+    if (isEdit) loadExisting()
+  }, [id])
+
+  async function loadExisting() {
+    setLoading(true)
+    const { data: pr } = await supabase.from('purchase_requests').select('*').eq('id', id).single()
+    const { data: prItems } = await supabase.from('pr_items').select('*').eq('pr_id', id).order('sort_order')
+    if (pr) {
+      setForm({ department: pr.department, requester_name: pr.requester_name, purpose: pr.purpose || '', fund: pr.fund })
+      setStatus(pr.status)
+    }
+    setItems(prItems || [])
+    setLoading(false)
+  }
 
   function addInventoryItem(invItem) {
     setItems((prev) => [...prev, {
@@ -21,56 +46,72 @@ export default function PublicPurchaseRequestForm() {
       item_code: invItem.item_code,
       item_description: invItem.item_name,
       unit: invItem.unit,
-      available: invItem.quantity,
       quantity: 1,
       unit_cost: invItem.unit_cost,
+      _stock: invItem.quantity,
     }])
   }
 
-  function updateQuantity(idx, value) {
-    setItems((prev) => prev.map((it, i) => i === idx ? { ...it, quantity: value } : it))
+  function addBlankItem() {
+    setItems((prev) => [...prev, {
+      inventory_id: null, item_code: '', item_description: '', unit: '', quantity: 1, unit_cost: 0,
+    }])
+  }
+
+  function updateItem(idx, field, value) {
+    setItems((prev) => prev.map((it, i) => i === idx ? { ...it, [field]: value } : it))
   }
 
   function removeItem(idx) {
     setItems((prev) => prev.filter((_, i) => i !== idx))
   }
 
+  const grandTotal = items.reduce((sum, it) => sum + (Number(it.quantity) || 0) * (Number(it.unit_cost) || 0), 0)
+
   function validate() {
-    if (!requesterName.trim()) return 'Requester name is required.'
-    if (!department) return 'Please select a department.'
-    if (items.length === 0) return 'Add at least one item from inventory.'
+    if (!form.department.trim()) return 'Department is required.'
+    if (!form.requester_name.trim()) return 'Requester is required.'
+    if (items.length === 0) return 'Add at least one item.'
     for (const it of items) {
-      const qty = Number(it.quantity)
-      if (!qty || qty <= 0) return `Enter a valid quantity for "${it.item_description}".`
-      if (qty > it.available) return `Requested quantity for "${it.item_description}" exceeds available stock (${it.available}).`
+      if (!it.item_description?.trim()) return 'Every item needs a description.'
+      if (!it.unit?.trim()) return 'Every item needs a unit.'
+      if (!it.quantity || Number(it.quantity) <= 0) return 'Quantity must be greater than zero.'
+      if (it.inventory_id && it._stock !== undefined && Number(it.quantity) > it._stock) {
+        return `Requested quantity for "${it.item_description}" exceeds available stock (${it._stock}).`
+      }
     }
     return ''
   }
 
-  async function handleSubmit() {
+  async function handleSave(targetStatus) {
     const validationError = validate()
     if (validationError) { setError(validationError); return }
     setError('')
-    setSubmitting(true)
+    setSaving(true)
 
     try {
-      const { data: pr, error: prErr } = await supabase
-        .from('purchase_requests')
-        .insert({
-          department,
-          requester_name: requesterName,
-          purpose: purpose || null,
-          status: 'Submitted',
-          submitted_at: new Date().toISOString(),
-        })
-        .select()
-        .single()
-      if (prErr) throw prErr
+      let prId = id
+      const payload = { ...form, status: targetStatus }
+      if (targetStatus === 'Submitted') payload.submitted_at = new Date().toISOString()
+
+      if (isEdit) {
+        const { error: updErr } = await supabase.from('purchase_requests').update(payload).eq('id', id)
+        if (updErr) throw updErr
+        await supabase.from('pr_items').delete().eq('pr_id', id)
+      } else {
+        const { data: inserted, error: insErr } = await supabase
+          .from('purchase_requests')
+          .insert({ ...payload, requester_id: user?.id })
+          .select()
+          .single()
+        if (insErr) throw insErr
+        prId = inserted.id
+      }
 
       const itemRows = items.map((it, idx) => ({
-        pr_id: pr.id,
-        inventory_id: it.inventory_id,
-        item_code: it.item_code,
+        pr_id: prId,
+        inventory_id: it.inventory_id || null,
+        item_code: it.item_code || null,
         item_description: it.item_description,
         unit: it.unit,
         quantity: Number(it.quantity),
@@ -80,102 +121,115 @@ export default function PublicPurchaseRequestForm() {
       const { error: itemsErr } = await supabase.from('pr_items').insert(itemRows)
       if (itemsErr) throw itemsErr
 
-      navigate(`/track?pr=${encodeURIComponent(pr.pr_number)}&submitted=1`)
+      navigate(`/requests/${prId}`)
     } catch (e) {
-      setError(e.message || 'Something went wrong while submitting your request.')
+      setError(e.message || 'Something went wrong while saving.')
     } finally {
-      setSubmitting(false)
+      setSaving(false)
     }
   }
 
-  const grandTotal = items.reduce((sum, it) => sum + (Number(it.quantity) || 0) * (Number(it.unit_cost) || 0), 0)
+  if (loading) {
+    return <Layout><div className="state-box"><div className="spinner"></div>Loading…</div></Layout>
+  }
+
+  const isLocked = isEdit && status !== 'Draft'
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
-      <div className="topbar">
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <img src={LOGO} alt="" style={{ width: 40, height: 40, borderRadius: '50%' }} onError={(e) => { e.target.style.visibility = 'hidden' }} />
-          <div>
-            <div style={{ fontSize: 11, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Municipality of Alaminos</div>
-            <div style={{ fontWeight: 700 }}>General Services Office (GSO)</div>
-            <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>Purchase Request &amp; Inventory Management System</div>
-          </div>
-        </div>
-        <div className="gap-8">
-          <Link to="/track" className="btn btn-secondary">Track a Request</Link>
-        </div>
-      </div>
+    <Layout>
+      <h1 className="page-title">{isEdit ? 'Edit Purchase Request' : 'New Purchase Request'}</h1>
+      <p className="page-subtitle">Fill in the details below, add items, then save as draft or submit for approval.</p>
 
-      <div className="page-content" style={{ maxWidth: 900, margin: '0 auto' }}>
-        <h1 className="page-title">New Purchase Request</h1>
-        <p className="page-subtitle">The PR number and date are generated automatically on submit.</p>
+      {error && <div className="alert alert-error">{error}</div>}
+      {isLocked && <div className="alert alert-error">This request has already been {status.toLowerCase()} and can no longer be edited.</div>}
 
-        {error && <div className="alert alert-error">{error}</div>}
-
-        <div className="card" style={{ marginBottom: 20 }}>
-          <h3 style={{ marginTop: 0 }}>Requester Information</h3>
-          <div className="form-row">
-            <div className="form-group">
-              <label className="form-label">Requester Name *</label>
-              <input className="form-input" placeholder="Full name" value={requesterName} onChange={(e) => setRequesterName(e.target.value)} />
-            </div>
-            <div className="form-group">
-              <label className="form-label">Department / Office *</label>
-              <select className="form-select" value={department} onChange={(e) => setDepartment(e.target.value)}>
-                <option value="">Select department</option>
-                {DEPARTMENTS.map((d) => <option key={d} value={d}>{d}</option>)}
-              </select>
-            </div>
+      <div className="card" style={{ marginBottom: 20 }}>
+        <div className="form-row">
+          <div className="form-group">
+            <label className="form-label">Department</label>
+            <select className="form-select" value={form.department} disabled={isLocked}
+              onChange={(e) => setForm({ ...form, department: e.target.value })}>
+              <option value="">Select department</option>
+              {DEPARTMENTS.map((d) => <option key={d} value={d}>{d}</option>)}
+            </select>
           </div>
           <div className="form-group">
-            <label className="form-label">Purpose / Remarks (optional)</label>
-            <textarea className="form-textarea" value={purpose} onChange={(e) => setPurpose(e.target.value)} />
+            <label className="form-label">Requester</label>
+            <input className="form-input" value={form.requester_name} disabled={isLocked}
+              onChange={(e) => setForm({ ...form, requester_name: e.target.value })} />
           </div>
         </div>
-
-        <div className="card" style={{ marginBottom: 20 }}>
-          <h3 style={{ marginTop: 0 }}>Items</h3>
-          <ItemAutocomplete
-            onSelect={addInventoryItem}
-            excludeIds={items.map((i) => i.inventory_id)}
-            placeholder="Search inventory…"
-          />
-
-          <table className="data-table" style={{ marginTop: 16 }}>
-            <thead>
-              <tr><th>Item</th><th>Unit</th><th>Available</th><th>Quantity</th><th>Unit Cost</th><th>Total</th><th></th></tr>
-            </thead>
-            <tbody>
-              {items.length === 0 ? (
-                <tr><td colSpan={7} style={{ textAlign: 'center', color: 'var(--text-muted)', padding: 24 }}>Search and add items above.</td></tr>
-              ) : items.map((it, idx) => (
-                <tr key={idx}>
-                  <td><strong>{it.item_description}</strong></td>
-                  <td>{it.unit}</td>
-                  <td>{it.available}</td>
-                  <td>
-                    <input type="number" min="1" max={it.available} className="form-input" style={{ width: 90 }}
-                      value={it.quantity} onChange={(e) => updateQuantity(idx, e.target.value)} />
-                  </td>
-                  <td>₱{Number(it.unit_cost).toFixed(2)}</td>
-                  <td>₱{((Number(it.quantity) || 0) * Number(it.unit_cost)).toFixed(2)}</td>
-                  <td><button className="icon-btn danger" onClick={() => removeItem(idx)}>🗑</button></td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          {items.length > 0 && (
-            <div style={{ textAlign: 'right', fontWeight: 700, marginTop: 10 }}>Grand Total: ₱{grandTotal.toFixed(2)}</div>
-          )}
-        </div>
-
-        <div className="print-actions">
-          <button className="btn btn-secondary" onClick={() => navigate('/')}>Cancel</button>
-          <button className="btn btn-primary" disabled={submitting} onClick={handleSubmit}>
-            {submitting ? 'Submitting…' : '+ Submit Request'}
-          </button>
+        <div className="form-row">
+          <div className="form-group">
+            <label className="form-label">Fund</label>
+            <input className="form-input" value={form.fund} disabled={isLocked}
+              onChange={(e) => setForm({ ...form, fund: e.target.value })} />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Purpose / Justification</label>
+            <input className="form-input" value={form.purpose} disabled={isLocked}
+              onChange={(e) => setForm({ ...form, purpose: e.target.value })} />
+          </div>
         </div>
       </div>
-    </div>
+
+      {!isLocked && (
+        <div className="card" style={{ marginBottom: 20 }}>
+          <label className="form-label">Search inventory to add an item</label>
+          <ItemAutocomplete onSelect={addInventoryItem} excludeIds={items.map((i) => i.inventory_id).filter(Boolean)} />
+          <div style={{ marginTop: 10 }}>
+            <button className="btn btn-outline btn-sm" onClick={addBlankItem}>+ Add custom item (not in inventory)</button>
+          </div>
+        </div>
+      )}
+
+      <div className="card" style={{ padding: 0, overflowX: 'auto' }}>
+        <table className="data-table line-items-table">
+          <thead>
+            <tr>
+              <th>Unit</th>
+              <th>Item Description</th>
+              <th>Quantity</th>
+              <th>Unit Cost</th>
+              <th>Total</th>
+              {!isLocked && <th></th>}
+            </tr>
+          </thead>
+          <tbody>
+            {items.length === 0 ? (
+              <tr><td colSpan={6} style={{ textAlign: 'center', color: 'var(--text-muted)', padding: 24 }}>No items added yet.</td></tr>
+            ) : items.map((it, idx) => (
+              <tr key={idx}>
+                <td><input value={it.unit} disabled={isLocked} onChange={(e) => updateItem(idx, 'unit', e.target.value)} /></td>
+                <td><input value={it.item_description} disabled={isLocked} onChange={(e) => updateItem(idx, 'item_description', e.target.value)} /></td>
+                <td>
+                  <input type="number" min="0" step="any" value={it.quantity} disabled={isLocked}
+                    onChange={(e) => updateItem(idx, 'quantity', e.target.value)} />
+                  {it._stock !== undefined && <div className="form-hint">stock: {it._stock}</div>}
+                </td>
+                <td><input type="number" min="0" step="0.01" value={it.unit_cost} disabled={isLocked} onChange={(e) => updateItem(idx, 'unit_cost', e.target.value)} /></td>
+                <td>₱{((Number(it.quantity) || 0) * (Number(it.unit_cost) || 0)).toFixed(2)}</td>
+                {!isLocked && <td><button className="icon-btn danger" onClick={() => removeItem(idx)}>🗑</button></td>}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        {items.length > 0 && (
+          <div style={{ padding: 14, textAlign: 'right', fontWeight: 700, borderTop: '1px solid var(--border)' }}>
+            Grand Total: ₱{grandTotal.toFixed(2)}
+          </div>
+        )}
+      </div>
+
+      {!isLocked && (
+        <div className="print-actions">
+          <button className="btn btn-secondary" onClick={() => navigate(-1)}>Cancel</button>
+          <button className="btn btn-outline" disabled={saving} onClick={() => handleSave('Draft')}>Save as Draft</button>
+          <button className="btn btn-primary" disabled={saving} onClick={() => handleSave('Submitted')}>
+            {saving ? 'Submitting…' : 'Submit Request'}
+          </button>
+        </div>
+      )}
+    </Layout>
   )
 }
