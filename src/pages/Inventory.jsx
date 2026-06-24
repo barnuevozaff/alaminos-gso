@@ -9,6 +9,7 @@ export default function Inventory() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [search, setSearch] = useState('')
+  const [categoryFilter, setCategoryFilter] = useState('all')
   const [showModal, setShowModal] = useState(false)
   const [editing, setEditing] = useState(null)
   const [deleteTarget, setDeleteTarget] = useState(null)
@@ -27,9 +28,11 @@ export default function Inventory() {
     setLoading(false)
   }
 
-  const filtered = items.filter((i) =>
-    !search || i.item_name.toLowerCase().includes(search.toLowerCase()) || i.item_code?.toLowerCase().includes(search.toLowerCase())
-  )
+  const filtered = items.filter((i) => {
+    const matchesSearch = !search || i.item_name.toLowerCase().includes(search.toLowerCase()) || i.item_code?.toLowerCase().includes(search.toLowerCase())
+    const matchesCategory = categoryFilter === 'all' || i.category_id === categoryFilter
+    return matchesSearch && matchesCategory
+  })
 
   async function handleDelete() {
     const { error } = await supabase.from('inventory').delete().eq('id', deleteTarget.id)
@@ -48,7 +51,13 @@ export default function Inventory() {
       </div>
 
       <div className="toolbar" style={{ justifyContent: 'space-between' }}>
-        <input className="form-input" placeholder="Search items…" value={search} onChange={(e) => setSearch(e.target.value)} />
+        <div className="gap-8">
+          <input className="form-input" placeholder="Search items…" value={search} onChange={(e) => setSearch(e.target.value)} />
+          <select className="form-select" value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)}>
+            <option value="all">All categories</option>
+            {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+          </select>
+        </div>
         <button className="btn btn-primary" onClick={() => { setEditing(null); setShowModal(true) }}>+ Add Item</button>
       </div>
 
