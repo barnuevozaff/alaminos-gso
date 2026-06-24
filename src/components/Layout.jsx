@@ -18,7 +18,7 @@ export default function Layout({ children }) {
 
   async function handleSignOut() {
     await signOut()
-    navigate('/login')
+    navigate('/admin/login')
   }
 
   const today = new Date().toLocaleDateString('en-US', {
