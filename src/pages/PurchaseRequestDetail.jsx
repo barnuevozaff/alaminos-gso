@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
+import { generatePurchaseRequestPDF } from '../lib/generatePrPdf'
 import Layout from '../components/Layout'
 import StatusBadge from '../components/StatusBadge'
 import PrintPreviewModal from '../components/PrintPreviewModal'
@@ -20,6 +21,7 @@ export default function PurchaseRequestDetail() {
   const [showPrint, setShowPrint] = useState(false)
   const [confirmAction, setConfirmAction] = useState(null) // 'approve' | 'reject' | null
   const [rejectReason, setRejectReason] = useState('')
+  const [generatingPdf, setGeneratingPdf] = useState(false)
 
   useEffect(() => { load() }, [id])
 
@@ -27,11 +29,21 @@ export default function PurchaseRequestDetail() {
     setLoading(true)
     setError('')
     const { data: prData, error: prErr } = await supabase.from('purchase_requests').select('*').eq('id', id).single()
-    const { data: itemsData } = await supabase.from('pr_items').select('*').eq('pr_id', id).order('sort_order')
+    const { data: itemsData } = await supabase.from('pr_items_live').select('*').eq('pr_id', id).order('sort_order')
     if (prErr) setError(prErr.message)
     setPr(prData)
     setItems(itemsData || [])
     setLoading(false)
+  }
+
+  async function handleDownloadPdf() {
+    setGeneratingPdf(true)
+    // Re-fetch items fresh so the PDF always reflects the current Inventory price,
+    // even if pricing changed since this page loaded.
+    const { data: freshItems } = await supabase.from('pr_items_live').select('*').eq('pr_id', id).order('sort_order')
+    const { data: signatories } = await supabase.from('pdf_signatories').select('*').eq('id', 1).maybeSingle()
+    generatePurchaseRequestPDF(pr, freshItems || items, signatories || {})
+    setGeneratingPdf(false)
   }
 
   async function handleApprove() {
@@ -109,6 +121,9 @@ export default function PurchaseRequestDetail() {
         <div className="gap-8">
           {pr.status === 'Draft' && <button className="btn btn-secondary" onClick={() => navigate(`/requests/${id}/edit`)}>Edit</button>}
           <button className="btn btn-secondary" onClick={() => setShowPrint(true)}>🖶 Print</button>
+          <button className="btn btn-secondary" disabled={generatingPdf} onClick={handleDownloadPdf}>
+            {generatingPdf ? 'Generating…' : '⬇ Download PDF'}
+          </button>
           {pr.status === 'Submitted' && (
             <>
               <button className="btn btn-danger" disabled={busy} onClick={() => setConfirmAction('reject')}>✕ Reject</button>
