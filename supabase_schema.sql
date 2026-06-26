@@ -292,12 +292,20 @@ returns void as $$
 declare
   v_pr_number text;
   item record;
+  v_current_qty numeric;
 begin
   for item in
     select pri.inventory_id, pri.quantity, pri.item_description
     from pr_items pri
     where pri.pr_id = p_pr_id and pri.inventory_id is not null
   loop
+    select quantity into v_current_qty from inventory where id = item.inventory_id for update;
+
+    if v_current_qty < item.quantity then
+      raise exception 'Insufficient stock for "%": available %, requested %',
+        item.item_description, v_current_qty, item.quantity;
+    end if;
+
     update inventory
       set quantity = quantity - item.quantity
       where id = item.inventory_id;

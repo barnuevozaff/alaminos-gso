@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
-import { DEPARTMENTS } from '../lib/departments'
+import DepartmentAutocomplete from '../components/DepartmentAutocomplete'
 import ItemAutocomplete from '../components/ItemAutocomplete'
 
 const LOGO = 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0a/Ph_seal_alaminos_laguna.png/120px-Ph_seal_alaminos_laguna.png'
@@ -37,7 +37,7 @@ export default function PublicPurchaseRequestForm() {
 
   function validate() {
     if (!requesterName.trim()) return 'Requester name is required.'
-    if (!department) return 'Please select a department.'
+    if (!department) return 'Please select or enter a department.'
     if (items.length === 0) return 'Add at least one item from inventory.'
     for (const it of items) {
       const qty = Number(it.quantity)
@@ -121,10 +121,7 @@ export default function PublicPurchaseRequestForm() {
             </div>
             <div className="form-group">
               <label className="form-label">Department / Office *</label>
-              <select className="form-select" value={department} onChange={(e) => setDepartment(e.target.value)}>
-                <option value="">Select department</option>
-                {DEPARTMENTS.map((d) => <option key={d} value={d}>{d}</option>)}
-              </select>
+              <DepartmentAutocomplete value={department} onChange={setDepartment} />
             </div>
           </div>
           <div className="form-group">

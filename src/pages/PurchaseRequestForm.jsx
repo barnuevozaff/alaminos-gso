@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
-import { DEPARTMENTS } from '../lib/departments'
 import Layout from '../components/Layout'
+import DepartmentAutocomplete from '../components/DepartmentAutocomplete'
 import ItemAutocomplete from '../components/ItemAutocomplete'
 
 export default function PurchaseRequestForm() {
@@ -151,11 +151,8 @@ export default function PurchaseRequestForm() {
         <div className="form-row">
           <div className="form-group">
             <label className="form-label">Department</label>
-            <select className="form-select" value={form.department} disabled={isLocked}
-              onChange={(e) => setForm({ ...form, department: e.target.value })}>
-              <option value="">Select department</option>
-              {DEPARTMENTS.map((d) => <option key={d} value={d}>{d}</option>)}
-            </select>
+            <DepartmentAutocomplete value={form.department} disabled={isLocked}
+              onChange={(value) => setForm({ ...form, department: value })} />
           </div>
           <div className="form-group">
             <label className="form-label">Requester</label>
