@@ -286,6 +286,14 @@ create table audit_logs (
 -- 11. BUSINESS LOGIC FUNCTIONS
 -- ============================================================
 
+-- Returns true if the current user's profile has role = 'admin'
+create or replace function is_admin()
+returns boolean as $$
+  select exists (
+    select 1 from profiles where id = auth.uid() and role = 'admin'
+  );
+$$ language sql security definer stable;
+
 -- Approve PR: deducts stock for linked inventory items + logs audit + writes stock_movements
 create or replace function approve_purchase_request(p_pr_id uuid, p_user_id uuid)
 returns void as $$
@@ -294,6 +302,10 @@ declare
   item record;
   v_current_qty numeric;
 begin
+  if not is_admin() then
+    raise exception 'Only admins can approve purchase requests';
+  end if;
+
   for item in
     select pri.inventory_id, pri.quantity, pri.item_description
     from pr_items pri
@@ -329,6 +341,10 @@ returns void as $$
 declare
   v_pr_number text;
 begin
+  if not is_admin() then
+    raise exception 'Only admins can reject purchase requests';
+  end if;
+
   update purchase_requests
     set status = 'Rejected', decided_at = now(), decided_by = p_user_id, rejection_reason = p_reason
     where id = p_pr_id
@@ -353,28 +369,66 @@ alter table po_items enable row level security;
 alter table acceptance_inspection_reports enable row level security;
 alter table audit_logs enable row level security;
 
--- All authenticated users can read everything (internal single-org system)
+-- All authenticated users can read profiles/categories/inventory/stock_movements
+-- (view-only for staff on categories/inventory; admin gets full write below)
 create policy "authenticated read profiles" on profiles for select using (auth.role() = 'authenticated');
 create policy "authenticated read categories" on categories for select using (auth.role() = 'authenticated');
 create policy "authenticated read inventory" on inventory for select using (auth.role() = 'authenticated');
 create policy "authenticated read stock_movements" on stock_movements for select using (auth.role() = 'authenticated');
-create policy "authenticated read purchase_requests" on purchase_requests for select using (auth.role() = 'authenticated');
-create policy "authenticated read pr_items" on pr_items for select using (auth.role() = 'authenticated');
-create policy "authenticated read purchase_orders" on purchase_orders for select using (auth.role() = 'authenticated');
-create policy "authenticated read po_items" on po_items for select using (auth.role() = 'authenticated');
-create policy "authenticated read air" on acceptance_inspection_reports for select using (auth.role() = 'authenticated');
-create policy "authenticated read audit_logs" on audit_logs for select using (auth.role() = 'authenticated');
 
--- Authenticated users can write (single internal org; role-specific restriction can be tightened later)
-create policy "authenticated write categories" on categories for all using (auth.role() = 'authenticated');
-create policy "authenticated write inventory" on inventory for all using (auth.role() = 'authenticated');
-create policy "authenticated write stock_movements" on stock_movements for all using (auth.role() = 'authenticated');
-create policy "authenticated write purchase_requests" on purchase_requests for all using (auth.role() = 'authenticated');
-create policy "authenticated write pr_items" on pr_items for all using (auth.role() = 'authenticated');
-create policy "authenticated write purchase_orders" on purchase_orders for all using (auth.role() = 'authenticated');
-create policy "authenticated write po_items" on po_items for all using (auth.role() = 'authenticated');
-create policy "authenticated write air" on acceptance_inspection_reports for all using (auth.role() = 'authenticated');
-create policy "authenticated write audit_logs" on audit_logs for all using (auth.role() = 'authenticated');
+-- Purchase requests: staff see/create only their own; admin sees/manages all
+create policy "read own or admin" on purchase_requests
+  for select using (is_admin() or requester_id = auth.uid());
+create policy "insert own or admin" on purchase_requests
+  for insert with check (is_admin() or requester_id = auth.uid());
+create policy "update own draft or admin" on purchase_requests
+  for update
+  using (is_admin() or (requester_id = auth.uid() and status = 'Draft'))
+  with check (is_admin() or (requester_id = auth.uid() and status in ('Draft', 'Submitted')));
+
+-- PR items: scoped through the parent purchase request's ownership
+create policy "read own pr_items or admin" on pr_items
+  for select using (
+    is_admin() or exists (
+      select 1 from purchase_requests pr
+      where pr.id = pr_items.pr_id and pr.requester_id = auth.uid()
+    )
+  );
+create policy "insert own draft pr_items or admin" on pr_items
+  for insert with check (
+    is_admin() or exists (
+      select 1 from purchase_requests pr
+      where pr.id = pr_items.pr_id and pr.requester_id = auth.uid() and pr.status = 'Draft'
+    )
+  );
+create policy "update own draft pr_items or admin" on pr_items
+  for update using (
+    is_admin() or exists (
+      select 1 from purchase_requests pr
+      where pr.id = pr_items.pr_id and pr.requester_id = auth.uid() and pr.status = 'Draft'
+    )
+  );
+create policy "delete own draft pr_items or admin" on pr_items
+  for delete using (
+    is_admin() or exists (
+      select 1 from purchase_requests pr
+      where pr.id = pr_items.pr_id and pr.requester_id = auth.uid() and pr.status = 'Draft'
+    )
+  );
+
+-- Inventory/categories: staff are view-only (read policy above), admin can write
+create policy "admin write inventory" on inventory for all using (is_admin()) with check (is_admin());
+create policy "admin write categories" on categories for all using (is_admin()) with check (is_admin());
+
+-- Stock movements: admin-only writes (audit trail)
+create policy "admin write stock_movements" on stock_movements for all using (is_admin()) with check (is_admin());
+
+-- Purchase orders / PO items / AIR / audit logs: admin-only, staff have no access at all
+create policy "admin only purchase_orders" on purchase_orders for all using (is_admin()) with check (is_admin());
+create policy "admin only po_items" on po_items for all using (is_admin()) with check (is_admin());
+create policy "admin only air" on acceptance_inspection_reports for all using (is_admin()) with check (is_admin());
+create policy "admin only audit_logs" on audit_logs for all using (is_admin()) with check (is_admin());
+
 create policy "users update own profile" on profiles for update using (auth.uid() = id);
 
 -- ============================================================
