@@ -51,6 +51,11 @@ export default function PurchaseRequestsList() {
 
   async function handleBulkDelete() {
     setDeleting(true)
+    setError('')
+    // Sever any old PO links to these PRs first (from before PO/PR were decoupled) —
+    // this keeps the Purchase Order itself, just clears the now-defunct reference,
+    // so the foreign key no longer blocks deleting the request.
+    await supabase.from('purchase_orders').update({ pr_id: null }).in('pr_id', selectedIds)
     const { error } = await supabase.from('purchase_requests').delete().in('id', selectedIds)
     setDeleting(false)
     setConfirmBulkDelete(false)
