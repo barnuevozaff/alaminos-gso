@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
+import { UNITS } from '../lib/units'
 import Layout from '../components/Layout'
 import ConfirmDialog from '../components/ConfirmDialog'
 
@@ -85,9 +86,9 @@ export default function Inventory() {
                   <td>{item.quantity}</td>
                   <td>₱{Number(item.unit_cost).toFixed(2)}</td>
                   <td>₱{(item.quantity * item.unit_cost).toFixed(2)}</td>
-                  <td>
-                    <button className="icon-btn" onClick={() => { setEditing(item); setShowModal(true) }}>✏️</button>
-                    <button className="icon-btn danger" onClick={() => setDeleteTarget(item)}>🗑</button>
+                  <td className="gap-8">
+                    <button className="btn btn-outline btn-sm" onClick={() => { setEditing(item); setShowModal(true) }}>✏️ Edit</button>
+                    <button className="btn btn-danger btn-sm" onClick={() => setDeleteTarget(item)}>🗑 Delete</button>
                   </td>
                 </tr>
               ))}
@@ -170,7 +171,7 @@ function ItemModal({ item, categories, onClose, onSaved }) {
           <div className="form-group">
             <label className="form-label">Unit</label>
             <select className="form-select" value={unit} onChange={(e) => setUnit(e.target.value)}>
-              {['piece', 'ream', 'box', 'pack', 'bottle', 'unit', 'set', 'roll'].map((u) => <option key={u} value={u}>{u}</option>)}
+              {UNITS.map((u) => <option key={u} value={u}>{u}</option>)}
             </select>
           </div>
         </div>

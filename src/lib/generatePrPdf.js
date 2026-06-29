@@ -1,5 +1,16 @@
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
+import sealLogo from '../assets/alaminos-seal.jpeg'
+
+function loadImageAsDataURL(url) {
+  return fetch(url)
+    .then((res) => res.blob())
+    .then((blob) => new Promise((resolve) => {
+      const reader = new FileReader()
+      reader.onloadend = () => resolve(reader.result)
+      reader.readAsDataURL(blob)
+    }))
+}
 
 /**
  * Generates a Purchase Request PDF matching the official LGU template:
@@ -11,7 +22,7 @@ import autoTable from 'jspdf-autotable'
  * @param {array} items - pr_items_live rows (already has live Inventory pricing)
  * @param {object} signatories - { municipal_mayor, general_services_officer, municipal_treasurer }
  */
-export function generatePurchaseRequestPDF(pr, items, signatories = {}) {
+export async function generatePurchaseRequestPDF(pr, items, signatories = {}) {
   const doc = new jsPDF({ unit: 'pt', format: 'letter' })
   const pageWidth = doc.internal.pageSize.getWidth()
   const margin = 40
@@ -19,6 +30,14 @@ export function generatePurchaseRequestPDF(pr, items, signatories = {}) {
   let y = 50
 
   // ---- Header ----
+  try {
+    const logoDataUrl = await loadImageAsDataURL(sealLogo)
+    doc.addImage(logoDataUrl, 'JPEG', pageWidth / 2 - 24, y - 18, 48, 48)
+    y += 40
+  } catch {
+    // if the logo fails to load, continue without it rather than failing the whole PDF
+  }
+
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(14)
   doc.text('PURCHASE REQUEST', pageWidth / 2, y, { align: 'center' })
@@ -42,14 +61,17 @@ export function generatePurchaseRequestPDF(pr, items, signatories = {}) {
   doc.text(`FPP: __________________`, leftX, y)
   y += 20
 
-  // ---- Items table ----
-  const rows = items.map((it, idx) => [
-    String(idx + 1),
-    it.unit || '',
-    it.item_description || '',
-    String(it.quantity),
-    Number(it.unit_cost).toFixed(2),
-    Number(it.total_cost ?? it.quantity * it.unit_cost).toFixed(2),
+  // ---- Items table (padded with blank rows to fill the page, same as the on-screen print preview) ----
+  const paddedItems = [...items]
+  while (paddedItems.length < 10) paddedItems.push(null)
+
+  const rows = paddedItems.map((it, idx) => [
+    it ? String(idx + 1) : '',
+    it?.unit || '',
+    it?.item_description || '',
+    it ? String(it.quantity) : '',
+    it ? Number(it.unit_cost).toFixed(2) : '',
+    it ? Number(it.total_cost ?? it.quantity * it.unit_cost).toFixed(2) : '',
   ])
 
   const grandTotal = items.reduce((sum, it) => sum + Number(it.total_cost ?? it.quantity * it.unit_cost), 0)
@@ -74,12 +96,7 @@ export function generatePurchaseRequestPDF(pr, items, signatories = {}) {
     },
   })
 
-  let finalY = doc.lastAutoTable.finalY + 20
-
-  // ---- Purpose ----
-  doc.setFontSize(10)
-  doc.text(`Purpose: ${pr.purpose || '—'}`, margin, finalY, { maxWidth: pageWidth - margin * 2 })
-  finalY += 40
+  let finalY = doc.lastAutoTable.finalY + 50
 
   // ---- Signatory block (Requested by / Cash Availability / Approved by) ----
   const colWidth = (pageWidth - margin * 2) / 3

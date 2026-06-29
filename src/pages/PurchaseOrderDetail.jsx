@@ -56,7 +56,7 @@ export default function PurchaseOrderDetail() {
       supplier: po.supplier, address: po.address, tin: po.tin, contact_number: po.contact_number,
       mode_of_procurement: po.mode_of_procurement, delivery_term: po.delivery_term,
       date_of_delivery: po.date_of_delivery || null, payment_term: po.payment_term,
-      bac_resolution_no: po.bac_resolution_no,
+      pr_numbers: po.pr_numbers, mayor_name: po.mayor_name || null, bac_secretary_name: po.bac_secretary_name || null,
     }).eq('id', id)
 
     if (updErr) { setError(updErr.message); setSaving(false); return }
@@ -113,7 +113,7 @@ export default function PurchaseOrderDetail() {
             <StatusBadge status={po.status} />
           </div>
           <p className="page-subtitle" style={{ marginTop: 4 }}>
-            {pr ? `Linked to ${pr.pr_number}` : 'No linked purchase request'}
+            {po.pr_numbers || pr?.pr_number ? `PR No./s: ${po.pr_numbers || pr.pr_number}` : 'No PR No./s on file'}
           </p>
         </div>
         <div className="gap-8">
@@ -156,13 +156,7 @@ export default function PurchaseOrderDetail() {
         <div className="form-row">
           <div className="form-group">
             <label className="form-label">Mode of Procurement</label>
-            <select className="form-select" disabled={isLocked} value={po.mode_of_procurement || ''} onChange={(e) => updateField('mode_of_procurement', e.target.value)}>
-              <option value="">Select…</option>
-              <option>Shopping</option>
-              <option>Small Value Procurement</option>
-              <option>Public Bidding</option>
-              <option>Negotiated Procurement</option>
-            </select>
+            <input className="form-input" disabled={isLocked} value={po.mode_of_procurement || ''} onChange={(e) => updateField('mode_of_procurement', e.target.value)} />
           </div>
           <div className="form-group">
             <label className="form-label">Payment Term</label>
@@ -171,17 +165,27 @@ export default function PurchaseOrderDetail() {
         </div>
         <div className="form-row">
           <div className="form-group">
+            <label className="form-label">PR No./s</label>
+            <input className="form-input" disabled={isLocked} placeholder="e.g. PR-2026-00011, PR-2026-00012" value={po.pr_numbers || ''} onChange={(e) => updateField('pr_numbers', e.target.value)} />
+          </div>
+          <div className="form-group">
             <label className="form-label">Delivery Term</label>
             <input className="form-input" disabled={isLocked} value={po.delivery_term || ''} onChange={(e) => updateField('delivery_term', e.target.value)} />
           </div>
+        </div>
+        <div className="form-row">
           <div className="form-group">
             <label className="form-label">Date of Delivery</label>
             <input type="date" className="form-input" disabled={isLocked} value={po.date_of_delivery || ''} onChange={(e) => updateField('date_of_delivery', e.target.value)} />
           </div>
+          <div className="form-group">
+            <label className="form-label">Municipal Mayor</label>
+            <input className="form-input" disabled={isLocked} value={po.mayor_name || ''} onChange={(e) => updateField('mayor_name', e.target.value)} />
+          </div>
         </div>
         <div className="form-group">
-          <label className="form-label">BAC Resolution No. (if Negotiated Purchase)</label>
-          <input className="form-input" disabled={isLocked} value={po.bac_resolution_no || ''} onChange={(e) => updateField('bac_resolution_no', e.target.value)} />
+          <label className="form-label">BAC Secretary</label>
+          <input className="form-input" disabled={isLocked} value={po.bac_secretary_name || ''} onChange={(e) => updateField('bac_secretary_name', e.target.value)} />
         </div>
       </div>
 
@@ -218,7 +222,7 @@ export default function PurchaseOrderDetail() {
         </div>
       )}
 
-      {showPrint && <PrintPOModal po={po} items={items} prNumber={pr?.pr_number} onClose={() => setShowPrint(false)} />}
+      {showPrint && <PrintPOModal po={po} items={items} prNumber={po.pr_numbers || pr?.pr_number} onClose={() => setShowPrint(false)} />}
 
       {confirmIssue && (
         <ConfirmDialog

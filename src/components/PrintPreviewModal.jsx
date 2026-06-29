@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import sealLogo from '../assets/alaminos-seal.jpeg'
 
 export default function PrintPreviewModal({ pr, items, onClose }) {
   const [gso, setGso] = useState('FLORENTINO J. DESTACAMENTO')
@@ -36,6 +37,7 @@ export default function PrintPreviewModal({ pr, items, onClose }) {
 
         <div className="print-sheet">
           <div className="print-header-center">
+            <img src={sealLogo} alt="" style={{ width: 64, height: 64, marginBottom: 6 }} />
             <div>Republic of the Philippines</div>
             <div style={{ fontWeight: 700, fontSize: 15 }}>MUNICIPALITY OF ALAMINOS</div>
             <div>Province of Laguna</div>
@@ -50,7 +52,7 @@ export default function PrintPreviewModal({ pr, items, onClose }) {
             <div><strong>PR No.:</strong> {pr.pr_number}</div>
             <div><strong>Section:</strong> ____________________</div>
             <div><strong>Date:</strong> {new Date(pr.pr_date).toLocaleDateString()}</div>
-            <div><strong>Requester:</strong> {pr.requester_name}</div>
+            <div></div>
             <div><strong>FPP:</strong> ____________________</div>
           </div>
 
@@ -75,8 +77,6 @@ export default function PrintPreviewModal({ pr, items, onClose }) {
               </tr>
             </tbody>
           </table>
-
-          <div style={{ marginTop: 10 }}><strong>Purpose:</strong> {pr.purpose || '—'}</div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 20, marginTop: 30 }}>
             <div className="signature-line">{gso}<br /><span className="text-muted">General Services Officer</span></div>

@@ -42,7 +42,7 @@ export default function PurchaseRequestDetail() {
     // even if pricing changed since this page loaded.
     const { data: freshItems } = await supabase.from('pr_items_live').select('*').eq('pr_id', id).order('sort_order')
     const { data: signatories } = await supabase.from('pdf_signatories').select('*').eq('id', 1).maybeSingle()
-    generatePurchaseRequestPDF(pr, freshItems || items, signatories || {})
+    await generatePurchaseRequestPDF(pr, freshItems || items, signatories || {})
     setGeneratingPdf(false)
   }
 
@@ -64,40 +64,6 @@ export default function PurchaseRequestDetail() {
     setConfirmAction(null)
     if (error) { setError(error.message); return }
     load()
-  }
-
-  async function handleGeneratePO() {
-    setBusy(true)
-    const { data: existingPO } = await supabase.from('purchase_orders').select('id').eq('pr_id', id).maybeSingle()
-    if (existingPO) {
-      navigate(`/admin/purchase-orders/${existingPO.id}`)
-      return
-    }
-    const { data: newPO, error } = await supabase
-      .from('purchase_orders')
-      .insert({ pr_id: id, created_by: profile?.id })
-      .select()
-      .single()
-    setBusy(false)
-    if (error) { setError(error.message); return }
-
-    // copy PR items into PO items as a starting point
-    const poItemRows = items.map((it, idx) => ({
-      po_id: newPO.id,
-      stock_property_no: it.item_code,
-      unit: it.unit,
-      description: it.item_description,
-      quantity: it.quantity,
-      unit_cost: it.unit_cost,
-      sort_order: idx,
-    }))
-    if (poItemRows.length) await supabase.from('po_items').insert(poItemRows)
-
-    await supabase.from('audit_logs').insert({
-      action: 'PO_CREATED', description: `Created ${newPO.po_number} from ${pr.pr_number}`, performed_by: profile?.id,
-    })
-
-    navigate(`/admin/purchase-orders/${newPO.id}`)
   }
 
   if (loading) return <Layout><div className="state-box"><div className="spinner"></div>Loading request…</div></Layout>
@@ -129,9 +95,6 @@ export default function PurchaseRequestDetail() {
               <button className="btn btn-danger" disabled={busy} onClick={() => setConfirmAction('reject')}>✕ Reject</button>
               <button className="btn btn-success" disabled={busy} onClick={() => setConfirmAction('approve')}>✓ Approve</button>
             </>
-          )}
-          {pr.status === 'Approved' && (
-            <button className="btn btn-primary" disabled={busy} onClick={handleGeneratePO}>Generate PO</button>
           )}
         </div>
       </div>

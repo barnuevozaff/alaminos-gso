@@ -175,6 +175,7 @@ create table purchase_orders (
   id uuid primary key default gen_random_uuid(),
   po_number text unique,
   pr_id uuid references purchase_requests(id),
+  pr_numbers text,
   po_date date not null default current_date,
   supplier text,
   address text default 'ALAMINOS, LAGUNA',
@@ -385,6 +386,8 @@ create policy "update own draft or admin" on purchase_requests
   for update
   using (is_admin() or (requester_id = auth.uid() and status = 'Draft'))
   with check (is_admin() or (requester_id = auth.uid() and status in ('Draft', 'Submitted')));
+create policy "admin delete purchase_requests" on purchase_requests
+  for delete using (is_admin());
 
 -- PR items: scoped through the parent purchase request's ownership
 create policy "read own pr_items or admin" on pr_items

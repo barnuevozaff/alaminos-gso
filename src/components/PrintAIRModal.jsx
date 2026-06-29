@@ -1,3 +1,5 @@
+import sealLogo from '../assets/alaminos-seal.jpeg'
+
 export default function PrintAIRModal({ air, po, items, onClose }) {
   return (
     <div className="modal-overlay">
@@ -7,6 +9,7 @@ export default function PrintAIRModal({ air, po, items, onClose }) {
 
         <div className="print-sheet">
           <div className="print-header-center">
+            <img src={sealLogo} alt="" style={{ width: 64, height: 64, marginBottom: 6 }} />
             <div className="doc-title" style={{ fontSize: 16 }}>ACCEPTANCE AND INSPECTION REPORT</div>
           </div>
 

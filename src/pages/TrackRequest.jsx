@@ -3,8 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { generatePurchaseRequestPDF } from '../lib/generatePrPdf'
 import StatusBadge from '../components/StatusBadge'
-
-const LOGO = 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0a/Ph_seal_alaminos_laguna.png/120px-Ph_seal_alaminos_laguna.png'
+import LOGO from '../assets/alaminos-seal.jpeg'
 
 export default function TrackRequest() {
   const [params] = useSearchParams()
@@ -46,7 +45,7 @@ export default function TrackRequest() {
   async function handleDownloadPdf() {
     setDownloadingPdf(true)
     const { data: signatories } = await supabase.from('pdf_signatories').select('*').eq('id', 1).maybeSingle()
-    generatePurchaseRequestPDF(result, items, signatories || {})
+    await generatePurchaseRequestPDF(result, items, signatories || {})
     setDownloadingPdf(false)
   }
 

@@ -14,6 +14,7 @@ import Categories from './pages/Categories'
 import AuditLogs from './pages/AuditLogs'
 import Settings from './pages/Settings'
 import PurchaseOrdersList from './pages/PurchaseOrdersList'
+import PurchaseOrderForm from './pages/PurchaseOrderForm'
 import PurchaseOrderDetail from './pages/PurchaseOrderDetail'
 import AIRDetail from './pages/AIRDetail'
 
@@ -49,6 +50,7 @@ export default function App() {
       <Route path="/admin/inventory" element={<PrivateRoute><Inventory /></PrivateRoute>} />
       <Route path="/admin/categories" element={<PrivateRoute><Categories /></PrivateRoute>} />
       <Route path="/admin/purchase-orders" element={<PrivateRoute><PurchaseOrdersList /></PrivateRoute>} />
+      <Route path="/admin/purchase-orders/new" element={<PrivateRoute><PurchaseOrderForm /></PrivateRoute>} />
       <Route path="/admin/purchase-orders/:id" element={<PrivateRoute><PurchaseOrderDetail /></PrivateRoute>} />
       <Route path="/admin/air/:id" element={<PrivateRoute><AIRDetail /></PrivateRoute>} />
       <Route path="/admin/audit-logs" element={<PrivateRoute><AuditLogs /></PrivateRoute>} />

@@ -1,3 +1,5 @@
+import sealLogo from '../assets/alaminos-seal.jpeg'
+
 function numberToWords(num) {
   const ones = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten',
     'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen']
@@ -44,6 +46,7 @@ export default function PrintPOModal({ po, items, prNumber, onClose }) {
 
         <div className="print-sheet">
           <div className="print-header-center">
+            <img src={sealLogo} alt="" style={{ width: 64, height: 64, marginBottom: 6 }} />
             <div style={{ fontWeight: 700, fontSize: 16 }}>PURCHASE ORDER</div>
             <div>Municipality of Alaminos, Laguna</div>
           </div>
@@ -56,7 +59,7 @@ export default function PrintPOModal({ po, items, prNumber, onClose }) {
             <div><strong>TIN:</strong> {po.tin || '—'}</div>
             <div><strong>Mode of Procurement:</strong> {po.mode_of_procurement || '—'}</div>
             <div><strong>Contact Number:</strong> {po.contact_number || '—'}</div>
-            <div><strong>PR No./s:</strong> {prNumber || '—'}</div>
+            <div><strong>PR No./s:</strong> {prNumber}</div>
           </div>
 
           <p>Gentlemen:</p>

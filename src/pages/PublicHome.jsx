@@ -1,6 +1,5 @@
 import { Link } from 'react-router-dom'
-
-const LOGO = 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0a/Ph_seal_alaminos_laguna.png/120px-Ph_seal_alaminos_laguna.png'
+import LOGO from '../assets/alaminos-seal.jpeg'
 
 export default function PublicHome() {
   return (

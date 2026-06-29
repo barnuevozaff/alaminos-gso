@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import Layout from '../components/Layout'
 import StatusBadge from '../components/StatusBadge'
+import ConfirmDialog from '../components/ConfirmDialog'
 
 export default function PurchaseRequestsList() {
   const [requests, setRequests] = useState([])
@@ -10,6 +11,9 @@ export default function PurchaseRequestsList() {
   const [error, setError] = useState('')
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('All')
+  const [selectedIds, setSelectedIds] = useState([])
+  const [confirmBulkDelete, setConfirmBulkDelete] = useState(false)
+  const [deleting, setDeleting] = useState(false)
   const navigate = useNavigate()
 
   useEffect(() => { load() }, [])
@@ -23,6 +27,7 @@ export default function PurchaseRequestsList() {
       .order('created_at', { ascending: false })
     if (error) setError(error.message)
     setRequests(data || [])
+    setSelectedIds([])
     setLoading(false)
   }
 
@@ -34,6 +39,25 @@ export default function PurchaseRequestsList() {
     return matchesSearch && matchesStatus
   })
 
+  const allSelected = filtered.length > 0 && selectedIds.length === filtered.length
+
+  function toggleSelect(id) {
+    setSelectedIds((prev) => prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id])
+  }
+
+  function toggleSelectAll() {
+    setSelectedIds(allSelected ? [] : filtered.map((r) => r.id))
+  }
+
+  async function handleBulkDelete() {
+    setDeleting(true)
+    const { error } = await supabase.from('purchase_requests').delete().in('id', selectedIds)
+    setDeleting(false)
+    setConfirmBulkDelete(false)
+    if (error) { setError(error.message); return }
+    load()
+  }
+
   return (
     <Layout>
       <div className="flex-between">
@@ -44,23 +68,30 @@ export default function PurchaseRequestsList() {
         <button className="btn btn-primary" onClick={() => navigate('/admin/requests/new')}>+ New Request</button>
       </div>
 
-      <div className="toolbar">
-        <input
-          type="text"
-          className="form-input"
-          placeholder="Search PR # or requester…"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-        <select className="form-select" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
-          <option value="All">All statuses</option>
-          <option value="Draft">Draft</option>
-          <option value="Submitted">Submitted</option>
-          <option value="Approved">Approved</option>
-          <option value="Rejected">Rejected</option>
-          <option value="Completed">Completed</option>
-        </select>
-        <button className="btn btn-secondary" onClick={load}>Refresh</button>
+      <div className="toolbar" style={{ justifyContent: 'space-between' }}>
+        <div className="gap-8">
+          <input
+            type="text"
+            className="form-input"
+            placeholder="Search PR # or requester…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+          <select className="form-select" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+            <option value="All">All statuses</option>
+            <option value="Draft">Draft</option>
+            <option value="Submitted">Submitted</option>
+            <option value="Approved">Approved</option>
+            <option value="Rejected">Rejected</option>
+            <option value="Completed">Completed</option>
+          </select>
+          <button className="btn btn-secondary" onClick={load}>Refresh</button>
+        </div>
+        {selectedIds.length > 0 && (
+          <button className="btn btn-danger btn-sm" onClick={() => setConfirmBulkDelete(true)}>
+            🗑 Delete Selected ({selectedIds.length})
+          </button>
+        )}
       </div>
 
       {error && <div className="alert alert-error">{error}</div>}
@@ -77,6 +108,7 @@ export default function PurchaseRequestsList() {
           <table className="data-table">
             <thead>
               <tr>
+                <th><input type="checkbox" checked={allSelected} onChange={toggleSelectAll} /></th>
                 <th>PR Number</th>
                 <th>Date</th>
                 <th>Requester</th>
@@ -87,6 +119,7 @@ export default function PurchaseRequestsList() {
             <tbody>
               {filtered.map((r) => (
                 <tr key={r.id}>
+                  <td><input type="checkbox" checked={selectedIds.includes(r.id)} onChange={() => toggleSelect(r.id)} /></td>
                   <td><strong>{r.pr_number}</strong></td>
                   <td>{new Date(r.pr_date).toLocaleDateString()}</td>
                   <td>{r.requester_name}</td>
@@ -100,6 +133,18 @@ export default function PurchaseRequestsList() {
           </table>
         )}
       </div>
+
+      {confirmBulkDelete && (
+        <ConfirmDialog
+          title={`Delete ${selectedIds.length} purchase request${selectedIds.length > 1 ? 's' : ''}?`}
+          message="This permanently removes the selected requests and their items, including any that are Approved or Rejected — their audit history (who requested, who decided) will be lost. This cannot be undone."
+          confirmLabel="Delete"
+          confirmClass="btn-danger"
+          busy={deleting}
+          onConfirm={handleBulkDelete}
+          onCancel={() => setConfirmBulkDelete(false)}
+        />
+      )}
     </Layout>
   )
 }
