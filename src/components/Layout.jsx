@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
@@ -7,6 +7,7 @@ import {
   faBars, faXmark,
 } from '@fortawesome/free-solid-svg-icons'
 import { useAuth } from '../context/AuthContext'
+import { useToast } from '../context/ToastContext'
 import LOGO from '../assets/alaminos-seal.png'
 
 const NAV_ITEMS = [
@@ -22,7 +23,23 @@ const NAV_ITEMS = [
 export default function Layout({ children }) {
   const { profile, signOut } = useAuth()
   const navigate = useNavigate()
+  const toast = useToast()
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [isOnline, setIsOnline] = useState(navigator.onLine)
+
+  useEffect(() => {
+    function handleOffline() { setIsOnline(false) }
+    function handleOnline() {
+      setIsOnline(true)
+      toast.success('Back online. You\'re connected again.')
+    }
+    window.addEventListener('offline', handleOffline)
+    window.addEventListener('online', handleOnline)
+    return () => {
+      window.removeEventListener('offline', handleOffline)
+      window.removeEventListener('online', handleOnline)
+    }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function handleSignOut() {
     await signOut()
@@ -88,6 +105,17 @@ export default function Layout({ children }) {
           </div>
           <div className="topbar-date">{today}</div>
         </div>
+        {!isOnline && (
+          <div style={{
+            background: '#92400e', color: '#fff',
+            padding: '10px 20px', textAlign: 'center',
+            fontSize: 13, fontWeight: 500,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+          }}>
+            <span>⚡</span>
+            You are offline — changes will not be saved until your connection is restored.
+          </div>
+        )}
         <div className="page-content">
           {children}
         </div>

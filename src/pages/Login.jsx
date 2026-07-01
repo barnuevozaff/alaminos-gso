@@ -1,9 +1,8 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faEye, faEyeSlash, faTriangleExclamation, faShieldHalved } from '@fortawesome/free-solid-svg-icons'
+import { faEye, faEyeSlash, faTriangleExclamation } from '@fortawesome/free-solid-svg-icons'
 import { useAuth } from '../context/AuthContext'
-import { supabase } from '../lib/supabase'
 import LOGO from '../assets/alaminos-seal.png'
 
 export default function Login() {
@@ -13,15 +12,6 @@ export default function Login() {
   const [capsLock, setCapsLock] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-
-  // MFA step 2
-  const [step, setStep] = useState('credentials') // 'credentials' | 'mfa'
-  const [mfaCode, setMfaCode] = useState('')
-  const [mfaFactorId, setMfaFactorId] = useState(null)
-  const [mfaChallengeId, setMfaChallengeId] = useState(null)
-  const [mfaError, setMfaError] = useState('')
-  const [mfaVerifying, setMfaVerifying] = useState(false)
-
   const { signIn, sessionExpired } = useAuth()
   const navigate = useNavigate()
 
@@ -29,95 +19,19 @@ export default function Login() {
     e.preventDefault()
     setError('')
     setLoading(true)
-    const { error: signInErr } = await signIn(email, password)
-    if (signInErr) {
-      setLoading(false)
-      setError('Invalid email or password.')
-      return
-    }
-
-    // Check if MFA challenge is required
-    const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel()
-    if (aal?.nextLevel === 'aal2' && aal?.currentLevel !== 'aal2') {
-      const { data: factors } = await supabase.auth.mfa.listFactors()
-      const totp = factors?.totp?.[0]
-      if (totp) {
-        const { data: challenge } = await supabase.auth.mfa.challenge({ factorId: totp.id })
-        setMfaFactorId(totp.id)
-        setMfaChallengeId(challenge.id)
-        setLoading(false)
-        setStep('mfa')
-        return
-      }
-    }
-
+    const { error } = await signIn(email, password)
     setLoading(false)
-    navigate('/admin/dashboard')
-  }
-
-  async function handleMfaVerify(e) {
-    e.preventDefault()
-    if (!mfaCode.trim()) { setMfaError('Enter your 6-digit code.'); return }
-    setMfaVerifying(true)
-    setMfaError('')
-    const { error: verifyErr } = await supabase.auth.mfa.verify({
-      factorId: mfaFactorId,
-      challengeId: mfaChallengeId,
-      code: mfaCode.trim(),
-    })
-    setMfaVerifying(false)
-    if (verifyErr) { setMfaError('Incorrect code. Try again.'); return }
-    navigate('/admin/dashboard')
+    if (error) {
+      setError('Invalid email or password.')
+    } else {
+      navigate('/admin/dashboard')
+    }
   }
 
   function handleKeyEvent(e) {
     setCapsLock(e.getModifierState('CapsLock'))
   }
 
-  // ── MFA Step 2 screen ──
-  if (step === 'mfa') {
-    return (
-      <div className="login-wrap">
-        <div className="login-card">
-          <div style={{ width: 56, height: 56, borderRadius: 16, background: 'rgba(122,30,42,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
-            <FontAwesomeIcon icon={faShieldHalved} style={{ fontSize: 26, color: 'var(--maroon)' }} />
-          </div>
-          <h1 style={{ fontSize: 20 }}>Two-Factor Authentication</h1>
-          <p className="sub">Open your authenticator app and enter the 6-digit code.</p>
-
-          {mfaError && <div className="alert alert-error">{mfaError}</div>}
-
-          <form onSubmit={handleMfaVerify}>
-            <div className="form-group">
-              <label className="form-label">Authentication Code</label>
-              <input
-                className="form-input"
-                style={{ textAlign: 'center', fontSize: 24, letterSpacing: 8, fontWeight: 700 }}
-                value={mfaCode}
-                onChange={(e) => setMfaCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                placeholder="000000"
-                maxLength={6}
-                autoFocus
-                inputMode="numeric"
-              />
-            </div>
-            <button type="submit" className="btn btn-primary" style={{ width: '100%', justifyContent: 'center' }} disabled={mfaVerifying}>
-              {mfaVerifying ? 'Verifying…' : 'Verify'}
-            </button>
-          </form>
-
-          <button
-            onClick={() => { setStep('credentials'); setMfaCode(''); setMfaError('') }}
-            style={{ marginTop: 14, background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: 13, cursor: 'pointer', textDecoration: 'underline' }}
-          >
-            ← Back to login
-          </button>
-        </div>
-      </div>
-    )
-  }
-
-  // ── Step 1: Credentials ──
   return (
     <div className="login-wrap">
       <div className="login-card">
