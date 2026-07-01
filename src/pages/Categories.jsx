@@ -73,7 +73,7 @@ export default function Categories() {
           <div className="state-box"><div className="spinner"></div>Loading categories…</div>
         ) : (
           <table className="data-table">
-            <thead><tr><th>Name</th><th>Actions</th></tr></thead>
+            <thead><tr><th style={{ width: '100%' }}>Name</th><th style={{ whiteSpace: 'nowrap' }}>Actions</th></tr></thead>
             <tbody>
               {categories.map((c) => (
                 <tr key={c.id}>
