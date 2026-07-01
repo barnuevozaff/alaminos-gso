@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons'
+import { faMagnifyingGlass, faHouse } from '@fortawesome/free-solid-svg-icons'
 import { supabase } from '../lib/supabase'
 import { generatePurchaseRequestPDF } from '../lib/generatePrPdf'
 import StatusBadge from '../components/StatusBadge'
@@ -62,7 +62,9 @@ export default function TrackRequest() {
             <div className="sys-name" style={{ fontSize: 12, color: 'rgba(255,255,255,0.75)' }}>Purchase Request &amp; Inventory Management System</div>
           </div>
         </div>
-        <Link to="/" className="btn btn-secondary" style={{ flexShrink: 0 }}>← Home</Link>
+        <Link to="/" className="btn" style={{ flexShrink: 0, background: 'rgba(255,255,255,0.15)', color: '#fff', border: '1px solid rgba(255,255,255,0.35)', backdropFilter: 'blur(4px)', fontWeight: 600 }}>
+          <FontAwesomeIcon icon={faHouse} style={{ marginRight: 7 }} />Home
+        </Link>
       </div>
 
       <div className="page-content" style={{ maxWidth: 700, margin: '0 auto' }}>

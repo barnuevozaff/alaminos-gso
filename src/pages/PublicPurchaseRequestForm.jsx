@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faTrash } from '@fortawesome/free-solid-svg-icons'
+import { faTrash, faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons'
 import { supabase } from '../lib/supabase'
 import DepartmentAutocomplete from '../components/DepartmentAutocomplete'
 import ItemAutocomplete from '../components/ItemAutocomplete'
@@ -102,7 +102,9 @@ export default function PublicPurchaseRequestForm() {
             <div className="sys-name" style={{ fontSize: 12, color: 'rgba(255,255,255,0.75)' }}>Purchase Request &amp; Inventory Management System</div>
           </div>
         </div>
-        <Link to="/track-request" className="btn btn-secondary" style={{ flexShrink: 0 }}>Track a Request</Link>
+        <Link to="/track-request" className="btn" style={{ flexShrink: 0, background: 'rgba(255,255,255,0.15)', color: '#fff', border: '1px solid rgba(255,255,255,0.35)', backdropFilter: 'blur(4px)', fontWeight: 600 }}>
+          <FontAwesomeIcon icon={faMagnifyingGlass} style={{ marginRight: 7 }} />Track a Request
+        </Link>
       </div>
 
       <div className="page-content" style={{ maxWidth: 900, margin: '0 auto' }}>
