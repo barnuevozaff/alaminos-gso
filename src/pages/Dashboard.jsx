@@ -152,7 +152,7 @@ export default function Dashboard() {
           <div className="stats-grid" style={{ marginBottom: 28 }}>
             <StatCard navigate={navigate} accent="gold"   icon={faCalendarDay}      label="Requests Today"   value={stats.requestsToday} to="/admin/requests" />
             <StatCard navigate={navigate} accent="maroon" icon={faBoxOpen}          label="Inventory Items"  value={stats.invItems}      to="/admin/inventory" />
-            <StatCard navigate={navigate} accent="red"    icon={faTriangleExclamation} label="Low Stock (≤10)" value={stats.lowStock}   to="/admin/inventory" sub="Needs restocking" />
+            <StatCard navigate={navigate} accent="red"    icon={faTriangleExclamation} label="Low Stock (≤10)" value={stats.lowStock}   to="/admin/inventory?filter=lowstock" sub="Needs restocking" />
             <StatCard navigate={navigate} accent="maroon" icon={faFileInvoiceDollar} label="Purchase Orders" value={stats.poCount}       to="/admin/purchase-orders" />
           </div>
 

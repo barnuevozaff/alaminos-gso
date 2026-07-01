@@ -1,5 +1,6 @@
 import { fmt } from '../lib/fmt.js'
 import { useEffect, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faTrash, faPenToSquare, faPlus, faXmark, faFileArrowUp } from '@fortawesome/free-solid-svg-icons'
 import { supabase } from '../lib/supabase'
@@ -14,7 +15,10 @@ export default function Inventory() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [search, setSearch] = useState('')
-  const [categoryFilter, setCategoryFilter] = useState('all')
+  const [searchParams] = useSearchParams()
+  const [categoryFilter, setCategoryFilter] = useState(
+    searchParams.get('filter') === 'lowstock' ? '__lowstock__' : 'all'
+  )
   const [showModal, setShowModal] = useState(false)
   const [showImport, setShowImport] = useState(false)
   const [editing, setEditing] = useState(null)
