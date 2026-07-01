@@ -4,7 +4,7 @@ import { faCamera, faFileArrowUp, faXmark, faPlus, faSpinner, faCircleCheck } fr
 import { supabase } from '../lib/supabase'
 import { UNITS } from '../lib/units'
 
-// ── Known unit keywords for parser ────────────────────────
+// ── Known unit keywords ───────────────────────────────────
 const UNIT_WORDS = [
   'piece', 'pieces', 'pcs', 'pc',
   'box', 'boxes',
@@ -27,8 +27,9 @@ const UNIT_WORDS = [
   'pad', 'pads',
   'tablet', 'tablets',
   'bundle', 'bundles',
-  'ream',
 ]
+
+const UNIT_PATTERN = new RegExp(`\\b(${UNIT_WORDS.join('|')})s?\\b`, 'i')
 
 // ── OCR helpers ───────────────────────────────────────────
 async function runOCR(fileOrBlob, onProgress) {
@@ -73,20 +74,30 @@ async function pdfToImageBlob(file) {
   return new Promise((res) => canvas.toBlob(res, 'image/png'))
 }
 
-// ── Text parser ────────────────────────────────────────────
-const UNIT_PATTERN = new RegExp(`\\b(${UNIT_WORDS.join('|')})s?\\b`, 'i')
-
+// ── Text parser — detects section headers as categories ───
 function parseInventoryText(raw) {
   const items = []
   const lines = raw.split('\n').map((l) => l.trim()).filter((l) => l.length > 2)
+  let currentCategory = ''
 
   for (const line of lines) {
-    // Skip obvious headers/footers
-    if (/^(item\s*(?:description|name)?|description|qty|quantity|unit\s*cost|amount|total|no\.?|sl\.?\s*no|#|price|cost)\b/i.test(line)) continue
+    // Detect section header: ALL CAPS line, no price/qty pattern, short-ish
+    const isHeader =
+      /^[A-Z][A-Z\s&\/\-,()]+:?\s*$/.test(line) &&
+      line.length >= 4 &&
+      line.length <= 60 &&
+      !/\d/.test(line)
+    if (isHeader) {
+      currentCategory = line.replace(/:$/, '').trim()
+      continue
+    }
+
+    // Skip obvious table headers/footers
+    if (/^(item\s*(?:description|name)?|description|qty|quantity|unit\s*cost|amount|total\s*(?:cost|amount)?|no\.?|sl\.?\s*no|#|price|cost|unit)\s*$/i.test(line)) continue
     if (/^\d{1,2}$/.test(line)) continue
     if (/^[-=_]{3,}$/.test(line)) continue
 
-    // Extract price (₱ or number with 2 decimals or large number at end)
+    // Extract price
     const priceMatch =
       line.match(/[₱P]\s*([\d,]+(?:\.\d+)?)/) ||
       line.match(/\b([\d,]+\.\d{2})\s*$/) ||
@@ -97,7 +108,7 @@ function parseInventoryText(raw) {
     const unitMatch = line.match(UNIT_PATTERN)
     const unit = unitMatch ? unitMatch[1].toLowerCase() : 'piece'
 
-    // Extract quantity — number right before a known unit, or standalone small number
+    // Extract quantity
     const qtyBeforeUnit = new RegExp(`(\\d+)\\s*(?:${UNIT_WORDS.join('|')})s?\\b`, 'i').exec(line)
     const qtyStandalone = !qtyBeforeUnit && /\b(\d{1,4})\b/.exec(line)
     let quantity = 1
@@ -106,18 +117,18 @@ function parseInventoryText(raw) {
 
     // Clean item name
     let name = line
-      .replace(/[₱P]\s*[\d,]+(?:\.\d+)?/g, '')                          // prices with ₱
-      .replace(new RegExp(`\\b\\d+\\s*(?:${UNIT_WORDS.join('|')})s?\\b`, 'gi'), '') // qty+unit
-      .replace(/\b[\d,]+\.\d{2}\b/g, '')                                 // bare decimals
+      .replace(/[₱P]\s*[\d,]+(?:\.\d+)?/g, '')
+      .replace(new RegExp(`\\b\\d+\\s*(?:${UNIT_WORDS.join('|')})s?\\b`, 'gi'), '')
+      .replace(/\b[\d,]+\.\d{2}\b/g, '')
       .replace(/[-–]\s*\d+\s+/g, '')
       .replace(/\|\s*[\d.]+\s*\|?/g, '')
-      .replace(/^\d+[\.\)]\s*/, '')                                       // list numbers
+      .replace(/^\d+[\.\)]\s*/, '')
       .replace(/\s{2,}/g, ' ')
       .trim()
 
     if (name.length < 2 || /^[\W\d]+$/.test(name)) continue
 
-    items.push({ name, unit, quantity, unit_cost })
+    items.push({ name, unit, quantity, unit_cost, categoryName: currentCategory })
   }
 
   return items
@@ -127,7 +138,6 @@ function parseInventoryText(raw) {
 export default function InventoryImportModal({ categories, onClose, onSaved }) {
   const [step, setStep] = useState('upload')   // 'upload' | 'processing' | 'confirm'
   const [rows, setRows] = useState([])
-  const [categoryId, setCategoryId] = useState(categories[0]?.id || '')
   const [progress, setProgress] = useState(0)
   const [progressLabel, setProgressLabel] = useState('')
   const [error, setError] = useState('')
@@ -168,7 +178,7 @@ export default function InventoryImportModal({ categories, onClose, onSaved }) {
 
       const parsed = parseInventoryText(text)
       if (parsed.length === 0) {
-        setError('Walang na-extract na items. Try a clearer image or a typed/digital PDF.')
+        setError('No items could be extracted. Try a clearer image or a typed/digital PDF.')
         setStep('upload')
         return
       }
@@ -189,25 +199,46 @@ export default function InventoryImportModal({ categories, onClose, onSaved }) {
   }
 
   function addRow() {
-    setRows((prev) => [...prev, { name: '', unit: 'piece', quantity: 1, unit_cost: 0 }])
+    setRows((prev) => [...prev, { name: '', unit: 'piece', quantity: 1, unit_cost: 0, categoryName: '' }])
   }
 
   async function handleSave() {
-    if (!categoryId) { setError('Pumili ng category.'); return }
     const blank = rows.find((r) => !r.name.trim())
-    if (blank) { setError('Lahat ng items ay kailangan ng pangalan.'); return }
+    if (blank) { setError('All items must have a name.'); return }
+
     setSaving(true)
     setError('')
-    const { error: insErr } = await supabase.from('inventory').insert(
-      rows.map((r) => ({
+
+    // Find unique new category names (not in existing categories)
+    const uniqueNewNames = [...new Set(
+      rows
+        .map((r) => r.categoryName.trim())
+        .filter((n) => n && !categories.find((c) => c.name.toLowerCase() === n.toLowerCase()))
+    )]
+
+    // Auto-create new categories
+    const newCatMap = {} // lowercaseName → id
+    for (const name of uniqueNewNames) {
+      const { data } = await supabase.from('categories').insert({ name }).select('id').single()
+      if (data) newCatMap[name.toLowerCase()] = data.id
+    }
+
+    // Build final rows with resolved category IDs
+    const itemsToInsert = rows.map((r) => {
+      const catName = r.categoryName.trim()
+      const existing = categories.find((c) => c.name.toLowerCase() === catName.toLowerCase())
+      const catId = existing ? existing.id : (newCatMap[catName.toLowerCase()] || null)
+      return {
         item_name: r.name.trim(),
-        category_id: categoryId,
+        category_id: catId,
         unit: r.unit,
         quantity: Number(r.quantity) || 0,
         unit_cost: Number(r.unit_cost) || 0,
         reorder_level: 10,
-      }))
-    )
+      }
+    })
+
+    const { error: insErr } = await supabase.from('inventory').insert(itemsToInsert)
     setSaving(false)
     if (insErr) { setError(insErr.message); return }
     onSaved()
@@ -217,7 +248,7 @@ export default function InventoryImportModal({ categories, onClose, onSaved }) {
     <div className="modal-overlay" onClick={onClose}>
       <div
         className="modal-box"
-        style={{ maxWidth: 820, maxHeight: '92vh', overflowY: 'auto' }}
+        style={{ maxWidth: 860, maxHeight: '92vh', overflowY: 'auto' }}
         onClick={(e) => e.stopPropagation()}
       >
         <button className="modal-close" onClick={onClose}><FontAwesomeIcon icon={faXmark} /></button>
@@ -233,8 +264,8 @@ export default function InventoryImportModal({ categories, onClose, onSaved }) {
         {step === 'upload' && (
           <>
             <p className="text-muted" style={{ marginBottom: 24, lineHeight: 1.6 }}>
-              I-capture ang larawan ng inventory list o mag-upload ng PDF / image file.
-              Awtomatiko itong magba-extract ng items — pwede mo pang baguhin bago i-save.
+              Take a photo or upload a PDF / image of your inventory list.
+              The system will automatically extract the items — you can correct any errors before saving.
             </p>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 8 }}>
               <button
@@ -252,8 +283,8 @@ export default function InventoryImportModal({ categories, onClose, onSaved }) {
                   <FontAwesomeIcon icon={faCamera} style={{ fontSize: 32, color: 'var(--maroon)' }} />
                 </div>
                 <div>
-                  <div style={{ fontWeight: 700, fontSize: 15 }}>Gamitin ang Camera</div>
-                  <div className="text-muted" style={{ fontSize: 13, marginTop: 4 }}>I-photo ang inventory list</div>
+                  <div style={{ fontWeight: 700, fontSize: 15 }}>Use Camera</div>
+                  <div className="text-muted" style={{ fontSize: 13, marginTop: 4 }}>Take a photo of the list</div>
                 </div>
               </button>
               <button
@@ -271,15 +302,14 @@ export default function InventoryImportModal({ categories, onClose, onSaved }) {
                   <FontAwesomeIcon icon={faFileArrowUp} style={{ fontSize: 32, color: '#1a4a7a' }} />
                 </div>
                 <div>
-                  <div style={{ fontWeight: 700, fontSize: 15 }}>Mag-upload ng File</div>
-                  <div className="text-muted" style={{ fontSize: 13, marginTop: 4 }}>PDF o image (JPG, PNG)</div>
+                  <div style={{ fontWeight: 700, fontSize: 15 }}>Upload File</div>
+                  <div className="text-muted" style={{ fontSize: 13, marginTop: 4 }}>PDF or image (JPG, PNG)</div>
                 </div>
               </button>
             </div>
             <p className="form-hint" style={{ textAlign: 'center' }}>
-              Para sa mas magandang resulta: gumamit ng maliwanag, nakakolumna na listahan (typed, hindi handwritten).
+              For best results: use a clear, columnar list (typed or printed, not handwritten).
             </p>
-            {/* hidden inputs */}
             <input ref={cameraRef} type="file" accept="image/*" capture="environment" style={{ display: 'none' }} onChange={(e) => handleFile(e.target.files[0])} />
             <input ref={fileRef} type="file" accept="image/*,application/pdf" style={{ display: 'none' }} onChange={(e) => handleFile(e.target.files[0])} />
           </>
@@ -290,7 +320,7 @@ export default function InventoryImportModal({ categories, onClose, onSaved }) {
           <div style={{ textAlign: 'center', padding: '48px 0' }}>
             <FontAwesomeIcon icon={faSpinner} spin style={{ fontSize: 48, color: 'var(--maroon)', marginBottom: 20 }} />
             <div style={{ fontWeight: 600, fontSize: 16, marginBottom: 8 }}>{progressLabel}</div>
-            <div className="text-muted" style={{ fontSize: 13, marginBottom: 20 }}>Huwag isara ang window…</div>
+            <div className="text-muted" style={{ fontSize: 13, marginBottom: 20 }}>Do not close this window…</div>
             {progress > 0 && (
               <>
                 <div style={{ background: 'var(--border)', borderRadius: 99, height: 10, maxWidth: 320, margin: '0 auto' }}>
@@ -305,29 +335,28 @@ export default function InventoryImportModal({ categories, onClose, onSaved }) {
         {/* STEP 3: Confirm */}
         {step === 'confirm' && (
           <>
+            {/* datalist for category autocomplete — shared by all rows */}
+            <datalist id="cat-list">
+              {categories.map((c) => <option key={c.id} value={c.name} />)}
+            </datalist>
+
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', background: 'rgba(31,138,58,0.08)', border: '1px solid rgba(31,138,58,0.25)', borderRadius: 10, marginBottom: 16 }}>
               <FontAwesomeIcon icon={faCircleCheck} style={{ color: 'var(--green)', fontSize: 18 }} />
               <span style={{ fontSize: 13 }}>
-                Na-extract ang <strong>{rows.length} item{rows.length !== 1 ? 's' : ''}</strong>.
-                I-review at i-correct ang mga mali bago i-save.
+                Extracted <strong>{rows.length} item{rows.length !== 1 ? 's' : ''}</strong>.
+                Review and correct any errors before saving.
+                Each item can have its own category — type a new name to create it automatically.
               </span>
-            </div>
-
-            <div className="form-group" style={{ marginBottom: 20 }}>
-              <label className="form-label">Category (para sa lahat ng items)</label>
-              <select className="form-select" value={categoryId} onChange={(e) => setCategoryId(e.target.value)}>
-                <option value="">— Pumili ng category —</option>
-                {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-              </select>
             </div>
 
             <div style={{ overflowX: 'auto', marginBottom: 12 }}>
               <table className="data-table">
                 <thead>
                   <tr>
-                    <th style={{ minWidth: 200 }}>Item Name</th>
+                    <th style={{ minWidth: 190 }}>Item Name</th>
+                    <th style={{ minWidth: 160 }}>Category</th>
                     <th style={{ minWidth: 110 }}>Unit</th>
-                    <th style={{ minWidth: 80 }}>Qty</th>
+                    <th style={{ minWidth: 75 }}>Qty</th>
                     <th style={{ minWidth: 120 }}>Unit Cost (₱)</th>
                     <th style={{ width: 40 }}></th>
                   </tr>
@@ -338,9 +367,19 @@ export default function InventoryImportModal({ categories, onClose, onSaved }) {
                       <td>
                         <input
                           className="form-input"
-                          style={{ width: '100%', minWidth: 180 }}
+                          style={{ width: '100%', minWidth: 170 }}
                           value={r.name}
                           onChange={(e) => updateRow(idx, 'name', e.target.value)}
+                        />
+                      </td>
+                      <td>
+                        <input
+                          list="cat-list"
+                          className="form-input"
+                          style={{ width: '100%', minWidth: 140 }}
+                          placeholder="Type or select…"
+                          value={r.categoryName}
+                          onChange={(e) => updateRow(idx, 'categoryName', e.target.value)}
                         />
                       </td>
                       <td>
