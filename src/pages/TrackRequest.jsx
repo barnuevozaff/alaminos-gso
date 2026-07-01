@@ -5,7 +5,7 @@ import { faMagnifyingGlass, faHouse } from '@fortawesome/free-solid-svg-icons'
 import { supabase } from '../lib/supabase'
 import { generatePurchaseRequestPDF } from '../lib/generatePrPdf'
 import StatusBadge from '../components/StatusBadge'
-import LOGO from '../assets/alaminos-seal.jpeg'
+import LOGO from '../assets/alaminos-seal.png'
 
 export default function TrackRequest() {
   const [params] = useSearchParams()

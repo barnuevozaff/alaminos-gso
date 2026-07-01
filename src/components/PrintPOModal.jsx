@@ -1,6 +1,6 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faXmark, faPrint } from '@fortawesome/free-solid-svg-icons'
-import sealLogo from '../assets/alaminos-seal.jpeg'
+import sealLogo from '../assets/alaminos-seal.png'
 
 function numberToWords(num) {
   const ones = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten',

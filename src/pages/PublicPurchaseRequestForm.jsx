@@ -5,7 +5,7 @@ import { faTrash, faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons'
 import { supabase } from '../lib/supabase'
 import DepartmentAutocomplete from '../components/DepartmentAutocomplete'
 import ItemAutocomplete from '../components/ItemAutocomplete'
-import LOGO from '../assets/alaminos-seal.jpeg'
+import LOGO from '../assets/alaminos-seal.png'
 
 export default function PublicPurchaseRequestForm() {
   const navigate = useNavigate()

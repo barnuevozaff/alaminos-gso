@@ -1,6 +1,6 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faXmark, faPrint } from '@fortawesome/free-solid-svg-icons'
-import sealLogo from '../assets/alaminos-seal.jpeg'
+import sealLogo from '../assets/alaminos-seal.png'
 
 export default function PrintAIRModal({ air, po, items, onClose }) {
   return (

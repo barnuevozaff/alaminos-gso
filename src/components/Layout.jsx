@@ -7,7 +7,7 @@ import {
   faBars, faXmark,
 } from '@fortawesome/free-solid-svg-icons'
 import { useAuth } from '../context/AuthContext'
-import LOGO from '../assets/alaminos-seal.jpeg'
+import LOGO from '../assets/alaminos-seal.png'
 
 const NAV_ITEMS = [
   { to: '/admin/dashboard', label: 'Dashboard', icon: faGauge },

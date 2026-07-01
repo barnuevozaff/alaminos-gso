@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faXmark, faPrint } from '@fortawesome/free-solid-svg-icons'
-import sealLogo from '../assets/alaminos-seal.jpeg'
+import sealLogo from '../assets/alaminos-seal.png'
 
 export default function PrintPreviewModal({ pr, items, onClose }) {
   const [gso, setGso] = useState('FLORENTINO J. DESTACAMENTO')
