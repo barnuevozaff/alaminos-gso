@@ -16,6 +16,7 @@ import Settings from './pages/Settings'
 import PurchaseOrdersList from './pages/PurchaseOrdersList'
 import PurchaseOrderForm from './pages/PurchaseOrderForm'
 import PurchaseOrderDetail from './pages/PurchaseOrderDetail'
+import NotFound from './pages/NotFound'
 
 function PrivateRoute({ children }) {
   const { user, loading } = useAuth()
@@ -66,7 +67,7 @@ export default function App() {
       <Route path="/submit" element={<Navigate to="/purchase-request" replace />} />
       <Route path="/track" element={<Navigate to="/track-request" replace />} />
 
-      <Route path="*" element={<Navigate to="/" replace />} />
+      <Route path="*" element={<NotFound />} />
     </Routes>
   )
 }

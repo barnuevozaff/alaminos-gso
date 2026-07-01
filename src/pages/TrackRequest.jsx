@@ -1,4 +1,5 @@
 import { fmt } from '../lib/fmt.js'
+import { fmtDate } from '../lib/dateUtils'
 import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -107,7 +108,7 @@ export default function TrackRequest() {
             <div className="print-meta-grid" style={{ marginTop: 14 }}>
               <div><strong>Requester:</strong> {result.requester_name}</div>
               <div><strong>Department:</strong> {result.department}</div>
-              <div><strong>Date:</strong> {new Date(result.pr_date).toLocaleDateString()}</div>
+              <div><strong>Date:</strong> {fmtDate(result.pr_date)}</div>
               <div><strong>Status:</strong> {result.status}</div>
             </div>
             {result.status === 'Rejected' && result.rejection_reason && (

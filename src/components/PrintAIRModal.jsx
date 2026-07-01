@@ -6,7 +6,7 @@ export default function PrintAIRModal({ air, po, items, onClose }) {
   return (
     <div className="modal-overlay">
       <div className="modal-box">
-        <button className="modal-close" onClick={onClose}><FontAwesomeIcon icon={faXmark} /></button>
+        <button className="modal-close" aria-label="Close" onClick={onClose}><FontAwesomeIcon icon={faXmark} /></button>
         <h3 className="modal-title">Print Preview — {air.air_number}</h3>
 
         <div className="print-sheet">

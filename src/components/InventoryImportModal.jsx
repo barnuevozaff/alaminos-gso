@@ -380,7 +380,7 @@ export default function InventoryImportModal({ categories, existingItems = [], o
         style={{ maxWidth: 860, maxHeight: '92vh', overflowY: 'auto' }}
         onClick={(e) => e.stopPropagation()}
       >
-        <button className="modal-close" onClick={onClose}><FontAwesomeIcon icon={faXmark} /></button>
+        <button className="modal-close" aria-label="Close" onClick={onClose}><FontAwesomeIcon icon={faXmark} /></button>
         <h3 className="modal-title">
           {step === 'upload' && 'Import Items from File / Camera'}
           {step === 'processing' && 'Processing File…'}

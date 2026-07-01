@@ -89,7 +89,7 @@ export default function Dashboard() {
       supabase.from('purchase_requests').select('*', { count: 'exact', head: true }).eq('status', 'Approved'),
       supabase.from('purchase_requests').select('*', { count: 'exact', head: true }).eq('status', 'Rejected'),
       supabase.from('inventory').select('*', { count: 'exact', head: true }),
-      supabase.from('inventory').select('id').lte('quantity', 10),
+      supabase.from('inventory').select('id').eq('status', 'Low Stock'),
       supabase.from('purchase_orders').select('*', { count: 'exact', head: true }),
       supabase.from('purchase_requests').select('id').gte('created_at', new Date().toISOString().slice(0, 10)),
       supabase.from('purchase_requests').select('pr_number, department, requester_name, status, created_at').order('created_at', { ascending: false }).limit(5),
@@ -186,14 +186,14 @@ export default function Dashboard() {
                 </thead>
                 <tbody>
                   {recentPRs.map((r) => (
-                    <tr key={r.pr_number} style={{ cursor: 'pointer' }} onClick={() => navigate(`/admin/requests`)}>
+                    <tr key={r.pr_number} style={{ cursor: 'pointer' }} onClick={() => navigate(`/admin/requests/${r.id}`)}>
                       <td><strong>{r.pr_number}</strong></td>
                       <td>{r.department}</td>
                       <td>{r.requester_name}</td>
                       <td>{new Date(r.created_at).toLocaleDateString()}</td>
                       <td><StatusBadge status={r.status} /></td>
                       <td>
-                        <button className="btn btn-outline btn-sm" onClick={(e) => { e.stopPropagation(); navigate('/admin/requests') }}>
+                        <button className="btn btn-outline btn-sm" onClick={(e) => { e.stopPropagation(); navigate(`/admin/requests/${r.id}`) }}>
                           <FontAwesomeIcon icon={faEye} style={{ marginRight: 5 }} />View
                         </button>
                       </td>

@@ -4,8 +4,10 @@ import { faTrash, faPenToSquare } from '@fortawesome/free-solid-svg-icons'
 import { supabase } from '../lib/supabase'
 import Layout from '../components/Layout'
 import ConfirmDialog from '../components/ConfirmDialog'
+import { useToast } from '../context/ToastContext'
 
 export default function Categories() {
+  const toast = useToast()
   const [categories, setCategories] = useState([])
   const [name, setName] = useState('')
   const [editingId, setEditingId] = useState(null)
@@ -13,6 +15,7 @@ export default function Categories() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [deleteTarget, setDeleteTarget] = useState(null)
+  const [deleteAffectedCount, setDeleteAffectedCount] = useState(0)
 
   useEffect(() => { load() }, [])
 
@@ -26,24 +29,43 @@ export default function Categories() {
 
   async function handleAdd() {
     if (!name.trim()) return
+    setError('')
+    const duplicate = categories.find((c) => c.name.toLowerCase() === name.trim().toLowerCase())
+    if (duplicate) { setError(`A category named "${name.trim()}" already exists.`); return }
     const { error } = await supabase.from('categories').insert({ name: name.trim() })
     if (error) { setError(error.message); return }
     setName('')
+    toast.success(`Category "${name.trim()}" added.`)
     load()
   }
 
   async function handleUpdate(id) {
     if (!editingName.trim()) return
+    setError('')
+    const duplicate = categories.find((c) => c.name.toLowerCase() === editingName.trim().toLowerCase() && c.id !== id)
+    if (duplicate) { setError(`A category named "${editingName.trim()}" already exists.`); return }
     const { error } = await supabase.from('categories').update({ name: editingName.trim() }).eq('id', id)
     if (error) { setError(error.message); return }
     setEditingId(null)
+    toast.success('Category updated.')
     load()
+  }
+
+  async function confirmDelete(cat) {
+    const { count } = await supabase
+      .from('inventory')
+      .select('*', { count: 'exact', head: true })
+      .eq('category_id', cat.id)
+    setDeleteAffectedCount(count || 0)
+    setDeleteTarget(cat)
   }
 
   async function handleDelete() {
     const { error } = await supabase.from('categories').delete().eq('id', deleteTarget.id)
-    if (error) setError(error.message)
+    if (error) { setError(error.message); setDeleteTarget(null); setDeleteAffectedCount(0); return }
+    toast.success(`Category "${deleteTarget.name}" deleted.`)
     setDeleteTarget(null)
+    setDeleteAffectedCount(0)
     load()
   }
 
@@ -61,7 +83,7 @@ export default function Categories() {
             className="form-input"
             placeholder="Category name"
             value={name}
-            onChange={(e) => setName(e.target.value)}
+            onChange={(e) => { setName(e.target.value); setError('') }}
             onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
           />
           <button className="btn btn-primary" onClick={handleAdd}>Add</button>
@@ -91,8 +113,8 @@ export default function Categories() {
                       </div>
                     ) : (
                       <div style={{ display: 'flex', gap: 8, justifyContent: 'space-between' }}>
-                        <button className="btn btn-outline btn-sm" onClick={() => { setEditingId(c.id); setEditingName(c.name) }}><FontAwesomeIcon icon={faPenToSquare} style={{ marginRight: 6 }} />Edit</button>
-                        <button className="btn btn-danger btn-sm" onClick={() => setDeleteTarget(c)}><FontAwesomeIcon icon={faTrash} style={{ marginRight: 6 }} />Delete</button>
+                        <button className="btn btn-outline btn-sm" aria-label={`Edit ${c.name}`} onClick={() => { setEditingId(c.id); setEditingName(c.name) }}><FontAwesomeIcon icon={faPenToSquare} style={{ marginRight: 6 }} />Edit</button>
+                        <button className="btn btn-danger btn-sm" aria-label={`Delete ${c.name}`} onClick={() => confirmDelete(c)}><FontAwesomeIcon icon={faTrash} style={{ marginRight: 6 }} />Delete</button>
                       </div>
                     )}
                   </td>
@@ -106,11 +128,15 @@ export default function Categories() {
       {deleteTarget && (
         <ConfirmDialog
           title="Delete this category?"
-          message={`"${deleteTarget.name}" will be removed. Items already assigned to it will keep their data but lose the category label.`}
+          message={
+            deleteAffectedCount > 0
+              ? `"${deleteTarget.name}" will be removed. ${deleteAffectedCount} inventory item${deleteAffectedCount > 1 ? 's' : ''} will lose their category label. This cannot be undone.`
+              : `"${deleteTarget.name}" will be permanently removed.`
+          }
           confirmLabel="Delete"
           confirmClass="btn-danger"
           onConfirm={handleDelete}
-          onCancel={() => setDeleteTarget(null)}
+          onCancel={() => { setDeleteTarget(null); setDeleteAffectedCount(0) }}
         />
       )}
     </Layout>

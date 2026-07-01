@@ -6,8 +6,11 @@ import { supabase } from '../lib/supabase'
 import Layout from '../components/Layout'
 import StatusBadge from '../components/StatusBadge'
 import ConfirmDialog from '../components/ConfirmDialog'
+import { useToast } from '../context/ToastContext'
+import { fmtDate } from '../lib/dateUtils'
 
 export default function PurchaseOrdersList() {
+  const toast = useToast()
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -26,8 +29,9 @@ export default function PurchaseOrdersList() {
 
   async function handleDelete() {
     const { error } = await supabase.from('purchase_orders').delete().eq('id', deleteTarget.id)
-    if (error) setError(error.message)
+    if (error) { setError(error.message); setDeleteTarget(null); return }
     setDeleteTarget(null)
+    toast.success('Purchase order deleted.')
     load()
   }
 
@@ -60,7 +64,7 @@ export default function PurchaseOrdersList() {
                   <td><strong>{po.po_number}</strong></td>
                   <td>{po.pr_numbers || po.purchase_requests?.pr_number || '—'}</td>
                   <td>{po.supplier || <span className="text-muted">Not set</span>}</td>
-                  <td>{new Date(po.po_date).toLocaleDateString()}</td>
+                  <td>{fmtDate(po.po_date)}</td>
                   <td><StatusBadge status={po.status} /></td>
                   <td className="gap-8">
                     <button className="btn btn-outline btn-sm" onClick={() => navigate(`/admin/purchase-orders/${po.id}`)}><FontAwesomeIcon icon={faEye} style={{ marginRight: 6 }} />View</button>

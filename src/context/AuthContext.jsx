@@ -7,6 +7,7 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [sessionExpired, setSessionExpired] = useState(false)
 
   async function loadProfile(userId) {
     const { data } = await supabase
@@ -24,7 +25,11 @@ export function AuthProvider({ children }) {
       setLoading(false)
     })
 
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_OUT' && user !== null) {
+        // User was logged in and got signed out unexpectedly — session expired
+        setSessionExpired(true)
+      }
       setUser(session?.user ?? null)
       if (session?.user) {
         loadProfile(session.user.id)
@@ -34,9 +39,10 @@ export function AuthProvider({ children }) {
     })
 
     return () => listener.subscription.unsubscribe()
-  }, [])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function signIn(email, password) {
+    setSessionExpired(false)
     const { error } = await supabase.auth.signInWithPassword({ email, password })
     return { error }
   }
@@ -46,7 +52,7 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, profile, loading, signIn, signOut }}>
+    <AuthContext.Provider value={{ user, profile, loading, sessionExpired, signIn, signOut }}>
       {children}
     </AuthContext.Provider>
   )

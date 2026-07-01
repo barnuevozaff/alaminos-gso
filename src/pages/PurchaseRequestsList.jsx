@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useToast } from '../context/ToastContext'
+import { fmtDate } from '../lib/dateUtils'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faEye, faTrash, faPlus, faXmark } from '@fortawesome/free-solid-svg-icons'
 import { supabase } from '../lib/supabase'
@@ -8,6 +10,7 @@ import StatusBadge from '../components/StatusBadge'
 import ConfirmDialog from '../components/ConfirmDialog'
 
 export default function PurchaseRequestsList() {
+  const toast = useToast()
   const [searchParams] = useSearchParams()
   const [requests, setRequests] = useState([])
   const [loading, setLoading] = useState(true)
@@ -57,6 +60,36 @@ export default function PurchaseRequestsList() {
   async function handleBulkDelete() {
     setDeleting(true)
     setError('')
+
+    // Restore inventory stock for any Approved PRs being deleted.
+    // Approved PRs already had their stock deducted — deleting them must reverse that.
+    const approvedIds = selectedIds.filter((id) => {
+      const pr = requests.find((r) => r.id === id)
+      return pr?.status === 'Approved'
+    })
+    if (approvedIds.length > 0) {
+      const { data: itemsToRestore } = await supabase
+        .from('pr_items')
+        .select('inventory_id, quantity')
+        .in('pr_id', approvedIds)
+        .not('inventory_id', 'is', null)
+      if (itemsToRestore?.length) {
+        for (const item of itemsToRestore) {
+          const { data: inv } = await supabase
+            .from('inventory')
+            .select('quantity')
+            .eq('id', item.inventory_id)
+            .single()
+          if (inv) {
+            await supabase
+              .from('inventory')
+              .update({ quantity: inv.quantity + item.quantity })
+              .eq('id', item.inventory_id)
+          }
+        }
+      }
+    }
+
     // Sever any old PO links to these PRs first (from before PO/PR were decoupled) —
     // this keeps the Purchase Order itself, just clears the now-defunct reference,
     // so the foreign key no longer blocks deleting the request.
@@ -65,6 +98,7 @@ export default function PurchaseRequestsList() {
     setDeleting(false)
     setConfirmBulkDelete(false)
     if (error) { setError(error.message); return }
+    toast.success(`${selectedIds.length} purchase request${selectedIds.length > 1 ? 's' : ''} deleted.`)
     load()
   }
 
@@ -158,7 +192,7 @@ export default function PurchaseRequestsList() {
                     </td>
                   )}
                   <td><strong>{r.pr_number}</strong></td>
-                  <td>{new Date(r.pr_date).toLocaleDateString()}</td>
+                  <td>{fmtDate(r.pr_date)}</td>
                   <td>{r.requester_name}</td>
                   <td><StatusBadge status={r.status} /></td>
                   <td>

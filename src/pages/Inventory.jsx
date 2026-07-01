@@ -1,6 +1,7 @@
 import { fmt } from '../lib/fmt.js'
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import { useToast } from '../context/ToastContext'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faTrash, faPenToSquare, faPlus, faXmark, faFileArrowUp } from '@fortawesome/free-solid-svg-icons'
 import { supabase } from '../lib/supabase'
@@ -10,6 +11,7 @@ import ConfirmDialog from '../components/ConfirmDialog'
 import InventoryImportModal from '../components/InventoryImportModal'
 
 export default function Inventory() {
+  const toast = useToast()
   const [items, setItems] = useState([])
   const [categories, setCategories] = useState([])
   const [loading, setLoading] = useState(true)
@@ -44,7 +46,7 @@ export default function Inventory() {
 
   const othersCat = categories.find((c) => c.name.toLowerCase() === 'others')
 
-  const isLowStock = (i) => i.quantity <= (i.reorder_level || 10)
+  const isLowStock = (i) => i.quantity <= (i.reorder_level ?? 10)
 
   const filtered = items.filter((i) => {
     const matchesSearch = !search || i.item_name.toLowerCase().includes(search.toLowerCase()) || i.item_code?.toLowerCase().includes(search.toLowerCase())
@@ -71,6 +73,7 @@ export default function Inventory() {
     const { error } = await supabase.from('inventory').delete().eq('id', deleteTarget.id)
     if (error) { setError(error.message); setDeleteTarget(null); return }
     setDeleteTarget(null)
+    toast.success('Item deleted.')
     load()
   }
 
@@ -86,6 +89,7 @@ export default function Inventory() {
     if (error) { setError(error.message); return }
     setDeleteMode(false)
     setSelectedIds([])
+    toast.success(`${selectedIds.length} item${selectedIds.length > 1 ? 's' : ''} deleted.`)
     load()
   }
 
@@ -172,7 +176,7 @@ export default function Inventory() {
                   <td>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                       <span>{item.categories?.name || '—'}</span>
-                      {item.quantity <= (item.reorder_level || 10) && (
+                      {item.quantity <= (item.reorder_level ?? 10) && (
                         <span style={{
                           display: 'inline-flex', alignItems: 'center', gap: 4,
                           fontSize: 11, fontWeight: 700, color: '#b45309',
@@ -185,7 +189,7 @@ export default function Inventory() {
                     </div>
                   </td>
                   <td>{item.unit}</td>
-                  <td style={{ color: item.quantity <= (item.reorder_level || 10) ? '#b45309' : undefined, fontWeight: item.quantity <= (item.reorder_level || 10) ? 700 : undefined }}>{item.quantity}</td>
+                  <td style={{ color: item.quantity <= (item.reorder_level ?? 10) ? '#b45309' : undefined, fontWeight: item.quantity <= (item.reorder_level ?? 10) ? 700 : undefined }}>{item.quantity}</td>
                   <td>₱{fmt(item.unit_cost)}</td>
                   <td>₱{fmt(item.quantity * item.unit_cost)}</td>
                   {!deleteMode && (
@@ -206,7 +210,7 @@ export default function Inventory() {
           item={editing}
           categories={categories}
           onClose={() => setShowModal(false)}
-          onSaved={() => { setShowModal(false); load() }}
+          onSaved={() => { setShowModal(false); toast.success(editing ? 'Item updated.' : 'Item added.'); load() }}
         />
       )}
 
@@ -259,6 +263,9 @@ function ItemModal({ item, categories, onClose, onSaved }) {
 
   async function handleSave() {
     if (!name.trim()) { setError('Item name is required.'); return }
+    if (Number(quantity) < 0) { setError('Quantity cannot be negative.'); return }
+    if (Number(unitCost) < 0) { setError('Unit cost cannot be negative.'); return }
+    if (Number(reorderLevel) < 0) { setError('Reorder level cannot be negative.'); return }
     setSaving(true)
     setError('')
     const payload = {
@@ -276,7 +283,7 @@ function ItemModal({ item, categories, onClose, onSaved }) {
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-box modal-sm" onClick={(e) => e.stopPropagation()}>
-        <button className="modal-close" onClick={onClose}><FontAwesomeIcon icon={faXmark} /></button>
+        <button className="modal-close" aria-label="Close" onClick={onClose}><FontAwesomeIcon icon={faXmark} /></button>
         <h3 className="modal-title">{item ? 'Edit Item' : 'Add Item'}</h3>
 
         {error && <div className="alert alert-error">{error}</div>}

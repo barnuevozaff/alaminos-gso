@@ -12,7 +12,7 @@ export default function Login() {
   const [capsLock, setCapsLock] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const { signIn } = useAuth()
+  const { signIn, sessionExpired } = useAuth()
   const navigate = useNavigate()
 
   async function handleSubmit(e) {
@@ -39,6 +39,9 @@ export default function Login() {
         <h1>Admin Sign In</h1>
         <p className="sub">Municipality of Alaminos GSO — Purchase Request &amp; Inventory Management System</p>
 
+        {sessionExpired && !error && (
+          <div className="alert alert-error">Your session has expired. Please sign in again.</div>
+        )}
         {error && <div className="alert alert-error">{error}</div>}
 
         <form onSubmit={handleSubmit}>
@@ -68,6 +71,7 @@ export default function Login() {
               />
               <button
                 type="button"
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
                 onClick={() => setShowPassword((v) => !v)}
                 style={{
                   position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)',

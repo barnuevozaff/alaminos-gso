@@ -127,7 +127,9 @@ export default function Settings() {
 
   async function handleChangePassword() {
     if (!newPassword) { setPwError('Enter a new password.'); return }
-    if (newPassword.length < 6) { setPwError('Password must be at least 6 characters.'); return }
+    if (newPassword.length < 8) { setPwError('Password must be at least 8 characters.'); return }
+    if (!/[A-Z]/.test(newPassword)) { setPwError('Password must contain at least one uppercase letter.'); return }
+    if (!/[0-9]/.test(newPassword)) { setPwError('Password must contain at least one number.'); return }
     if (newPassword !== confirmPassword) { setPwError('Passwords do not match.'); return }
     setSavingPw(true); setPwError(''); setPwSaved(false)
     const { error } = await supabase.auth.updateUser({ password: newPassword })
@@ -246,7 +248,7 @@ export default function Settings() {
               {pwSaved && <div className="alert alert-success" style={{ marginBottom: 10 }}>Password changed successfully.</div>}
               <div className="form-group">
                 <label className="form-label">New Password</label>
-                <input type="password" className="form-input" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="Enter new password" />
+                <input type="password" className="form-input" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="Min 8 chars, 1 uppercase, 1 number" />
               </div>
               <div className="form-group" style={{ marginBottom: 12 }}>
                 <label className="form-label">Confirm New Password</label>

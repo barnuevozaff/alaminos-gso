@@ -1,4 +1,5 @@
 import { fmt } from '../lib/fmt.js'
+import { fmtDate } from '../lib/dateUtils'
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -63,33 +64,6 @@ export default function PurchaseRequestDetail() {
     load()
   }
 
-  async function handleGeneratePo() {
-    setBusy(true)
-    setError('')
-    const { data: freshItems } = await supabase.from('pr_items_live').select('*').eq('pr_id', id).order('sort_order')
-    const { data: newPo, error: poErr } = await supabase.from('purchase_orders').insert({
-      pr_id: id,
-      pr_numbers: pr.pr_number,
-      status: 'Draft',
-    }).select().single()
-    if (poErr) { setError(poErr.message); setBusy(false); return }
-    if (freshItems?.length) {
-      const { error: itemsErr } = await supabase.from('po_items').insert(
-        freshItems.map((it, idx) => ({
-          po_id: newPo.id,
-          stock_property_no: it.item_code || null,
-          unit: it.unit,
-          description: it.item_description,
-          quantity: Number(it.quantity),
-          unit_cost: Number(it.unit_cost) || 0,
-          sort_order: idx,
-        }))
-      )
-      if (itemsErr) { setError(itemsErr.message); setBusy(false); return }
-    }
-    navigate(`/admin/purchase-orders/${newPo.id}`)
-  }
-
   async function handleReject() {
     setBusy(true)
     const { error } = await supabase.rpc('reject_purchase_request', {
@@ -131,12 +105,7 @@ export default function PurchaseRequestDetail() {
               <button className="btn btn-success" disabled={busy} onClick={() => setConfirmAction('approve')}><FontAwesomeIcon icon={faCheck} style={{ marginRight: 6 }} />Approve</button>
             </>
           )}
-          {pr.status === 'Approved' && !linkedPo && (
-            <button className="btn btn-primary" disabled={busy} onClick={handleGeneratePo}>
-              <FontAwesomeIcon icon={faFileInvoiceDollar} style={{ marginRight: 6 }} />{busy ? 'Generating…' : 'Generate Purchase Order'}
-            </button>
-          )}
-          {pr.status === 'Approved' && linkedPo && (
+          {linkedPo && (
             <button className="btn btn-secondary" onClick={() => navigate(`/admin/purchase-orders/${linkedPo.id}`)}>
               <FontAwesomeIcon icon={faFileInvoiceDollar} style={{ marginRight: 6 }} />View Purchase Order
             </button>
@@ -167,7 +136,7 @@ export default function PurchaseRequestDetail() {
         <div className="print-meta-grid">
           <div><strong>Requester:</strong> {pr.requester_name}</div>
           <div><strong>Department:</strong> {pr.department}</div>
-          <div><strong>Date:</strong> {new Date(pr.pr_date).toLocaleDateString()}</div>
+          <div><strong>Date:</strong> {fmtDate(pr.pr_date)}</div>
           <div><strong>PR No.:</strong> {pr.pr_number}</div>
         </div>
         <div><strong>Purpose / Remarks:</strong> {pr.purpose || '—'}</div>
