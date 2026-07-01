@@ -34,26 +34,26 @@ function SettingTile({ icon, title, description, color, onClick }) {
       onClick={onClick}
       style={{
         background: 'var(--card-bg)', border: '1px solid var(--border)',
-        borderRadius: 20, padding: '36px 24px', cursor: 'pointer',
+        borderRadius: 20, padding: '52px 32px', cursor: 'pointer',
         display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-        gap: 14, textAlign: 'center', width: '100%',
+        gap: 20, textAlign: 'center', width: '100%',
         boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
         transition: 'transform 0.15s, box-shadow 0.15s',
-        minHeight: 200,
+        minHeight: 280,
       }}
-      onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.12)' }}
+      onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 12px 32px rgba(0,0,0,0.13)' }}
       onMouseLeave={(e) => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)' }}
     >
       <div style={{
-        width: 64, height: 64, borderRadius: 18,
+        width: 88, height: 88, borderRadius: 24,
         background: color, display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontSize: 30,
+        fontSize: 42,
       }}>
         {icon}
       </div>
       <div>
-        <div style={{ fontWeight: 700, fontSize: 15, color: 'var(--text)', marginBottom: 4 }}>{title}</div>
-        <div style={{ fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.4 }}>{description}</div>
+        <div style={{ fontWeight: 700, fontSize: 18, color: 'var(--text)', marginBottom: 8 }}>{title}</div>
+        <div style={{ fontSize: 14, color: 'var(--text-muted)', lineHeight: 1.5, maxWidth: 220, margin: '0 auto' }}>{description}</div>
       </div>
     </button>
   )
