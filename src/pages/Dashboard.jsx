@@ -98,8 +98,9 @@ export default function Dashboard() {
       {/* Header */}
       <div style={{
         background: 'linear-gradient(135deg, var(--maroon) 0%, #a8293a 100%)',
-        borderRadius: 16, padding: '28px 32px', marginBottom: 28,
+        borderRadius: 16, padding: '24px 28px', marginBottom: 24,
         color: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+        flexWrap: 'wrap', gap: 16,
       }}>
         <div>
           <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
@@ -130,14 +131,14 @@ export default function Dashboard() {
         <div className="state-box"><div className="spinner"></div>Loading dashboard…</div>
       ) : (
         <>
-          {/* Stat Cards — 4 columns */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 16 }}>
+          {/* Stat Cards — 4 columns desktop, 2 tablet, 2 mobile */}
+          <div className="stats-grid" style={{ marginBottom: 16 }}>
             <StatCard accent="maroon" icon={faFileLines}        label="Total Requests"   value={stats.total} />
             <StatCard accent="gold"   icon={faClock}            label="Pending"           value={stats.pending} sub="Awaiting review" />
             <StatCard accent="green"  icon={faCheck}            label="Approved"          value={stats.approved} />
             <StatCard accent="red"    icon={faXmark}            label="Rejected"          value={stats.rejected} />
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 28 }}>
+          <div className="stats-grid" style={{ marginBottom: 28 }}>
             <StatCard accent="gold"   icon={faCalendarDay}      label="Requests Today"   value={stats.requestsToday} />
             <StatCard accent="maroon" icon={faBoxOpen}          label="Inventory Items"  value={stats.invItems} />
             <StatCard accent="red"    icon={faTriangleExclamation} label="Low Stock (≤10)" value={stats.lowStock} sub="Needs restocking" />

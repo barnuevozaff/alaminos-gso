@@ -17,7 +17,7 @@ export default function PublicHome() {
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '60px 20px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, maxWidth: 720, width: '100%' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 20, maxWidth: 720, width: '100%' }}>
           <Link to="/purchase-request" className="card" style={{ textDecoration: 'none', textAlign: 'center', padding: '40px 32px' }}>
             <div style={{
               width: 72, height: 72, borderRadius: 20, margin: '0 auto 18px',

@@ -214,10 +214,12 @@ p.page-subtitle { color: var(--text-muted); font-size: 14px; margin: 0 0 22px; }
 .btn-sm { padding: 6px 12px; font-size: 13px; }
 
 /* ---------- Tables ---------- */
+/* Wrap tables in a div with overflowX:auto in JSX for mobile scroll */
 .data-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 14px;
+  min-width: 480px; /* prevents squish — parent must have overflow-x: auto */
 }
 .data-table th {
   text-align: left;
@@ -446,9 +448,118 @@ p.page-subtitle { color: var(--text-muted); font-size: 14px; margin: 0 0 22px; }
 .flex-between { display: flex; align-items: center; justify-content: space-between; }
 .text-muted { color: var(--text-muted); }
 .mt-0 { margin-top: 0; }
-.gap-8 { display: flex; gap: 8px; }
+.gap-8 { display: flex; gap: 8px; flex-wrap: wrap; }
 .line-items-table input { width: 100%; border: none; background: transparent; padding: 4px; font-size: 13px; }
 .line-items-table input:focus { outline: 1px solid var(--maroon); border-radius: 3px; }
 .icon-btn { background: none; border: none; padding: 4px; color: var(--text-muted); border-radius: 4px; }
 .icon-btn:hover { background: var(--border); color: var(--text); }
 .icon-btn.danger:hover { background: #fde8e6; color: var(--red); }
+
+/* ---------- Mobile hamburger button ---------- */
+.hamburger-btn {
+  display: none;
+  background: none;
+  border: none;
+  color: var(--text);
+  font-size: 20px;
+  padding: 4px 8px;
+  cursor: pointer;
+  margin-right: 8px;
+  border-radius: 6px;
+}
+.hamburger-btn:hover { background: var(--border); }
+
+/* Sidebar overlay for mobile */
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  z-index: 199;
+}
+
+/* ==========================================
+   RESPONSIVE BREAKPOINTS
+   ========================================== */
+
+/* Tablet: ≤ 1024px */
+@media (max-width: 1024px) {
+  .sidebar { width: 240px; }
+  .page-content { padding: 20px 24px; }
+  .topbar { padding: 14px 24px; }
+}
+
+/* Mobile: ≤ 768px */
+@media (max-width: 768px) {
+  /* Show hamburger, hide sidebar by default */
+  .hamburger-btn { display: flex; align-items: center; justify-content: center; }
+  .sidebar-overlay { display: block; }
+
+  /* Sidebar slides in from left */
+  .sidebar {
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+    width: 270px;
+    z-index: 200;
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+  }
+  .sidebar.sidebar-open { transform: translateX(0); }
+
+  /* Main content takes full width */
+  .app-shell { flex-direction: column; }
+  .main-content { width: 100%; }
+
+  /* Topbar */
+  .topbar { padding: 12px 16px; }
+  .topbar-date { display: none; }
+  .topbar-title span { font-size: 14px; }
+
+  /* Page content */
+  .page-content { padding: 16px; }
+
+  /* Typography */
+  h1.page-title { font-size: 20px; }
+
+  /* Cards */
+  .card { padding: 16px; }
+
+  /* Form rows: 2-col → 1-col */
+  .form-row { grid-template-columns: 1fr; }
+
+  /* Toolbar: stack on mobile */
+  .toolbar { flex-direction: column; align-items: stretch; }
+  .toolbar .form-input,
+  .toolbar .form-select,
+  .toolbar input[type="text"] { width: 100%; min-width: unset; }
+
+  /* flex-between: stack on mobile */
+  .flex-between { flex-wrap: wrap; gap: 10px; }
+
+  /* Tables: horizontal scroll */
+  .data-table { font-size: 13px; }
+  .data-table th, .data-table td { padding: 10px 10px; }
+
+  /* Print actions */
+  .print-actions { flex-wrap: wrap; }
+  .print-actions .btn { flex: 1; justify-content: center; }
+
+  /* Stats grid: 2 col on mobile */
+  .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+
+  /* Settings tiles: 1-col on mobile */
+  .settings-grid { grid-template-columns: 1fr !important; }
+}
+
+/* Small mobile: ≤ 480px */
+@media (max-width: 480px) {
+  .stats-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .topbar-title img { display: none; }
+
+  /* Buttons: smaller on small screens */
+  .btn { padding: 8px 12px; font-size: 13px; }
+  .btn-sm { padding: 5px 10px; font-size: 12px; }
+
+  /* Gap-8 buttons: wrap and full width on very small */
+  .gap-8 { gap: 6px; }
+}
