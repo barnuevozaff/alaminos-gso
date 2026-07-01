@@ -18,6 +18,10 @@ export default function Inventory() {
   const [showImport, setShowImport] = useState(false)
   const [editing, setEditing] = useState(null)
   const [deleteTarget, setDeleteTarget] = useState(null)
+  const [deleteMode, setDeleteMode] = useState(false)
+  const [selectedIds, setSelectedIds] = useState([])
+  const [confirmBulkDelete, setConfirmBulkDelete] = useState(false)
+  const [bulkDeleting, setBulkDeleting] = useState(false)
 
   useEffect(() => { load() }, [])
 
@@ -39,12 +43,36 @@ export default function Inventory() {
     return matchesSearch && matchesCategory
   })
 
+  const allSelected = filtered.length > 0 && selectedIds.length === filtered.length
+
+  function toggleSelect(id) {
+    setSelectedIds((prev) => prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id])
+  }
+
+  function toggleSelectAll() {
+    setSelectedIds(allSelected ? [] : filtered.map((i) => i.id))
+  }
+
   async function handleDelete() {
-    // Clear the inventory link on any PR items that reference this item before deleting
     await supabase.from('pr_items').update({ inventory_id: null }).eq('inventory_id', deleteTarget.id)
     const { error } = await supabase.from('inventory').delete().eq('id', deleteTarget.id)
     if (error) { setError(error.message); setDeleteTarget(null); return }
     setDeleteTarget(null)
+    load()
+  }
+
+  async function handleBulkDelete() {
+    setBulkDeleting(true)
+    setError('')
+    for (const id of selectedIds) {
+      await supabase.from('pr_items').update({ inventory_id: null }).eq('inventory_id', id)
+    }
+    const { error } = await supabase.from('inventory').delete().in('id', selectedIds)
+    setBulkDeleting(false)
+    setConfirmBulkDelete(false)
+    if (error) { setError(error.message); return }
+    setDeleteMode(false)
+    setSelectedIds([])
     load()
   }
 
@@ -67,7 +95,31 @@ export default function Inventory() {
         </div>
         <div className="gap-8">
           <button className="btn btn-secondary" onClick={() => setShowImport(true)}><FontAwesomeIcon icon={faFileArrowUp} style={{ marginRight: 6 }} />Scan / Upload</button>
-          <button className="btn btn-primary" onClick={() => { setEditing(null); setShowModal(true) }}><FontAwesomeIcon icon={faPlus} style={{ marginRight: 6 }} />Add Item</button>
+          {!deleteMode ? (
+            <>
+              <button className="btn btn-danger btn-sm" onClick={() => setDeleteMode(true)}>
+                <FontAwesomeIcon icon={faTrash} style={{ marginRight: 6 }} />Delete
+              </button>
+              <button className="btn btn-primary" onClick={() => { setEditing(null); setShowModal(true) }}><FontAwesomeIcon icon={faPlus} style={{ marginRight: 6 }} />Add Item</button>
+            </>
+          ) : (
+            <>
+              <button className="btn btn-secondary btn-sm" onClick={toggleSelectAll}>
+                {allSelected ? 'Deselect All' : 'Select All'}
+              </button>
+              <button
+                className="btn btn-danger btn-sm"
+                disabled={selectedIds.length === 0}
+                onClick={() => setConfirmBulkDelete(true)}
+              >
+                <FontAwesomeIcon icon={faTrash} style={{ marginRight: 6 }} />
+                Delete{selectedIds.length > 0 ? ` (${selectedIds.length})` : ''}
+              </button>
+              <button className="btn btn-secondary btn-sm" onClick={() => { setDeleteMode(false); setSelectedIds([]) }}>
+                <FontAwesomeIcon icon={faXmark} style={{ marginRight: 6 }} />Cancel
+              </button>
+            </>
+          )}
         </div>
       </div>
 
@@ -84,21 +136,36 @@ export default function Inventory() {
         ) : (
           <table className="data-table">
             <thead>
-              <tr><th>Item</th><th>Category</th><th>Unit</th><th>Qty</th><th>Unit Cost</th><th>Total Cost</th><th>Actions</th></tr>
+              <tr>
+                {deleteMode && <th style={{ width: 40 }}></th>}
+                <th>Item</th><th>Category</th><th>Unit</th><th>Qty</th><th>Unit Cost</th><th>Total Cost</th>
+                {!deleteMode && <th>Actions</th>}
+              </tr>
             </thead>
             <tbody>
               {filtered.map((item) => (
-                <tr key={item.id}>
+                <tr
+                  key={item.id}
+                  onClick={deleteMode ? () => toggleSelect(item.id) : undefined}
+                  style={deleteMode ? { cursor: 'pointer', background: selectedIds.includes(item.id) ? 'rgba(185,28,28,0.07)' : undefined } : undefined}
+                >
+                  {deleteMode && (
+                    <td onClick={(e) => e.stopPropagation()}>
+                      <input type="checkbox" checked={selectedIds.includes(item.id)} onChange={() => toggleSelect(item.id)} />
+                    </td>
+                  )}
                   <td><strong>{item.item_name}</strong><div className="text-muted" style={{ fontSize: 12 }}>{item.item_code}</div></td>
                   <td>{item.categories?.name || '—'}</td>
                   <td>{item.unit}</td>
                   <td>{item.quantity}</td>
                   <td>₱{Number(item.unit_cost).toFixed(2)}</td>
                   <td>₱{(item.quantity * item.unit_cost).toFixed(2)}</td>
-                  <td className="gap-8">
-                    <button className="btn btn-outline btn-sm" onClick={() => { setEditing(item); setShowModal(true) }}><FontAwesomeIcon icon={faPenToSquare} style={{ marginRight: 6 }} />Edit</button>
-                    <button className="btn btn-danger btn-sm" onClick={() => setDeleteTarget(item)}><FontAwesomeIcon icon={faTrash} style={{ marginRight: 6 }} />Delete</button>
-                  </td>
+                  {!deleteMode && (
+                    <td style={{ display: 'flex', gap: 8 }}>
+                      <button className="btn btn-outline btn-sm" onClick={() => { setEditing(item); setShowModal(true) }}><FontAwesomeIcon icon={faPenToSquare} style={{ marginRight: 6 }} />Edit</button>
+                      <button className="btn btn-danger btn-sm" onClick={() => setDeleteTarget(item)}><FontAwesomeIcon icon={faTrash} style={{ marginRight: 6 }} />Delete</button>
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>
@@ -131,6 +198,18 @@ export default function Inventory() {
           confirmClass="btn-danger"
           onConfirm={handleDelete}
           onCancel={() => setDeleteTarget(null)}
+        />
+      )}
+
+      {confirmBulkDelete && (
+        <ConfirmDialog
+          title={`Delete ${selectedIds.length} item${selectedIds.length > 1 ? 's' : ''}?`}
+          message="Selected items will be permanently removed from inventory. This cannot be undone."
+          confirmLabel="Delete"
+          confirmClass="btn-danger"
+          busy={bulkDeleting}
+          onConfirm={handleBulkDelete}
+          onCancel={() => setConfirmBulkDelete(false)}
         />
       )}
     </Layout>
