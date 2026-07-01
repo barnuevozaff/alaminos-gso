@@ -4,13 +4,13 @@ import LOGO from '../assets/alaminos-seal.jpeg'
 export default function PublicHome() {
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
-      <div className="topbar" style={{ justifyContent: 'flex-start' }}>
+      <div className="topbar" style={{ justifyContent: 'flex-start', background: 'var(--maroon)', color: '#fff' }}>
         <img src={LOGO} alt="" style={{ width: 40, height: 40, borderRadius: '50%', marginRight: 12 }}
           onError={(e) => { e.target.style.visibility = 'hidden' }} />
         <div>
-          <div style={{ fontSize: 12, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Municipality of Alaminos</div>
-          <div style={{ fontWeight: 700 }}>General Services Office (GSO)</div>
-          <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>Purchase Request &amp; Inventory Management System</div>
+          <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.75)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Municipality of Alaminos</div>
+          <div style={{ fontWeight: 700, color: '#fff' }}>General Services Office (GSO)</div>
+          <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.75)' }}>Purchase Request &amp; Inventory Management System</div>
         </div>
       </div>
 
