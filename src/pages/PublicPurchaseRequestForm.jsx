@@ -93,18 +93,16 @@ export default function PublicPurchaseRequestForm() {
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
-      <div className="topbar" style={{ background: 'var(--maroon)', color: '#fff' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <img src={LOGO} alt="" style={{ width: 40, height: 40, borderRadius: '50%' }} onError={(e) => { e.target.style.visibility = 'hidden' }} />
+      <div className="public-topbar">
+        <div className="public-topbar-brand">
+          <img src={LOGO} alt="" onError={(e) => { e.target.style.visibility = 'hidden' }} />
           <div>
-            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.75)', textTransform: 'uppercase' }}>Municipality of Alaminos</div>
-            <div style={{ fontWeight: 700, color: '#fff' }}>General Services Office (GSO)</div>
-            <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.75)' }}>Purchase Request &amp; Inventory Management System</div>
+            <div className="org-name" style={{ color: 'rgba(255,255,255,0.75)', textTransform: 'uppercase' }}>Municipality of Alaminos</div>
+            <div className="gso-name" style={{ fontWeight: 700, color: '#fff' }}>General Services Office (GSO)</div>
+            <div className="sys-name" style={{ fontSize: 12, color: 'rgba(255,255,255,0.75)' }}>Purchase Request &amp; Inventory Management System</div>
           </div>
         </div>
-        <div className="gap-8">
-          <Link to="/track-request" className="btn btn-secondary">Track a Request</Link>
-        </div>
+        <Link to="/track-request" className="btn btn-secondary" style={{ flexShrink: 0 }}>Track a Request</Link>
       </div>
 
       <div className="page-content" style={{ maxWidth: 900, margin: '0 auto' }}>
@@ -139,29 +137,31 @@ export default function PublicPurchaseRequestForm() {
             placeholder="Search inventory…"
           />
 
-          <table className="data-table" style={{ marginTop: 16 }}>
-            <thead>
-              <tr><th>Item</th><th>Unit</th><th>Available</th><th>Quantity</th><th>Unit Cost</th><th>Total</th><th></th></tr>
-            </thead>
-            <tbody>
-              {items.length === 0 ? (
-                <tr><td colSpan={7} style={{ textAlign: 'center', color: 'var(--text-muted)', padding: 24 }}>Search and add items above.</td></tr>
-              ) : items.map((it, idx) => (
-                <tr key={idx}>
-                  <td><strong>{it.item_description}</strong></td>
-                  <td>{it.unit}</td>
-                  <td>{it.available}</td>
-                  <td>
-                    <input type="number" min="1" max={it.available} className="form-input" style={{ width: 90 }}
-                      value={it.quantity} onChange={(e) => updateQuantity(idx, e.target.value)} />
-                  </td>
-                  <td className="text-muted">₱{Number(it.unit_cost).toFixed(2)}</td>
-                  <td className="text-muted">₱{((Number(it.quantity) || 0) * Number(it.unit_cost)).toFixed(2)}</td>
-                  <td><button className="icon-btn danger" onClick={() => removeItem(idx)}><FontAwesomeIcon icon={faTrash} /></button></td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <div style={{ overflowX: 'auto', marginTop: 16 }}>
+            <table className="data-table">
+              <thead>
+                <tr><th>Item</th><th>Unit</th><th>Available</th><th>Quantity</th><th>Unit Cost</th><th>Total</th><th></th></tr>
+              </thead>
+              <tbody>
+                {items.length === 0 ? (
+                  <tr><td colSpan={7} style={{ textAlign: 'center', color: 'var(--text-muted)', padding: 24 }}>Search and add items above.</td></tr>
+                ) : items.map((it, idx) => (
+                  <tr key={idx}>
+                    <td><strong>{it.item_description}</strong></td>
+                    <td>{it.unit}</td>
+                    <td>{it.available}</td>
+                    <td>
+                      <input type="number" min="1" max={it.available} className="form-input" style={{ width: 90 }}
+                        value={it.quantity} onChange={(e) => updateQuantity(idx, e.target.value)} />
+                    </td>
+                    <td className="text-muted">₱{Number(it.unit_cost).toFixed(2)}</td>
+                    <td className="text-muted">₱{((Number(it.quantity) || 0) * Number(it.unit_cost)).toFixed(2)}</td>
+                    <td><button className="icon-btn danger" onClick={() => removeItem(idx)}><FontAwesomeIcon icon={faTrash} /></button></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
           <p className="form-hint" style={{ marginTop: 8 }}>Pricing is set by the GSO Inventory and cannot be edited here.</p>
           {items.length > 0 && (
             <div style={{ textAlign: 'right', fontWeight: 700, marginTop: 10 }}>Grand Total: ₱{grandTotal.toFixed(2)}</div>

@@ -6,13 +6,14 @@ import LOGO from '../assets/alaminos-seal.jpeg'
 export default function PublicHome() {
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
-      <div className="topbar" style={{ justifyContent: 'flex-start', background: 'var(--maroon)', color: '#fff' }}>
-        <img src={LOGO} alt="" style={{ width: 40, height: 40, borderRadius: '50%', marginRight: 12 }}
-          onError={(e) => { e.target.style.visibility = 'hidden' }} />
-        <div>
-          <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.75)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Municipality of Alaminos</div>
-          <div style={{ fontWeight: 700, color: '#fff' }}>General Services Office (GSO)</div>
-          <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.75)' }}>Purchase Request &amp; Inventory Management System</div>
+      <div className="public-topbar">
+        <div className="public-topbar-brand">
+          <img src={LOGO} alt="" onError={(e) => { e.target.style.visibility = 'hidden' }} />
+          <div>
+            <div className="org-name" style={{ color: 'rgba(255,255,255,0.75)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Municipality of Alaminos</div>
+            <div className="gso-name" style={{ fontWeight: 700, color: '#fff' }}>General Services Office (GSO)</div>
+            <div className="sys-name" style={{ fontSize: 12, color: 'rgba(255,255,255,0.75)' }}>Purchase Request &amp; Inventory Management System</div>
+          </div>
         </div>
       </div>
 

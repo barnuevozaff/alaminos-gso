@@ -53,16 +53,16 @@ export default function TrackRequest() {
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
-      <div className="topbar" style={{ background: 'var(--maroon)', color: '#fff' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <img src={LOGO} alt="" style={{ width: 40, height: 40, borderRadius: '50%' }} onError={(e) => { e.target.style.visibility = 'hidden' }} />
+      <div className="public-topbar">
+        <div className="public-topbar-brand">
+          <img src={LOGO} alt="" onError={(e) => { e.target.style.visibility = 'hidden' }} />
           <div>
-            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.75)', textTransform: 'uppercase' }}>Municipality of Alaminos</div>
-            <div style={{ fontWeight: 700, color: '#fff' }}>General Services Office (GSO)</div>
-            <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.75)' }}>Purchase Request &amp; Inventory Management System</div>
+            <div className="org-name" style={{ color: 'rgba(255,255,255,0.75)', textTransform: 'uppercase' }}>Municipality of Alaminos</div>
+            <div className="gso-name" style={{ fontWeight: 700, color: '#fff' }}>General Services Office (GSO)</div>
+            <div className="sys-name" style={{ fontSize: 12, color: 'rgba(255,255,255,0.75)' }}>Purchase Request &amp; Inventory Management System</div>
           </div>
         </div>
-        <Link to="/" className="btn btn-secondary">← Home</Link>
+        <Link to="/" className="btn btn-secondary" style={{ flexShrink: 0 }}>← Home</Link>
       </div>
 
       <div className="page-content" style={{ maxWidth: 700, margin: '0 auto' }}>
@@ -73,9 +73,10 @@ export default function TrackRequest() {
             <div className="alert alert-success">Your request was submitted successfully. Save your PR number below to check its status anytime.</div>
           )}
 
-          <div style={{ display: 'flex', gap: 12 }}>
+          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
             <input
               className="form-input"
+              style={{ flex: 1, minWidth: 0 }}
               placeholder="e.g. PR-2026-00001"
               value={prNumber}
               onChange={(e) => setPrNumber(e.target.value)}
@@ -110,23 +111,25 @@ export default function TrackRequest() {
               <div className="alert alert-error" style={{ marginTop: 10 }}><strong>Reason:</strong> {result.rejection_reason}</div>
             )}
 
-            <table className="data-table" style={{ marginTop: 16 }}>
-              <thead><tr><th>Item</th><th>Unit</th><th>Qty</th><th>Total</th></tr></thead>
-              <tbody>
-                {items.map((it) => (
-                  <tr key={it.id}>
-                    <td>{it.item_description}</td>
-                    <td>{it.unit}</td>
-                    <td>{it.quantity}</td>
-                    <td>₱{Number(it.total_cost ?? it.quantity * it.unit_cost).toFixed(2)}</td>
+            <div style={{ overflowX: 'auto', marginTop: 16 }}>
+              <table className="data-table">
+                <thead><tr><th>Item</th><th>Unit</th><th>Qty</th><th>Total</th></tr></thead>
+                <tbody>
+                  {items.map((it) => (
+                    <tr key={it.id}>
+                      <td>{it.item_description}</td>
+                      <td>{it.unit}</td>
+                      <td>{it.quantity}</td>
+                      <td>₱{Number(it.total_cost ?? it.quantity * it.unit_cost).toFixed(2)}</td>
+                    </tr>
+                  ))}
+                  <tr>
+                    <td colSpan={3} style={{ textAlign: 'right', fontWeight: 700 }}>Grand Total</td>
+                    <td style={{ fontWeight: 700 }}>₱{grandTotal.toFixed(2)}</td>
                   </tr>
-                ))}
-                <tr>
-                  <td colSpan={3} style={{ textAlign: 'right', fontWeight: 700 }}>Grand Total</td>
-                  <td style={{ fontWeight: 700 }}>₱{grandTotal.toFixed(2)}</td>
-                </tr>
-              </tbody>
-            </table>
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
       </div>
