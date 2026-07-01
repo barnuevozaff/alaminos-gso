@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faEye, faTrash, faPlus } from '@fortawesome/free-solid-svg-icons'
 import { supabase } from '../lib/supabase'
 import Layout from '../components/Layout'
 import StatusBadge from '../components/StatusBadge'
@@ -70,7 +72,7 @@ export default function PurchaseRequestsList() {
           <h1 className="page-title">Purchase Requests</h1>
           <p className="page-subtitle">Submitted by departments. Review and approve or reject.</p>
         </div>
-        <button className="btn btn-primary" onClick={() => navigate('/admin/requests/new')}>+ New Request</button>
+        <button className="btn btn-primary" onClick={() => navigate('/admin/requests/new')}><FontAwesomeIcon icon={faPlus} style={{ marginRight: 6 }} />New Request</button>
       </div>
 
       <div className="toolbar" style={{ justifyContent: 'space-between' }}>
@@ -94,7 +96,7 @@ export default function PurchaseRequestsList() {
         </div>
         {selectedIds.length > 0 && (
           <button className="btn btn-danger btn-sm" onClick={() => setConfirmBulkDelete(true)}>
-            🗑 Delete Selected ({selectedIds.length})
+            <FontAwesomeIcon icon={faTrash} style={{ marginRight: 6 }} />Delete Selected ({selectedIds.length})
           </button>
         )}
       </div>
@@ -130,7 +132,7 @@ export default function PurchaseRequestsList() {
                   <td>{r.requester_name}</td>
                   <td><StatusBadge status={r.status} /></td>
                   <td>
-                    <button className="btn btn-outline btn-sm" onClick={() => navigate(`/admin/requests/${r.id}`)}>👁 View</button>
+                    <button className="btn btn-outline btn-sm" onClick={() => navigate(`/admin/requests/${r.id}`)}><FontAwesomeIcon icon={faEye} style={{ marginRight: 6 }} />View</button>
                   </td>
                 </tr>
               ))}

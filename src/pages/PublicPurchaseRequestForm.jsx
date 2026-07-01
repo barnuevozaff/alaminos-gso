@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faTrash } from '@fortawesome/free-solid-svg-icons'
 import { supabase } from '../lib/supabase'
 import DepartmentAutocomplete from '../components/DepartmentAutocomplete'
 import ItemAutocomplete from '../components/ItemAutocomplete'
@@ -155,7 +157,7 @@ export default function PublicPurchaseRequestForm() {
                   </td>
                   <td className="text-muted">₱{Number(it.unit_cost).toFixed(2)}</td>
                   <td className="text-muted">₱{((Number(it.quantity) || 0) * Number(it.unit_cost)).toFixed(2)}</td>
-                  <td><button className="icon-btn danger" onClick={() => removeItem(idx)}>🗑</button></td>
+                  <td><button className="icon-btn danger" onClick={() => removeItem(idx)}><FontAwesomeIcon icon={faTrash} /></button></td>
                 </tr>
               ))}
             </tbody>

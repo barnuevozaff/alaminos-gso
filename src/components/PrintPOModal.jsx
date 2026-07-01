@@ -1,3 +1,5 @@
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faXmark, faPrint } from '@fortawesome/free-solid-svg-icons'
 import sealLogo from '../assets/alaminos-seal.jpeg'
 
 function numberToWords(num) {
@@ -41,7 +43,7 @@ export default function PrintPOModal({ po, items, prNumber, onClose }) {
   return (
     <div className="modal-overlay">
       <div className="modal-box">
-        <button className="modal-close" onClick={onClose}>✕</button>
+        <button className="modal-close" onClick={onClose}><FontAwesomeIcon icon={faXmark} /></button>
         <h3 className="modal-title">Print Preview — {po.po_number}</h3>
 
         <div className="print-sheet">
@@ -124,7 +126,7 @@ export default function PrintPOModal({ po, items, prNumber, onClose }) {
 
         <div className="print-actions">
           <button className="btn btn-secondary" onClick={onClose}>Close</button>
-          <button className="btn btn-primary" onClick={() => window.print()}>🖶 Print</button>
+          <button className="btn btn-primary" onClick={() => window.print()}><FontAwesomeIcon icon={faPrint} style={{ marginRight: 6 }} />Print</button>
         </div>
       </div>
     </div>

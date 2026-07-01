@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faFileLines, faClock, faCheck, faXmark, faBoxOpen, faTriangleExclamation, faFileInvoiceDollar, faCalendarDay } from '@fortawesome/free-solid-svg-icons'
 import { supabase } from '../lib/supabase'
 import Layout from '../components/Layout'
 
@@ -55,16 +57,16 @@ export default function Dashboard() {
       ) : (
         <>
           <div className="stats-grid">
-            <StatCard color="maroon" icon="📄" label="Total Requests" value={stats.total} />
-            <StatCard color="gold" icon="⏰" label="Pending" value={stats.pending} />
-            <StatCard color="green" icon="✔" label="Approved" value={stats.approved} />
-            <StatCard color="red" icon="✕" label="Rejected" value={stats.rejected} />
+            <StatCard color="maroon" icon={faFileLines} label="Total Requests" value={stats.total} />
+            <StatCard color="gold" icon={faClock} label="Pending" value={stats.pending} />
+            <StatCard color="green" icon={faCheck} label="Approved" value={stats.approved} />
+            <StatCard color="red" icon={faXmark} label="Rejected" value={stats.rejected} />
           </div>
           <div className="stats-grid">
-            <StatCard color="gold" icon="📄" label="Requests Today" value={stats.requestsToday} />
-            <StatCard color="maroon" icon="📦" label="Inventory Items" value={stats.invItems} />
-            <StatCard color="red" icon="⚠" label="Low Stock (≤10)" value={stats.lowStock} />
-            <StatCard color="maroon" icon="🛒" label="Purchase Orders" value={stats.poCount} />
+            <StatCard color="gold" icon={faCalendarDay} label="Requests Today" value={stats.requestsToday} />
+            <StatCard color="maroon" icon={faBoxOpen} label="Inventory Items" value={stats.invItems} />
+            <StatCard color="red" icon={faTriangleExclamation} label="Low Stock (≤10)" value={stats.lowStock} />
+            <StatCard color="maroon" icon={faFileInvoiceDollar} label="Purchase Orders" value={stats.poCount} />
           </div>
 
           <div className="card">
@@ -84,7 +86,7 @@ export default function Dashboard() {
 function StatCard({ color, icon, label, value }) {
   return (
     <div className={`stat-card ${color}`}>
-      <div className="stat-head"><span>{label}</span><span>{icon}</span></div>
+      <div className="stat-head"><span>{label}</span><FontAwesomeIcon icon={icon} /></div>
       <div className="stat-value">{value}</div>
     </div>
   )

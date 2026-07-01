@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faPrint, faXmark, faCheck, faArrowLeft, faFilePdf } from '@fortawesome/free-solid-svg-icons'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { generatePurchaseRequestPDF } from '../lib/generatePrPdf'
@@ -75,7 +77,7 @@ export default function PurchaseRequestDetail() {
     <Layout>
       <div className="flex-between" style={{ marginBottom: 18 }}>
         <div>
-          <button className="btn-signout" style={{ width: 'auto', background: 'none', border: 'none', color: 'var(--text)', padding: 0, marginBottom: 8 }} onClick={() => navigate('/admin/requests')}>← Back</button>
+          <button className="btn-signout" style={{ width: 'auto', background: 'none', border: 'none', color: 'var(--text)', padding: 0, marginBottom: 8 }} onClick={() => navigate('/admin/requests')}><FontAwesomeIcon icon={faArrowLeft} style={{ marginRight: 6 }} />Back</button>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <h1 className="page-title" style={{ margin: 0 }}>{pr.pr_number}</h1>
             <StatusBadge status={pr.status} />
@@ -86,14 +88,14 @@ export default function PurchaseRequestDetail() {
         </div>
         <div className="gap-8">
           {pr.status === 'Draft' && <button className="btn btn-secondary" onClick={() => navigate(`/admin/requests/${id}/edit`)}>Edit</button>}
-          <button className="btn btn-secondary" onClick={() => setShowPrint(true)}>🖶 Print</button>
+          <button className="btn btn-secondary" onClick={() => setShowPrint(true)}><FontAwesomeIcon icon={faPrint} style={{ marginRight: 6 }} />Print</button>
           <button className="btn btn-secondary" disabled={generatingPdf} onClick={handleDownloadPdf}>
-            {generatingPdf ? 'Generating…' : '⬇ Download PDF'}
+            <FontAwesomeIcon icon={faFilePdf} style={{ marginRight: 6 }} />{generatingPdf ? 'Generating…' : 'Download PDF'}
           </button>
           {pr.status === 'Submitted' && (
             <>
-              <button className="btn btn-danger" disabled={busy} onClick={() => setConfirmAction('reject')}>✕ Reject</button>
-              <button className="btn btn-success" disabled={busy} onClick={() => setConfirmAction('approve')}>✓ Approve</button>
+              <button className="btn btn-danger" disabled={busy} onClick={() => setConfirmAction('reject')}><FontAwesomeIcon icon={faXmark} style={{ marginRight: 6 }} />Reject</button>
+              <button className="btn btn-success" disabled={busy} onClick={() => setConfirmAction('approve')}><FontAwesomeIcon icon={faCheck} style={{ marginRight: 6 }} />Approve</button>
             </>
           )}
         </div>

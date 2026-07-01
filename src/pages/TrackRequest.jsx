@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons'
 import { supabase } from '../lib/supabase'
 import { generatePurchaseRequestPDF } from '../lib/generatePrPdf'
 import StatusBadge from '../components/StatusBadge'
@@ -80,7 +82,7 @@ export default function TrackRequest() {
               onKeyDown={(e) => e.key === 'Enter' && handleTrack()}
             />
             <button className="btn btn-primary" onClick={() => handleTrack()} disabled={loading}>
-              {loading ? 'Searching…' : '🔍 Track'}
+              {loading ? 'Searching…' : <><FontAwesomeIcon icon={faMagnifyingGlass} style={{ marginRight: 6 }} />Track</>}
             </button>
           </div>
 

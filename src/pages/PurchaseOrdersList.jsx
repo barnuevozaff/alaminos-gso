@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faEye, faTrash, faPlus } from '@fortawesome/free-solid-svg-icons'
 import { supabase } from '../lib/supabase'
 import Layout from '../components/Layout'
 import StatusBadge from '../components/StatusBadge'
@@ -36,7 +38,7 @@ export default function PurchaseOrdersList() {
           <h1 className="page-title">Purchase Orders</h1>
           <p className="page-subtitle">Sent to suppliers for goods/services.</p>
         </div>
-        <button className="btn btn-primary" onClick={() => navigate('/admin/purchase-orders/new')}>+ New Purchase Order</button>
+        <button className="btn btn-primary" onClick={() => navigate('/admin/purchase-orders/new')}><FontAwesomeIcon icon={faPlus} style={{ marginRight: 6 }} />New Purchase Order</button>
       </div>
 
       {error && <div className="alert alert-error">{error}</div>}
@@ -61,8 +63,8 @@ export default function PurchaseOrdersList() {
                   <td>{new Date(po.po_date).toLocaleDateString()}</td>
                   <td><StatusBadge status={po.status} /></td>
                   <td className="gap-8">
-                    <button className="btn btn-outline btn-sm" onClick={() => navigate(`/admin/purchase-orders/${po.id}`)}>👁 View</button>
-                    <button className="btn btn-danger btn-sm" onClick={() => setDeleteTarget(po)}>🗑 Delete</button>
+                    <button className="btn btn-outline btn-sm" onClick={() => navigate(`/admin/purchase-orders/${po.id}`)}><FontAwesomeIcon icon={faEye} style={{ marginRight: 6 }} />View</button>
+                    <button className="btn btn-danger btn-sm" onClick={() => setDeleteTarget(po)}><FontAwesomeIcon icon={faTrash} style={{ marginRight: 6 }} />Delete</button>
                   </td>
                 </tr>
               ))}

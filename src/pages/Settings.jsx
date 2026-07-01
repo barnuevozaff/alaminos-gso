@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faFilePdf, faUser, faLock, faLandmark, faBriefcase, faCoins, faIdCard, faXmark } from '@fortawesome/free-solid-svg-icons'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import Layout from '../components/Layout'
@@ -28,7 +30,7 @@ function Modal({ onClose, children }) {
   )
 }
 
-function SettingTile({ icon, title, description, color, onClick }) {
+function SettingTile({ icon, title, description, color, iconColor, onClick }) {
   return (
     <button
       onClick={onClick}
@@ -47,9 +49,8 @@ function SettingTile({ icon, title, description, color, onClick }) {
       <div style={{
         width: 88, height: 88, borderRadius: 24,
         background: color, display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontSize: 42,
       }}>
-        {icon}
+        <FontAwesomeIcon icon={icon} style={{ fontSize: 38, color: iconColor }} />
       </div>
       <div>
         <div style={{ fontWeight: 700, fontSize: 18, color: 'var(--text)', marginBottom: 8 }}>{title}</div>
@@ -153,17 +154,19 @@ export default function Settings() {
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
         <SettingTile
-          icon="✍️"
+          icon={faFilePdf}
           title="PDF Signatories"
           description="Names printed on generated Purchase Request PDFs"
           color="rgba(122,30,42,0.12)"
+          iconColor="var(--maroon)"
           onClick={() => setModal('sig')}
         />
         <SettingTile
-          icon="👤"
+          icon={faUser}
           title="Account Settings"
           description="Change your display name or login password"
           color="rgba(26,74,122,0.12)"
+          iconColor="#1a4a7a"
           onClick={() => setModal('account')}
         />
       </div>
@@ -177,22 +180,22 @@ export default function Settings() {
               <div style={{ fontWeight: 700, fontSize: 15, color: '#fff' }}>PDF Signatories</div>
               <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.75)', marginTop: 2 }}>Names on generated Purchase Request PDFs</div>
             </div>
-            <button onClick={() => setModal(null)} style={{ background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: 8, color: '#fff', width: 30, height: 30, cursor: 'pointer', fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
+            <button onClick={() => setModal(null)} style={{ background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: 8, color: '#fff', width: 30, height: 30, cursor: 'pointer', fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><FontAwesomeIcon icon={faXmark} /></button>
           </div>
           <div style={{ padding: 28 }}>
             <p style={{ margin: '0 0 18px', fontSize: 13, color: 'var(--text-muted)' }}>Leave a field blank to omit that signature line from the PDF.</p>
             {sigError && <div className="alert alert-error" style={{ marginBottom: 14 }}>{sigError}</div>}
             {sigSaved && <div className="alert alert-success" style={{ marginBottom: 14 }}>Signatories saved successfully.</div>}
             <div className="form-group">
-              <label className="form-label">🏛 Municipal Mayor</label>
+              <label className="form-label"><FontAwesomeIcon icon={faLandmark} style={{ marginRight: 6, color: 'var(--text-muted)' }} />Municipal Mayor</label>
               <input className="form-input" value={mayor} onChange={(e) => setMayor(e.target.value)} placeholder="e.g. Hon. ERICSON R. LOPEZ" />
             </div>
             <div className="form-group">
-              <label className="form-label">🗂 General Services Officer</label>
+              <label className="form-label"><FontAwesomeIcon icon={faBriefcase} style={{ marginRight: 6, color: 'var(--text-muted)' }} />General Services Officer</label>
               <input className="form-input" value={gso} onChange={(e) => setGso(e.target.value)} placeholder="e.g. FLORENTINO J. DESTACAMENTO" />
             </div>
             <div className="form-group" style={{ marginBottom: 22 }}>
-              <label className="form-label">💰 Municipal Treasurer</label>
+              <label className="form-label"><FontAwesomeIcon icon={faCoins} style={{ marginRight: 6, color: 'var(--text-muted)' }} />Municipal Treasurer</label>
               <input className="form-input" value={treasurer} onChange={(e) => setTreasurer(e.target.value)} placeholder="e.g. ROWENA C. LANDICHO" />
             </div>
             <button className="btn btn-primary" style={{ width: '100%' }} disabled={saving} onClick={handleSaveSig}>
@@ -211,13 +214,13 @@ export default function Settings() {
               <div style={{ fontWeight: 700, fontSize: 15, color: '#fff' }}>Account Settings</div>
               <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.75)', marginTop: 2 }}>Display name and password</div>
             </div>
-            <button onClick={() => setModal(null)} style={{ background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: 8, color: '#fff', width: 30, height: 30, cursor: 'pointer', fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
+            <button onClick={() => setModal(null)} style={{ background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: 8, color: '#fff', width: 30, height: 30, cursor: 'pointer', fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><FontAwesomeIcon icon={faXmark} /></button>
           </div>
           <div style={{ padding: 28 }}>
             {/* Display Name */}
             <div style={{ marginBottom: 26 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 12 }}>
-                <span style={{ fontSize: 15 }}>🪪</span>
+                <FontAwesomeIcon icon={faIdCard} style={{ color: '#1a4a7a' }} />
                 <span style={{ fontWeight: 600, fontSize: 14 }}>Display Name</span>
               </div>
               {nameError && <div className="alert alert-error" style={{ marginBottom: 10 }}>{nameError}</div>}
@@ -236,7 +239,7 @@ export default function Settings() {
             {/* Change Password */}
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 12 }}>
-                <span style={{ fontSize: 15 }}>🔒</span>
+                <FontAwesomeIcon icon={faLock} style={{ color: '#1a4a7a' }} />
                 <span style={{ fontWeight: 600, fontSize: 14 }}>Change Password</span>
               </div>
               {pwError && <div className="alert alert-error" style={{ marginBottom: 10 }}>{pwError}</div>}

@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faPrint, faArrowLeft } from '@fortawesome/free-solid-svg-icons'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import Layout from '../components/Layout'
@@ -107,7 +109,7 @@ export default function PurchaseOrderDetail() {
     <Layout>
       <div className="flex-between" style={{ marginBottom: 18 }}>
         <div>
-          <button style={{ background: 'none', border: 'none', padding: 0, marginBottom: 8, cursor: 'pointer' }} onClick={() => navigate('/admin/purchase-orders')}>← Back</button>
+          <button style={{ background: 'none', border: 'none', padding: 0, marginBottom: 8, cursor: 'pointer', color: 'var(--text)' }} onClick={() => navigate('/admin/purchase-orders')}><FontAwesomeIcon icon={faArrowLeft} style={{ marginRight: 6 }} />Back</button>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <h1 className="page-title" style={{ margin: 0 }}>{po.po_number}</h1>
             <StatusBadge status={po.status} />
@@ -117,7 +119,7 @@ export default function PurchaseOrderDetail() {
           </p>
         </div>
         <div className="gap-8">
-          <button className="btn btn-secondary" onClick={() => setShowPrint(true)}>🖶 Print</button>
+          <button className="btn btn-secondary" onClick={() => setShowPrint(true)}><FontAwesomeIcon icon={faPrint} style={{ marginRight: 6 }} />Print</button>
           {po.status === 'Draft' && (
             <button className="btn btn-success" disabled={saving} onClick={() => setConfirmIssue(true)}>Issue PO</button>
           )}

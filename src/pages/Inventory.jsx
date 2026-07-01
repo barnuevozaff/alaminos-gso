@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faTrash, faPenToSquare, faPlus, faXmark } from '@fortawesome/free-solid-svg-icons'
 import { supabase } from '../lib/supabase'
 import { UNITS } from '../lib/units'
 import Layout from '../components/Layout'
@@ -59,7 +61,7 @@ export default function Inventory() {
             {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
           </select>
         </div>
-        <button className="btn btn-primary" onClick={() => { setEditing(null); setShowModal(true) }}>+ Add Item</button>
+        <button className="btn btn-primary" onClick={() => { setEditing(null); setShowModal(true) }}><FontAwesomeIcon icon={faPlus} style={{ marginRight: 6 }} />Add Item</button>
       </div>
 
       {error && <div className="alert alert-error">{error}</div>}
@@ -87,8 +89,8 @@ export default function Inventory() {
                   <td>₱{Number(item.unit_cost).toFixed(2)}</td>
                   <td>₱{(item.quantity * item.unit_cost).toFixed(2)}</td>
                   <td className="gap-8">
-                    <button className="btn btn-outline btn-sm" onClick={() => { setEditing(item); setShowModal(true) }}>✏️ Edit</button>
-                    <button className="btn btn-danger btn-sm" onClick={() => setDeleteTarget(item)}>🗑 Delete</button>
+                    <button className="btn btn-outline btn-sm" onClick={() => { setEditing(item); setShowModal(true) }}><FontAwesomeIcon icon={faPenToSquare} style={{ marginRight: 6 }} />Edit</button>
+                    <button className="btn btn-danger btn-sm" onClick={() => setDeleteTarget(item)}><FontAwesomeIcon icon={faTrash} style={{ marginRight: 6 }} />Delete</button>
                   </td>
                 </tr>
               ))}
@@ -151,7 +153,7 @@ function ItemModal({ item, categories, onClose, onSaved }) {
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-box modal-sm" onClick={(e) => e.stopPropagation()}>
-        <button className="modal-close" onClick={onClose}>✕</button>
+        <button className="modal-close" onClick={onClose}><FontAwesomeIcon icon={faXmark} /></button>
         <h3 className="modal-title">{item ? 'Edit Item' : 'Add Item'}</h3>
 
         {error && <div className="alert alert-error">{error}</div>}

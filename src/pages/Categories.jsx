@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faTrash, faPenToSquare } from '@fortawesome/free-solid-svg-icons'
 import { supabase } from '../lib/supabase'
 import Layout from '../components/Layout'
 import ConfirmDialog from '../components/ConfirmDialog'
@@ -89,8 +91,8 @@ export default function Categories() {
                       </>
                     ) : (
                       <>
-                        <button className="icon-btn" onClick={() => { setEditingId(c.id); setEditingName(c.name) }}>✏️</button>
-                        <button className="icon-btn danger" onClick={() => setDeleteTarget(c)}>🗑</button>
+                        <button className="icon-btn" onClick={() => { setEditingId(c.id); setEditingName(c.name) }}><FontAwesomeIcon icon={faPenToSquare} /></button>
+                        <button className="icon-btn danger" onClick={() => setDeleteTarget(c)}><FontAwesomeIcon icon={faTrash} /></button>
                       </>
                     )}
                   </td>

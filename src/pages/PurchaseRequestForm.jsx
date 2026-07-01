@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faTrash } from '@fortawesome/free-solid-svg-icons'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import Layout from '../components/Layout'
@@ -209,7 +211,7 @@ export default function PurchaseRequestForm() {
                 </td>
                 <td className="text-muted">₱{Number(it.unit_cost).toFixed(2)}</td>
                 <td className="text-muted">₱{((Number(it.quantity) || 0) * (Number(it.unit_cost) || 0)).toFixed(2)}</td>
-                {!isLocked && <td><button className="icon-btn danger" onClick={() => removeItem(idx)}>🗑</button></td>}
+                {!isLocked && <td><button className="icon-btn danger" onClick={() => removeItem(idx)}><FontAwesomeIcon icon={faTrash} /></button></td>}
               </tr>
             ))}
           </tbody>
