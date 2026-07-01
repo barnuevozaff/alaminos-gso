@@ -55,25 +55,25 @@ export default function PurchaseRequestDetail() {
 
   async function handleApprove() {
     setBusy(true)
-    const { error: approveErr } = await supabase.rpc('approve_purchase_request', { p_pr_id: id, p_user_id: user.id })
-    if (approveErr) { setError(approveErr.message); setBusy(false); setConfirmAction(null); return }
+    const { error } = await supabase.rpc('approve_purchase_request', { p_pr_id: id, p_user_id: user.id })
+    setBusy(false)
+    setConfirmAction(null)
+    if (error) { setError(error.message); return }
+    load()
+  }
 
-    // Auto-create a linked PO (only if none exists yet) then navigate to it
-    const { data: existingPo } = await supabase.from('purchase_orders').select('id').eq('pr_id', id).maybeSingle()
-    if (existingPo) {
-      navigate(`/admin/purchase-orders/${existingPo.id}`)
-      return
-    }
-
+  async function handleGeneratePo() {
+    setBusy(true)
+    setError('')
     const { data: freshItems } = await supabase.from('pr_items_live').select('*').eq('pr_id', id).order('sort_order')
-    const { data: newPo } = await supabase.from('purchase_orders').insert({
+    const { data: newPo, error: poErr } = await supabase.from('purchase_orders').insert({
       pr_id: id,
       pr_numbers: pr.pr_number,
       status: 'Draft',
     }).select().single()
-
-    if (newPo && freshItems?.length) {
-      await supabase.from('po_items').insert(
+    if (poErr) { setError(poErr.message); setBusy(false); return }
+    if (freshItems?.length) {
+      const { error: itemsErr } = await supabase.from('po_items').insert(
         freshItems.map((it, idx) => ({
           po_id: newPo.id,
           stock_property_no: it.item_code || null,
@@ -84,11 +84,9 @@ export default function PurchaseRequestDetail() {
           sort_order: idx,
         }))
       )
+      if (itemsErr) { setError(itemsErr.message); setBusy(false); return }
     }
-
-    setBusy(false)
-    setConfirmAction(null)
-    if (newPo) navigate(`/admin/purchase-orders/${newPo.id}`)
+    navigate(`/admin/purchase-orders/${newPo.id}`)
   }
 
   async function handleReject() {
@@ -131,6 +129,16 @@ export default function PurchaseRequestDetail() {
               <button className="btn btn-danger" disabled={busy} onClick={() => setConfirmAction('reject')}><FontAwesomeIcon icon={faXmark} style={{ marginRight: 6 }} />Reject</button>
               <button className="btn btn-success" disabled={busy} onClick={() => setConfirmAction('approve')}><FontAwesomeIcon icon={faCheck} style={{ marginRight: 6 }} />Approve</button>
             </>
+          )}
+          {pr.status === 'Approved' && !linkedPo && (
+            <button className="btn btn-primary" disabled={busy} onClick={handleGeneratePo}>
+              <FontAwesomeIcon icon={faFileInvoiceDollar} style={{ marginRight: 6 }} />{busy ? 'Generating…' : 'Generate Purchase Order'}
+            </button>
+          )}
+          {pr.status === 'Approved' && linkedPo && (
+            <button className="btn btn-secondary" onClick={() => navigate(`/admin/purchase-orders/${linkedPo.id}`)}>
+              <FontAwesomeIcon icon={faFileInvoiceDollar} style={{ marginRight: 6 }} />View Purchase Order
+            </button>
           )}
         </div>
       </div>
@@ -197,7 +205,7 @@ export default function PurchaseRequestDetail() {
       {confirmAction === 'approve' && (
         <ConfirmDialog
           title="Approve this request?"
-          message={`Approving ${pr.pr_number} will deduct requested quantities from inventory and automatically create a Draft Purchase Order. This cannot be undone.`}
+          message={`Approving ${pr.pr_number} will deduct the requested quantities from inventory. This cannot be undone.`}
           confirmLabel="Approve"
           confirmClass="btn-success"
           busy={busy}
