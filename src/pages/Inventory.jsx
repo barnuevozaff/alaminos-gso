@@ -40,9 +40,13 @@ export default function Inventory() {
 
   const othersCat = categories.find((c) => c.name.toLowerCase() === 'others')
 
+  const isLowStock = (i) => i.quantity <= (i.reorder_level || 10)
+
   const filtered = items.filter((i) => {
     const matchesSearch = !search || i.item_name.toLowerCase().includes(search.toLowerCase()) || i.item_code?.toLowerCase().includes(search.toLowerCase())
-    const matchesCategory = categoryFilter === 'all' ||
+    const matchesCategory =
+      categoryFilter === 'all' ? true :
+      categoryFilter === '__lowstock__' ? isLowStock(i) :
       i.category_id === categoryFilter ||
       (othersCat && categoryFilter === othersCat.id && !i.category_id)
     return matchesSearch && matchesCategory
@@ -95,6 +99,7 @@ export default function Inventory() {
           <input className="form-input" placeholder="Search items…" value={search} onChange={(e) => setSearch(e.target.value)} />
           <select className="form-select" value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)}>
             <option value="all">All categories</option>
+            <option value="__lowstock__">⚠ Low Stock only</option>
             {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
           </select>
         </div>
@@ -163,7 +168,7 @@ export default function Inventory() {
                   <td>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                       <span>{item.categories?.name || '—'}</span>
-                      {item.quantity <= (item.reorder_level ?? 10) && (
+                      {item.quantity <= (item.reorder_level || 10) && (
                         <span style={{
                           display: 'inline-flex', alignItems: 'center', gap: 4,
                           fontSize: 11, fontWeight: 700, color: '#b45309',
@@ -176,7 +181,7 @@ export default function Inventory() {
                     </div>
                   </td>
                   <td>{item.unit}</td>
-                  <td style={{ color: item.quantity <= (item.reorder_level ?? 10) ? '#b45309' : undefined, fontWeight: item.quantity <= (item.reorder_level ?? 10) ? 700 : undefined }}>{item.quantity}</td>
+                  <td style={{ color: item.quantity <= (item.reorder_level || 10) ? '#b45309' : undefined, fontWeight: item.quantity <= (item.reorder_level || 10) ? 700 : undefined }}>{item.quantity}</td>
                   <td>₱{fmt(item.unit_cost)}</td>
                   <td>₱{fmt(item.quantity * item.unit_cost)}</td>
                   {!deleteMode && (
