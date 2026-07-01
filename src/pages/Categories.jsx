@@ -73,7 +73,7 @@ export default function Categories() {
           <div className="state-box"><div className="spinner"></div>Loading categories…</div>
         ) : (
           <table className="data-table">
-            <thead><tr><th style={{ width: '100%' }}>Name</th><th style={{ whiteSpace: 'nowrap' }}>Actions</th></tr></thead>
+            <thead><tr><th style={{ width: '100%' }}>Name</th><th style={{ whiteSpace: 'nowrap', minWidth: 160 }}>Actions</th></tr></thead>
             <tbody>
               {categories.map((c) => (
                 <tr key={c.id}>
@@ -85,12 +85,12 @@ export default function Categories() {
                   </td>
                   <td>
                     {editingId === c.id ? (
-                      <>
-                        <button className="btn btn-sm btn-success" onClick={() => handleUpdate(c.id)}>Save</button>{' '}
+                      <div style={{ display: 'flex', gap: 8 }}>
+                        <button className="btn btn-sm btn-success" onClick={() => handleUpdate(c.id)}>Save</button>
                         <button className="btn btn-sm btn-secondary" onClick={() => setEditingId(null)}>Cancel</button>
-                      </>
+                      </div>
                     ) : (
-                      <div className="gap-8">
+                      <div style={{ display: 'flex', gap: 8, justifyContent: 'space-between' }}>
                         <button className="btn btn-outline btn-sm" onClick={() => { setEditingId(c.id); setEditingName(c.name) }}><FontAwesomeIcon icon={faPenToSquare} style={{ marginRight: 6 }} />Edit</button>
                         <button className="btn btn-danger btn-sm" onClick={() => setDeleteTarget(c)}><FontAwesomeIcon icon={faTrash} style={{ marginRight: 6 }} />Delete</button>
                       </div>
