@@ -1,4 +1,6 @@
 import { Link } from 'react-router-dom'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faFileLines, faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons'
 import LOGO from '../assets/alaminos-seal.jpeg'
 
 export default function PublicHome() {
@@ -16,16 +18,28 @@ export default function PublicHome() {
 
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '60px 20px' }}>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, maxWidth: 720, width: '100%' }}>
-          <Link to="/purchase-request" className="card" style={{ textDecoration: 'none', textAlign: 'center', padding: 32 }}>
-            <div style={{ fontSize: 32, marginBottom: 10 }}>📄</div>
-            <h3 style={{ margin: '0 0 6px' }}>Submit a Purchase Request</h3>
-            <p className="text-muted" style={{ margin: 0, fontSize: 14 }}>Fill out a request for items needed by your department.</p>
+          <Link to="/purchase-request" className="card" style={{ textDecoration: 'none', textAlign: 'center', padding: '40px 32px' }}>
+            <div style={{
+              width: 72, height: 72, borderRadius: 20, margin: '0 auto 18px',
+              background: 'rgba(122,30,42,0.1)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <FontAwesomeIcon icon={faFileLines} style={{ fontSize: 32, color: 'var(--maroon)' }} />
+            </div>
+            <h3 style={{ margin: '0 0 8px' }}>Submit a Purchase Request</h3>
+            <p className="text-muted" style={{ margin: 0, fontSize: 14, lineHeight: 1.5 }}>Fill out a request for items needed by your department.</p>
           </Link>
 
-          <Link to="/track-request" className="card" style={{ textDecoration: 'none', textAlign: 'center', padding: 32 }}>
-            <div style={{ fontSize: 32, marginBottom: 10 }}>🔍</div>
-            <h3 style={{ margin: '0 0 6px' }}>Track a Purchase Request</h3>
-            <p className="text-muted" style={{ margin: 0, fontSize: 14 }}>Check the status of a request using its PR number.</p>
+          <Link to="/track-request" className="card" style={{ textDecoration: 'none', textAlign: 'center', padding: '40px 32px' }}>
+            <div style={{
+              width: 72, height: 72, borderRadius: 20, margin: '0 auto 18px',
+              background: 'rgba(26,74,122,0.1)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <FontAwesomeIcon icon={faMagnifyingGlass} style={{ fontSize: 32, color: '#1a4a7a' }} />
+            </div>
+            <h3 style={{ margin: '0 0 8px' }}>Track a Purchase Request</h3>
+            <p className="text-muted" style={{ margin: 0, fontSize: 14, lineHeight: 1.5 }}>Check the status of a request using its PR number.</p>
           </Link>
         </div>
       </div>
