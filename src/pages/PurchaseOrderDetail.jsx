@@ -17,7 +17,6 @@ export default function PurchaseOrderDetail() {
   const [po, setPo] = useState(null)
   const [items, setItems] = useState([])
   const [pr, setPr] = useState(null)
-  const [existingAir, setExistingAir] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
@@ -33,13 +32,10 @@ export default function PurchaseOrderDetail() {
     if (poErr) { setError(poErr.message); setLoading(false); return }
     setPo(poData)
     setItems(itemsData || [])
-
     if (poData.pr_id) {
       const { data: prData } = await supabase.from('purchase_requests').select('*').eq('id', poData.pr_id).single()
       setPr(prData)
     }
-    const { data: air } = await supabase.from('acceptance_inspection_reports').select('id').eq('po_id', id).maybeSingle()
-    setExistingAir(air)
     setLoading(false)
   }
 
@@ -80,27 +76,31 @@ export default function PurchaseOrderDetail() {
 
   async function handleIssue() {
     setSaving(true)
-    const { error } = await supabase.from('purchase_orders').update({ status: 'Issued' }).eq('id', id)
-    if (!error) {
-      await supabase.from('audit_logs').insert({ action: 'PO_ISSUED', description: `Issued ${po.po_number}`, performed_by: profile?.id })
-    }
+    setError('')
+
+    // Save all form data first, then update status to Issued in one call
+    const { error: updErr } = await supabase.from('purchase_orders').update({
+      supplier: po.supplier, address: po.address, tin: po.tin, contact_number: po.contact_number,
+      mode_of_procurement: po.mode_of_procurement, delivery_term: po.delivery_term,
+      date_of_delivery: po.date_of_delivery || null, payment_term: po.payment_term,
+      pr_numbers: po.pr_numbers, mayor_name: po.mayor_name || null, bac_secretary_name: po.bac_secretary_name || null,
+      status: 'Issued',
+    }).eq('id', id)
+
+    if (updErr) { setError(updErr.message); setSaving(false); setConfirmIssue(false); return }
+
+    // Save items
+    await supabase.from('po_items').delete().eq('po_id', id)
+    const rows = items.map((it, idx) => ({
+      po_id: id, stock_property_no: it.stock_property_no, unit: it.unit, description: it.description,
+      quantity: Number(it.quantity), unit_cost: Number(it.unit_cost), sort_order: idx,
+    }))
+    if (rows.length) await supabase.from('po_items').insert(rows)
+
+    await supabase.from('audit_logs').insert({ action: 'PO_ISSUED', description: `Issued ${po.po_number}`, performed_by: profile?.id })
     setSaving(false)
     setConfirmIssue(false)
     load()
-  }
-
-  async function handleGenerateAIR() {
-    if (existingAir) { navigate(`/admin/air/${existingAir.id}`); return }
-    setSaving(true)
-    const { data: newAir, error } = await supabase.from('acceptance_inspection_reports').insert({
-      po_id: id,
-      requisitioning_office: pr?.department || null,
-      created_by: profile?.id,
-    }).select().single()
-    setSaving(false)
-    if (error) { setError(error.message); return }
-    await supabase.from('audit_logs').insert({ action: 'AIR_GENERATED', description: `Generated ${newAir.air_number} for ${po.po_number}`, performed_by: profile?.id })
-    navigate(`/admin/air/${newAir.id}`)
   }
 
   if (loading) return <Layout><div className="state-box"><div className="spinner"></div>Loading purchase order…</div></Layout>
@@ -126,11 +126,6 @@ export default function PurchaseOrderDetail() {
           <button className="btn btn-secondary" onClick={() => setShowPrint(true)}><FontAwesomeIcon icon={faPrint} style={{ marginRight: 6 }} />Print</button>
           {po.status === 'Draft' && (
             <button className="btn btn-success" disabled={saving} onClick={() => setConfirmIssue(true)}>Issue PO</button>
-          )}
-          {po.status === 'Issued' && (
-            <button className="btn btn-primary" disabled={saving} onClick={handleGenerateAIR}>
-              {existingAir ? 'View AIR' : 'Generate AIR'}
-            </button>
           )}
         </div>
       </div>

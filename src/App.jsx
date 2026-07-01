@@ -16,7 +16,6 @@ import Settings from './pages/Settings'
 import PurchaseOrdersList from './pages/PurchaseOrdersList'
 import PurchaseOrderForm from './pages/PurchaseOrderForm'
 import PurchaseOrderDetail from './pages/PurchaseOrderDetail'
-import AIRDetail from './pages/AIRDetail'
 
 function PrivateRoute({ children }) {
   const { user, loading } = useAuth()
@@ -52,7 +51,6 @@ export default function App() {
       <Route path="/admin/purchase-orders" element={<PrivateRoute><PurchaseOrdersList /></PrivateRoute>} />
       <Route path="/admin/purchase-orders/new" element={<PrivateRoute><PurchaseOrderForm /></PrivateRoute>} />
       <Route path="/admin/purchase-orders/:id" element={<PrivateRoute><PurchaseOrderDetail /></PrivateRoute>} />
-      <Route path="/admin/air/:id" element={<PrivateRoute><AIRDetail /></PrivateRoute>} />
       <Route path="/admin/audit-logs" element={<PrivateRoute><AuditLogs /></PrivateRoute>} />
       <Route path="/admin/settings" element={<PrivateRoute><Settings /></PrivateRoute>} />
 
