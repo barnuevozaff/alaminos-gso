@@ -74,32 +74,77 @@ async function pdfToImageBlob(file) {
   return new Promise((res) => canvas.toBlob(res, 'image/png'))
 }
 
-// ── Category keyword map ──────────────────────────────────
+// ── Category keyword map (scored — more matches = higher confidence) ──
 const CATEGORY_KEYWORDS = {
-  'cleaning': ['cleaning', 'soap', 'bleach', 'disinfect', 'broom', 'mop', 'detergent', 'wipes', 'alcohol', 'sanitizer', 'trash', 'garbage', 'dust', 'floor', 'polish'],
-  'it':       ['computer', 'laptop', 'printer', 'ink', 'cartridge', 'toner', 'usb', 'cable', 'monitor', 'keyboard', 'mouse', 'router', 'battery', 'charger', 'scanner', 'tablet', 'hard', 'drive', 'flash', 'webcam', 'projector'],
-  'office':   ['paper', 'bond', 'folder', 'staple', 'pencil', 'pen', 'ballpen', 'marker', 'highlighter', 'tape', 'clip', 'binder', 'envelope', 'notebook', 'pad', 'eraser', 'ruler', 'record', 'board', 'stamp', 'ribbon', 'correction', 'scissors', 'glue'],
+  'cleaning': [
+    'cleaning','clean','soap','bleach','disinfect','broom','mop','detergent',
+    'wipes','alcohol','sanitizer','trash','garbage','dust','floor','polish',
+    'freshener','deodorizer','deodorant','fragrance','bathroom','toilet',
+    'janitorial','hygiene','scrub','brush','pail','bucket','sponge',
+    'dishwashing','fabric','conditioner','softener','lysol','zonrox',
+    'muriatic','acid','stain','remover','odor','spray','isopropyl','rubbing',
+    'wax','squeegee','dustpan','tissue','paper towel','napkin','cotton',
+    'gauze','bandage','mask','gloves','latex','rubber','diaper',
+    'air freshener','room spray','insecticide','pesticide','rat','roach',
+    'cockroach','termite','mosquito','fumigation','baygon','hit','raid',
+    'feather','duster','plunger','drain','unclog','lather','foam','gel',
+  ],
+  'it': [
+    'computer','laptop','printer','ink','cartridge','toner','usb','cable',
+    'monitor','keyboard','mouse','router','battery','charger','scanner',
+    'tablet','hard drive','flash drive','webcam','projector','ethernet',
+    'hdmi','vga','network','wifi','wireless','bluetooth','speaker',
+    'headphone','microphone','camera','cctv','ups','surge protector',
+    'adapter','hub','switch','server','ram','memory','processor',
+    'motherboard','power supply','cooling fan','avr','voltage regulator',
+    'stabilizer','adding machine','calculator','typewriter','photocopier',
+    'copier','fax','telephone','intercom','dvd','cd','disc','drive',
+    'deskjet','laserjet','epson','canon','brother','hp','dell','lenovo',
+    'acer','asus','samsung','toshiba','seagate','sandisk','corsair',
+    'ribbon cassette','cash register','barcode','scanner',
+  ],
+  'office': [
+    'paper','bond paper','folder','staple','pencil','pen','ballpen','ball pen',
+    'marker','highlighter','tape','clip','binder','envelope','notebook',
+    'pad','eraser','ruler','record','board','stamp','correction','scissors',
+    'glue','cutter','puncher','sharpener','stapler','dispenser','fastener',
+    'rubber band','tacks','thumbtack','pushpin','index card','sticky note',
+    'post-it','transparency','laminator','binding','divider','tab','flag',
+    'label','sticker','tag','ledger','journal','logbook','form','receipt',
+    'voucher','register','calendar','planner','organizer','tray','rack',
+    'ink pad','string','twine','twine','paper clip','binder clip',
+    'correction fluid','white out','pentel','mongol','faber','pilot',
+    'sign pen','felt tip','permanent','whiteboard','chalkboard','chalk',
+    'blackboard','presentation','report','cover','plastic','clear',
+    'coupon bond','short','long','a4','folio','legal','letter',
+    'adding machine ribbon','typewriter ribbon','carbon','photocopy',
+  ],
 }
 
+// Returns { category: string, confidence: 'high'|'low'|'none' }
 function guessCategory(itemName, categories) {
-  if (!categories?.length) return ''
+  if (!categories?.length) return { category: '', confidence: 'none' }
   const lower = itemName.toLowerCase()
 
-  // 1. Direct word-overlap against existing category names
-  for (const cat of categories) {
-    const words = cat.name.toLowerCase().split(/\s+/)
-    if (words.some((w) => w.length > 3 && lower.includes(w))) return cat.name
-  }
+  // Score each category
+  const scores = {}
+  for (const cat of categories) scores[cat.name] = 0
 
-  // 2. Keyword-map fallback
   for (const [key, keywords] of Object.entries(CATEGORY_KEYWORDS)) {
-    if (keywords.some((kw) => lower.includes(kw))) {
-      const match = categories.find((c) => c.name.toLowerCase().includes(key))
-      if (match) return match.name
+    const matchCat = categories.find((c) => c.name.toLowerCase().includes(key))
+    if (!matchCat) continue
+    for (const kw of keywords) {
+      if (lower.includes(kw)) scores[matchCat.name] = (scores[matchCat.name] || 0) + (kw.length > 5 ? 2 : 1)
     }
   }
 
-  return ''
+  // Pick highest-scoring category
+  const [bestName, bestScore] = Object.entries(scores).reduce(
+    (a, b) => (b[1] > a[1] ? b : a), ['', 0]
+  )
+
+  if (bestScore === 0) return { category: '', confidence: 'none' }
+  return { category: bestName, confidence: bestScore >= 3 ? 'high' : 'low' }
 }
 
 // ── Text parser — detects section headers as categories ───
@@ -222,9 +267,11 @@ export default function InventoryImportModal({ categories, existingItems = [], o
       const withCats = parsed
         .map((item) => {
           const dup = findDuplicate(item.name, existingItems)
+          const guess = item.categoryName ? { category: item.categoryName, confidence: 'high' } : guessCategory(item.name, categories)
           return {
             ...item,
-            categoryName: item.categoryName || guessCategory(item.name, categories),
+            categoryName: guess.category,
+            categoryConfidence: item.categoryName ? 'high' : guess.confidence,
             mode: dup ? 'update' : 'add',
             existingId: dup?.id || null,
             existingQty: dup?.quantity || 0,
@@ -464,11 +511,27 @@ export default function InventoryImportModal({ categories, existingItems = [], o
                         <input
                           list="cat-list"
                           className="form-input"
-                          style={{ width: '100%', minWidth: 140 }}
+                          style={{
+                            width: '100%', minWidth: 140,
+                            borderColor: r.categoryConfidence === 'none' ? '#b45309'
+                              : r.categoryConfidence === 'low' ? '#ca8a04' : undefined,
+                          }}
                           placeholder="Type or select…"
                           value={r.categoryName}
-                          onChange={(e) => updateRow(idx, 'categoryName', e.target.value)}
+                          onChange={(e) => {
+                            updateRow(idx, 'categoryName', e.target.value)
+                            updateRow(idx, 'categoryConfidence', 'high')
+                          }}
                         />
+                        {r.categoryConfidence === 'high' && r.categoryName && (
+                          <div style={{ fontSize: 10, color: 'var(--green)', marginTop: 2 }}>✓ auto-detected</div>
+                        )}
+                        {r.categoryConfidence === 'low' && (
+                          <div style={{ fontSize: 10, color: '#ca8a04', marginTop: 2 }}>⚠ uncertain — please verify</div>
+                        )}
+                        {r.categoryConfidence === 'none' && (
+                          <div style={{ fontSize: 10, color: '#b45309', marginTop: 2 }}>⚠ unknown — please select</div>
+                        )}
                       </td>
                       <td>
                         <select
