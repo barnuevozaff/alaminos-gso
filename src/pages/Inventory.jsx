@@ -40,8 +40,10 @@ export default function Inventory() {
   })
 
   async function handleDelete() {
+    // Clear the inventory link on any PR items that reference this item before deleting
+    await supabase.from('pr_items').update({ inventory_id: null }).eq('inventory_id', deleteTarget.id)
     const { error } = await supabase.from('inventory').delete().eq('id', deleteTarget.id)
-    if (error) setError(error.message)
+    if (error) { setError(error.message); setDeleteTarget(null); return }
     setDeleteTarget(null)
     load()
   }
