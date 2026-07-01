@@ -3,9 +3,65 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import Layout from '../components/Layout'
 
+function Modal({ onClose, children }) {
+  return (
+    <div
+      onClick={onClose}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 1000,
+        background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(3px)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        padding: 24,
+      }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          background: 'var(--card-bg)', borderRadius: 20, width: '100%', maxWidth: 480,
+          boxShadow: '0 24px 60px rgba(0,0,0,0.3)',
+          overflow: 'hidden', animation: 'modalPop 0.18s ease',
+        }}
+      >
+        {children}
+      </div>
+    </div>
+  )
+}
+
+function SettingTile({ icon, title, description, color, onClick }) {
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        background: 'var(--card-bg)', border: '1px solid var(--border)',
+        borderRadius: 20, padding: '36px 24px', cursor: 'pointer',
+        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+        gap: 14, textAlign: 'center', width: '100%',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+        transition: 'transform 0.15s, box-shadow 0.15s',
+        minHeight: 200,
+      }}
+      onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.12)' }}
+      onMouseLeave={(e) => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)' }}
+    >
+      <div style={{
+        width: 64, height: 64, borderRadius: 18,
+        background: color, display: 'flex', alignItems: 'center', justifyContent: 'center',
+        fontSize: 30,
+      }}>
+        {icon}
+      </div>
+      <div>
+        <div style={{ fontWeight: 700, fontSize: 15, color: 'var(--text)', marginBottom: 4 }}>{title}</div>
+        <div style={{ fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.4 }}>{description}</div>
+      </div>
+    </button>
+  )
+}
+
 export default function Settings() {
   const { profile } = useAuth()
-  const [open, setOpen] = useState(null) // 'sig' | 'account' | null
+  const [modal, setModal] = useState(null) // 'sig' | 'account'
 
   // PDF Signatories
   const [mayor, setMayor] = useState('')
@@ -31,10 +87,6 @@ export default function Settings() {
 
   useEffect(() => { loadSig() }, [])
   useEffect(() => { if (profile) setDisplayName(profile.full_name || '') }, [profile])
-
-  function toggle(key) {
-    setOpen((prev) => (prev === key ? null : key))
-  }
 
   async function loadSig() {
     setLoading(true)
@@ -87,160 +139,123 @@ export default function Settings() {
 
   if (loading) return <Layout><div className="state-box"><div className="spinner"></div>Loading settings…</div></Layout>
 
-  const tileBase = {
-    borderRadius: 14,
-    overflow: 'hidden',
-    border: '1px solid var(--border)',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.07)',
-    cursor: 'pointer',
-    transition: 'box-shadow 0.15s',
-    background: 'var(--card-bg)',
-  }
-
   return (
     <Layout>
+      <style>{`
+        @keyframes modalPop {
+          from { opacity: 0; transform: scale(0.94) translateY(12px); }
+          to   { opacity: 1; transform: scale(1) translateY(0); }
+        }
+      `}</style>
+
       <h1 className="page-title">Settings</h1>
-      <p className="page-subtitle">Choose a section to configure.</p>
+      <p className="page-subtitle">Select a section to configure.</p>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, alignItems: 'start' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, maxWidth: 640 }}>
+        <SettingTile
+          icon="✍️"
+          title="PDF Signatories"
+          description="Names printed on generated Purchase Request PDFs"
+          color="rgba(122,30,42,0.12)"
+          onClick={() => setModal('sig')}
+        />
+        <SettingTile
+          icon="👤"
+          title="Account Settings"
+          description="Change your display name or login password"
+          color="rgba(26,74,122,0.12)"
+          onClick={() => setModal('account')}
+        />
+      </div>
 
-        {/* ── CARD 1: PDF Signatories ── */}
-        <div style={tileBase}>
-          {/* Clickable header tile */}
-          <button
-            onClick={() => toggle('sig')}
-            style={{
-              width: '100%', border: 'none', cursor: 'pointer',
-              background: open === 'sig' ? 'var(--maroon)' : 'linear-gradient(135deg, #7a1e2a 0%, #a8293a 100%)',
-              padding: '28px 28px',
-              display: 'flex', alignItems: 'center', gap: 18,
-              transition: 'opacity 0.15s',
-            }}
-          >
-            <div style={{
-              width: 56, height: 56, borderRadius: 16, flexShrink: 0,
-              background: 'rgba(255,255,255,0.18)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: 26,
-            }}>✍️</div>
-            <div style={{ textAlign: 'left', flex: 1 }}>
-              <div style={{ fontWeight: 700, fontSize: 16, color: '#fff' }}>PDF Signatories</div>
-              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.75)', marginTop: 3 }}>
-                Configure names printed on Purchase Request PDFs
-              </div>
+      {/* ── Modal: PDF Signatories ── */}
+      {modal === 'sig' && (
+        <Modal onClose={() => setModal(null)}>
+          <div style={{ background: 'var(--maroon)', padding: '22px 28px', display: 'flex', alignItems: 'center', gap: 14 }}>
+            <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(255,255,255,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, flexShrink: 0 }}>✍️</div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontWeight: 700, fontSize: 15, color: '#fff' }}>PDF Signatories</div>
+              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.75)', marginTop: 2 }}>Names on generated Purchase Request PDFs</div>
             </div>
-            <div style={{ fontSize: 20, color: 'rgba(255,255,255,0.6)', transform: open === 'sig' ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>
-              ▾
+            <button onClick={() => setModal(null)} style={{ background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: 8, color: '#fff', width: 30, height: 30, cursor: 'pointer', fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
+          </div>
+          <div style={{ padding: 28 }}>
+            <p style={{ margin: '0 0 18px', fontSize: 13, color: 'var(--text-muted)' }}>Leave a field blank to omit that signature line from the PDF.</p>
+            {sigError && <div className="alert alert-error" style={{ marginBottom: 14 }}>{sigError}</div>}
+            {sigSaved && <div className="alert alert-success" style={{ marginBottom: 14 }}>Signatories saved successfully.</div>}
+            <div className="form-group">
+              <label className="form-label">🏛 Municipal Mayor</label>
+              <input className="form-input" value={mayor} onChange={(e) => setMayor(e.target.value)} placeholder="e.g. Hon. ERICSON R. LOPEZ" />
             </div>
-          </button>
+            <div className="form-group">
+              <label className="form-label">🗂 General Services Officer</label>
+              <input className="form-input" value={gso} onChange={(e) => setGso(e.target.value)} placeholder="e.g. FLORENTINO J. DESTACAMENTO" />
+            </div>
+            <div className="form-group" style={{ marginBottom: 22 }}>
+              <label className="form-label">💰 Municipal Treasurer</label>
+              <input className="form-input" value={treasurer} onChange={(e) => setTreasurer(e.target.value)} placeholder="e.g. ROWENA C. LANDICHO" />
+            </div>
+            <button className="btn btn-primary" style={{ width: '100%' }} disabled={saving} onClick={handleSaveSig}>
+              {saving ? 'Saving…' : 'Save Signatories'}
+            </button>
+          </div>
+        </Modal>
+      )}
 
-          {/* Expandable form */}
-          {open === 'sig' && (
-            <div style={{ padding: 28, borderTop: '1px solid var(--border)' }}>
-              <p style={{ margin: '0 0 18px', fontSize: 13, color: 'var(--text-muted)' }}>
-                Leave a field blank to omit that signature line from the PDF.
-              </p>
-              {sigError && <div className="alert alert-error" style={{ marginBottom: 14 }}>{sigError}</div>}
-              {sigSaved && <div className="alert alert-success" style={{ marginBottom: 14 }}>Signatories saved successfully.</div>}
-              <div className="form-group">
-                <label className="form-label">🏛 Municipal Mayor</label>
-                <input className="form-input" value={mayor} onChange={(e) => setMayor(e.target.value)} placeholder="e.g. Hon. ERICSON R. LOPEZ" />
+      {/* ── Modal: Account Settings ── */}
+      {modal === 'account' && (
+        <Modal onClose={() => setModal(null)}>
+          <div style={{ background: '#1a4a7a', padding: '22px 28px', display: 'flex', alignItems: 'center', gap: 14 }}>
+            <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(255,255,255,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, flexShrink: 0 }}>👤</div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontWeight: 700, fontSize: 15, color: '#fff' }}>Account Settings</div>
+              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.75)', marginTop: 2 }}>Display name and password</div>
+            </div>
+            <button onClick={() => setModal(null)} style={{ background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: 8, color: '#fff', width: 30, height: 30, cursor: 'pointer', fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
+          </div>
+          <div style={{ padding: 28 }}>
+            {/* Display Name */}
+            <div style={{ marginBottom: 26 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 12 }}>
+                <span style={{ fontSize: 15 }}>🪪</span>
+                <span style={{ fontWeight: 600, fontSize: 14 }}>Display Name</span>
               </div>
-              <div className="form-group">
-                <label className="form-label">🗂 General Services Officer</label>
-                <input className="form-input" value={gso} onChange={(e) => setGso(e.target.value)} placeholder="e.g. FLORENTINO J. DESTACAMENTO" />
+              {nameError && <div className="alert alert-error" style={{ marginBottom: 10 }}>{nameError}</div>}
+              {nameSaved && <div className="alert alert-success" style={{ marginBottom: 10 }}>Name updated successfully.</div>}
+              <div className="form-group" style={{ marginBottom: 12 }}>
+                <label className="form-label">Full Name</label>
+                <input className="form-input" value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder="Your full name" />
               </div>
-              <div className="form-group" style={{ marginBottom: 22 }}>
-                <label className="form-label">💰 Municipal Treasurer</label>
-                <input className="form-input" value={treasurer} onChange={(e) => setTreasurer(e.target.value)} placeholder="e.g. ROWENA C. LANDICHO" />
-              </div>
-              <button className="btn btn-primary" style={{ width: '100%' }} disabled={saving} onClick={handleSaveSig}>
-                {saving ? 'Saving…' : 'Save Signatories'}
+              <button className="btn btn-primary" style={{ width: '100%' }} disabled={savingName} onClick={handleSaveName}>
+                {savingName ? 'Saving…' : 'Update Name'}
               </button>
             </div>
-          )}
-        </div>
 
-        {/* ── CARD 2: Account Settings ── */}
-        <div style={tileBase}>
-          {/* Clickable header tile */}
-          <button
-            onClick={() => toggle('account')}
-            style={{
-              width: '100%', border: 'none', cursor: 'pointer',
-              background: open === 'account' ? '#1a4a7a' : 'linear-gradient(135deg, #1a4a7a 0%, #2a6aaa 100%)',
-              padding: '28px 28px',
-              display: 'flex', alignItems: 'center', gap: 18,
-              transition: 'opacity 0.15s',
-            }}
-          >
-            <div style={{
-              width: 56, height: 56, borderRadius: 16, flexShrink: 0,
-              background: 'rgba(255,255,255,0.18)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: 26,
-            }}>👤</div>
-            <div style={{ textAlign: 'left', flex: 1 }}>
-              <div style={{ fontWeight: 700, fontSize: 16, color: '#fff' }}>Account Settings</div>
-              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.75)', marginTop: 3 }}>
-                Update your display name and password
+            <div style={{ borderTop: '1px solid var(--border)', marginBottom: 26 }} />
+
+            {/* Change Password */}
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 12 }}>
+                <span style={{ fontSize: 15 }}>🔒</span>
+                <span style={{ fontWeight: 600, fontSize: 14 }}>Change Password</span>
               </div>
-            </div>
-            <div style={{ fontSize: 20, color: 'rgba(255,255,255,0.6)', transform: open === 'account' ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>
-              ▾
-            </div>
-          </button>
-
-          {/* Expandable form */}
-          {open === 'account' && (
-            <div style={{ padding: 28, borderTop: '1px solid var(--border)' }}>
-
-              {/* Display Name */}
-              <div style={{ marginBottom: 28 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-                  <span style={{ fontSize: 16 }}>🪪</span>
-                  <span style={{ fontWeight: 600, fontSize: 14 }}>Display Name</span>
-                </div>
-                {nameError && <div className="alert alert-error" style={{ marginBottom: 12 }}>{nameError}</div>}
-                {nameSaved && <div className="alert alert-success" style={{ marginBottom: 12 }}>Name updated successfully.</div>}
-                <div className="form-group" style={{ marginBottom: 14 }}>
-                  <label className="form-label">Full Name</label>
-                  <input className="form-input" value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder="Your full name" />
-                </div>
-                <button className="btn btn-primary" style={{ width: '100%' }} disabled={savingName} onClick={handleSaveName}>
-                  {savingName ? 'Saving…' : 'Update Name'}
-                </button>
+              {pwError && <div className="alert alert-error" style={{ marginBottom: 10 }}>{pwError}</div>}
+              {pwSaved && <div className="alert alert-success" style={{ marginBottom: 10 }}>Password changed successfully.</div>}
+              <div className="form-group">
+                <label className="form-label">New Password</label>
+                <input type="password" className="form-input" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="Enter new password" />
               </div>
-
-              {/* Divider */}
-              <div style={{ borderTop: '1px solid var(--border)', margin: '0 0 28px' }} />
-
-              {/* Change Password */}
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-                  <span style={{ fontSize: 16 }}>🔒</span>
-                  <span style={{ fontWeight: 600, fontSize: 14 }}>Change Password</span>
-                </div>
-                {pwError && <div className="alert alert-error" style={{ marginBottom: 12 }}>{pwError}</div>}
-                {pwSaved && <div className="alert alert-success" style={{ marginBottom: 12 }}>Password changed successfully.</div>}
-                <div className="form-group">
-                  <label className="form-label">New Password</label>
-                  <input type="password" className="form-input" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="Enter new password" />
-                </div>
-                <div className="form-group" style={{ marginBottom: 14 }}>
-                  <label className="form-label">Confirm New Password</label>
-                  <input type="password" className="form-input" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Re-enter new password" />
-                </div>
-                <button className="btn btn-primary" style={{ width: '100%' }} disabled={savingPw} onClick={handleChangePassword}>
-                  {savingPw ? 'Changing…' : 'Change Password'}
-                </button>
+              <div className="form-group" style={{ marginBottom: 12 }}>
+                <label className="form-label">Confirm New Password</label>
+                <input type="password" className="form-input" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Re-enter new password" />
               </div>
-
+              <button className="btn btn-primary" style={{ width: '100%' }} disabled={savingPw} onClick={handleChangePassword}>
+                {savingPw ? 'Changing…' : 'Change Password'}
+              </button>
             </div>
-          )}
-        </div>
-
-      </div>
+          </div>
+        </Modal>
+      )}
     </Layout>
   )
 }
