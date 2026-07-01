@@ -227,44 +227,51 @@ export default function InventoryImportModal({ categories, existingItems = [], o
   const fileRef = useRef()
   const cameraRef = useRef()
 
-  async function handleFile(file) {
-    if (!file) return
+  async function processSingleFile(file, label) {
+    let text = ''
+    if (file.type === 'application/pdf') {
+      setProgressLabel(`${label} — Reading PDF…`)
+      text = await extractPdfText(file)
+      if (text.replace(/\s/g, '').length < 30) {
+        setProgressLabel(`${label} — Scanned PDF, running OCR…`)
+        const img = await pdfToImageBlob(file)
+        text = await runOCR(img, (p) => {
+          setProgress(p)
+          setProgressLabel(`${label} — OCR: ${p}%`)
+        })
+      }
+    } else {
+      setProgressLabel(`${label} — Running OCR…`)
+      text = await runOCR(file, (p) => {
+        setProgress(p)
+        setProgressLabel(`${label} — OCR: ${p}%`)
+      })
+    }
+    return parseInventoryText(text)
+  }
+
+  async function handleFiles(fileList) {
+    const files = Array.from(fileList).filter(Boolean)
+    if (!files.length) return
     setStep('processing')
     setProgress(0)
     setError('')
 
     try {
-      let text = ''
-
-      if (file.type === 'application/pdf') {
-        setProgressLabel('Reading PDF…')
-        text = await extractPdfText(file)
-        if (text.replace(/\s/g, '').length < 30) {
-          setProgressLabel('Scanned PDF detected — running OCR…')
-          const img = await pdfToImageBlob(file)
-          text = await runOCR(img, (p) => {
-            setProgress(p)
-            setProgressLabel(`OCR: ${p}%`)
-          })
-        } else {
-          setProgress(100)
-          setProgressLabel('Done')
-        }
-      } else {
-        setProgressLabel('Running OCR on image…')
-        text = await runOCR(file, (p) => {
-          setProgress(p)
-          setProgressLabel(`OCR: ${p}%`)
-        })
+      let allParsed = []
+      for (let i = 0; i < files.length; i++) {
+        const label = files.length > 1 ? `File ${i + 1}/${files.length}` : 'Processing'
+        const parsed = await processSingleFile(files[i], label)
+        allParsed = allParsed.concat(parsed)
       }
 
-      const parsed = parseInventoryText(text)
-      if (parsed.length === 0) {
+      if (allParsed.length === 0) {
         setError('No items could be extracted. Try a clearer image or a typed/digital PDF.')
         setStep('upload')
         return
       }
-      const withCats = parsed
+
+      const withCats = allParsed
         .map((item) => {
           const dup = findDuplicate(item.name, existingItems)
           const guess = item.categoryName ? { category: item.categoryName, confidence: 'high' } : guessCategory(item.name, categories)
@@ -424,16 +431,16 @@ export default function InventoryImportModal({ categories, existingItems = [], o
                   <FontAwesomeIcon icon={faFileArrowUp} style={{ fontSize: 32, color: '#1a4a7a' }} />
                 </div>
                 <div>
-                  <div style={{ fontWeight: 700, fontSize: 15 }}>Upload File</div>
-                  <div className="text-muted" style={{ fontSize: 13, marginTop: 4 }}>PDF or image (JPG, PNG)</div>
+                  <div style={{ fontWeight: 700, fontSize: 15 }}>Upload Files</div>
+                  <div className="text-muted" style={{ fontSize: 13, marginTop: 4 }}>PDF or images — select multiple</div>
                 </div>
               </button>
             </div>
             <p className="form-hint" style={{ textAlign: 'center' }}>
               For best results: use a clear, columnar list (typed or printed, not handwritten).
             </p>
-            <input ref={cameraRef} type="file" accept="image/*" capture="environment" style={{ display: 'none' }} onChange={(e) => handleFile(e.target.files[0])} />
-            <input ref={fileRef} type="file" accept="image/*,application/pdf" style={{ display: 'none' }} onChange={(e) => handleFile(e.target.files[0])} />
+            <input ref={cameraRef} type="file" accept="image/*" capture="environment" style={{ display: 'none' }} onChange={(e) => handleFiles(e.target.files)} />
+            <input ref={fileRef} type="file" accept="image/*,application/pdf" multiple style={{ display: 'none' }} onChange={(e) => handleFiles(e.target.files)} />
           </>
         )}
 
