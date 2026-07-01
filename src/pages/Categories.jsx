@@ -90,10 +90,10 @@ export default function Categories() {
                         <button className="btn btn-sm btn-secondary" onClick={() => setEditingId(null)}>Cancel</button>
                       </>
                     ) : (
-                      <>
-                        <button className="icon-btn" onClick={() => { setEditingId(c.id); setEditingName(c.name) }}><FontAwesomeIcon icon={faPenToSquare} /></button>
-                        <button className="icon-btn danger" onClick={() => setDeleteTarget(c)}><FontAwesomeIcon icon={faTrash} /></button>
-                      </>
+                      <div className="gap-8">
+                        <button className="btn btn-outline btn-sm" onClick={() => { setEditingId(c.id); setEditingName(c.name) }}><FontAwesomeIcon icon={faPenToSquare} style={{ marginRight: 6 }} />Edit</button>
+                        <button className="btn btn-danger btn-sm" onClick={() => setDeleteTarget(c)}><FontAwesomeIcon icon={faTrash} style={{ marginRight: 6 }} />Delete</button>
+                      </div>
                     )}
                   </td>
                 </tr>
