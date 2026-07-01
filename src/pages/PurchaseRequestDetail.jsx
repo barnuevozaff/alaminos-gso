@@ -75,6 +75,47 @@ export default function PurchaseRequestDetail() {
     load()
   }
 
+  async function handleGeneratePo() {
+    setBusy(true)
+    setError('')
+    try {
+      const { data: po, error: poErr } = await supabase
+        .from('purchase_orders')
+        .insert({
+          pr_id: id,
+          pr_numbers: pr.pr_number,
+          po_date: new Date().toISOString().slice(0, 10),
+          address: 'ALAMINOS, LAGUNA',
+          delivery_term: '7 working Days',
+          payment_term: 'Cash',
+          mayor_name: 'Hon. ERICSON R. LOPEZ',
+          bac_secretary_name: 'NEMIA B. MONZONES',
+          created_by: profile?.id,
+        })
+        .select()
+        .single()
+      if (poErr) throw poErr
+
+      if (items.length) {
+        const rows = items.map((it, idx) => ({
+          po_id: po.id,
+          unit: it.unit,
+          description: it.item_description,
+          quantity: it.quantity,
+          unit_cost: it.unit_cost ?? 0,
+          sort_order: idx,
+        }))
+        const { error: itemsErr } = await supabase.from('po_items').insert(rows)
+        if (itemsErr) throw itemsErr
+      }
+
+      navigate(`/admin/purchase-orders/${po.id}`)
+    } catch (e) {
+      setError(e.message || 'Failed to generate Purchase Order.')
+      setBusy(false)
+    }
+  }
+
   if (loading) return <Layout><div className="state-box"><div className="spinner"></div>Loading request…</div></Layout>
   if (!pr) return <Layout><div className="state-box">Request not found.</div></Layout>
 
@@ -104,6 +145,12 @@ export default function PurchaseRequestDetail() {
               <button className="btn btn-danger" disabled={busy} onClick={() => setConfirmAction('reject')}><FontAwesomeIcon icon={faXmark} style={{ marginRight: 6 }} />Reject</button>
               <button className="btn btn-success" disabled={busy} onClick={() => setConfirmAction('approve')}><FontAwesomeIcon icon={faCheck} style={{ marginRight: 6 }} />Approve</button>
             </>
+          )}
+          {pr.status === 'Approved' && !linkedPo && (
+            <button className="btn btn-primary" disabled={busy} onClick={handleGeneratePo}>
+              <FontAwesomeIcon icon={faFileInvoiceDollar} style={{ marginRight: 6 }} />
+              {busy ? 'Generating…' : 'Generate Purchase Order'}
+            </button>
           )}
           {linkedPo && (
             <button className="btn btn-secondary" onClick={() => navigate(`/admin/purchase-orders/${linkedPo.id}`)}>
