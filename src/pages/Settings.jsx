@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faFilePdf, faUser, faLock, faLandmark, faBriefcase, faCoins, faIdCard, faXmark } from '@fortawesome/free-solid-svg-icons'
+import { faFilePdf, faUser, faLock, faLandmark, faBriefcase, faCoins, faIdCard, faXmark, faShieldHalved } from '@fortawesome/free-solid-svg-icons'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import Layout from '../components/Layout'
@@ -62,7 +62,57 @@ function SettingTile({ icon, title, description, color, iconColor, onClick }) {
 
 export default function Settings() {
   const { profile } = useAuth()
-  const [modal, setModal] = useState(null) // 'sig' | 'account'
+  const [modal, setModal] = useState(null) // 'sig' | 'account' | 'mfa'
+
+  // MFA
+  const [mfaFactor, setMfaFactor] = useState(null) // enrolled TOTP factor or null
+  const [mfaLoading, setMfaLoading] = useState(false)
+  const [mfaEnrollData, setMfaEnrollData] = useState(null) // { id, totp: { qr_code, secret } }
+  const [mfaEnrollStep, setMfaEnrollStep] = useState('idle') // 'idle' | 'scan' | 'done'
+  const [mfaOtp, setMfaOtp] = useState('')
+  const [mfaError, setMfaError] = useState('')
+  const [mfaSuccess, setMfaSuccess] = useState('')
+
+  async function openMfa() {
+    setMfaError(''); setMfaSuccess(''); setMfaEnrollStep('idle'); setMfaOtp(''); setMfaEnrollData(null)
+    setMfaLoading(true)
+    const { data: factors } = await supabase.auth.mfa.listFactors()
+    setMfaFactor(factors?.totp?.[0] || null)
+    setMfaLoading(false)
+    setModal('mfa')
+  }
+
+  async function handleMfaEnroll() {
+    setMfaError('')
+    setMfaLoading(true)
+    const { data, error } = await supabase.auth.mfa.enroll({ factorType: 'totp' })
+    setMfaLoading(false)
+    if (error) { setMfaError(error.message); return }
+    setMfaEnrollData(data)
+    setMfaEnrollStep('scan')
+  }
+
+  async function handleMfaVerifyEnroll() {
+    if (!mfaOtp.trim()) { setMfaError('Enter the 6-digit code from your app.'); return }
+    setMfaError(''); setMfaLoading(true)
+    const { error } = await supabase.auth.mfa.challengeAndVerify({ factorId: mfaEnrollData.id, code: mfaOtp.trim() })
+    setMfaLoading(false)
+    if (error) { setMfaError('Incorrect code. Try again.'); return }
+    setMfaEnrollStep('done')
+    setMfaSuccess('MFA enabled successfully. Your account is now protected.')
+    setMfaFactor({ id: mfaEnrollData.id })
+    setMfaOtp('')
+  }
+
+  async function handleMfaUnenroll() {
+    if (!mfaFactor) return
+    setMfaError(''); setMfaLoading(true)
+    const { error } = await supabase.auth.mfa.unenroll({ factorId: mfaFactor.id })
+    setMfaLoading(false)
+    if (error) { setMfaError(error.message); return }
+    setMfaFactor(null)
+    setMfaSuccess('MFA removed. Your account uses password-only login.')
+  }
 
   // PDF Signatories
   const [mayor, setMayor] = useState('')
@@ -171,6 +221,14 @@ export default function Settings() {
           iconColor="#1a4a7a"
           onClick={() => setModal('account')}
         />
+        <SettingTile
+          icon={faShieldHalved}
+          title="Two-Factor Authentication"
+          description="Add an extra layer of security to your admin account using an authenticator app"
+          color="rgba(31,138,58,0.10)"
+          iconColor="var(--green)"
+          onClick={openMfa}
+        />
       </div>
 
       {/* ── Modal: PDF Signatories ── */}
@@ -203,6 +261,90 @@ export default function Settings() {
             <button className="btn btn-primary" style={{ width: '100%' }} disabled={saving} onClick={handleSaveSig}>
               {saving ? 'Saving…' : 'Save Signatories'}
             </button>
+          </div>
+        </Modal>
+      )}
+
+      {/* ── Modal: Two-Factor Authentication ── */}
+      {modal === 'mfa' && (
+        <Modal onClose={() => setModal(null)}>
+          <div style={{ background: 'var(--green)', padding: '22px 28px', display: 'flex', alignItems: 'center', gap: 14 }}>
+            <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(255,255,255,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <FontAwesomeIcon icon={faShieldHalved} style={{ fontSize: 22, color: '#fff' }} />
+            </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontWeight: 700, fontSize: 15, color: '#fff' }}>Two-Factor Authentication</div>
+              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.8)', marginTop: 2 }}>
+                {mfaFactor ? 'MFA is active on your account' : 'MFA is not enabled'}
+              </div>
+            </div>
+            <button aria-label="Close" onClick={() => setModal(null)} style={{ background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: 8, color: '#fff', width: 30, height: 30, cursor: 'pointer', fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><FontAwesomeIcon icon={faXmark} /></button>
+          </div>
+          <div style={{ padding: 28 }}>
+            {mfaError && <div className="alert alert-error" style={{ marginBottom: 14 }}>{mfaError}</div>}
+            {mfaSuccess && <div className="alert alert-success" style={{ marginBottom: 14 }}>{mfaSuccess}</div>}
+
+            {/* Already enrolled */}
+            {mfaFactor && mfaEnrollStep !== 'scan' && (
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '14px 16px', background: 'rgba(31,138,58,0.08)', borderRadius: 10, marginBottom: 20, border: '1px solid rgba(31,138,58,0.2)' }}>
+                  <FontAwesomeIcon icon={faShieldHalved} style={{ color: 'var(--green)', fontSize: 18 }} />
+                  <div>
+                    <div style={{ fontWeight: 600, fontSize: 14, color: 'var(--green)' }}>MFA Enabled</div>
+                    <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>You will be asked for a code from your authenticator app at every login.</div>
+                  </div>
+                </div>
+                <button className="btn btn-danger" style={{ width: '100%' }} disabled={mfaLoading} onClick={handleMfaUnenroll}>
+                  {mfaLoading ? 'Removing…' : 'Remove MFA'}
+                </button>
+              </div>
+            )}
+
+            {/* Not enrolled + idle */}
+            {!mfaFactor && mfaEnrollStep === 'idle' && (
+              <div>
+                <p style={{ margin: '0 0 18px', fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.6 }}>
+                  Use an authenticator app (Google Authenticator, Authy, or any TOTP app) to generate a one-time code each time you sign in.
+                </p>
+                <button className="btn btn-primary" style={{ width: '100%' }} disabled={mfaLoading} onClick={handleMfaEnroll}>
+                  {mfaLoading ? 'Setting up…' : 'Enable Two-Factor Authentication'}
+                </button>
+              </div>
+            )}
+
+            {/* QR scan step */}
+            {mfaEnrollStep === 'scan' && mfaEnrollData && (
+              <div>
+                <p style={{ margin: '0 0 14px', fontSize: 13, color: 'var(--text-muted)' }}>
+                  Scan this QR code with your authenticator app, then enter the 6-digit code below to confirm.
+                </p>
+                <div style={{ textAlign: 'center', marginBottom: 16 }}>
+                  <div
+                    dangerouslySetInnerHTML={{ __html: mfaEnrollData.totp.qr_code }}
+                    style={{ display: 'inline-block', background: '#fff', padding: 8, borderRadius: 8, border: '1px solid var(--border)' }}
+                  />
+                </div>
+                <div style={{ background: 'var(--bg)', borderRadius: 8, padding: '10px 14px', marginBottom: 16, fontSize: 12, color: 'var(--text-muted)', textAlign: 'center' }}>
+                  Manual key: <strong style={{ color: 'var(--text)', letterSpacing: 2 }}>{mfaEnrollData.totp.secret}</strong>
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Verification Code</label>
+                  <input
+                    className="form-input"
+                    style={{ textAlign: 'center', fontSize: 22, letterSpacing: 6, fontWeight: 700 }}
+                    value={mfaOtp}
+                    onChange={(e) => setMfaOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                    placeholder="000000"
+                    maxLength={6}
+                    inputMode="numeric"
+                    autoFocus
+                  />
+                </div>
+                <button className="btn btn-primary" style={{ width: '100%' }} disabled={mfaLoading} onClick={handleMfaVerifyEnroll}>
+                  {mfaLoading ? 'Verifying…' : 'Confirm & Enable MFA'}
+                </button>
+              </div>
+            )}
           </div>
         </Modal>
       )}

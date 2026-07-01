@@ -23,6 +23,7 @@ export default function PurchaseOrderDetail() {
   const [saving, setSaving] = useState(false)
   const [showPrint, setShowPrint] = useState(false)
   const [confirmIssue, setConfirmIssue] = useState(false)
+  const [confirmAcknowledge, setConfirmAcknowledge] = useState(false)
 
   useEffect(() => { load() }, [id])
 
@@ -72,6 +73,21 @@ export default function PurchaseOrderDetail() {
     if (rows.length) await supabase.from('po_items').insert(rows)
 
     setSaving(false)
+    load()
+  }
+
+  async function handleAcknowledge() {
+    setSaving(true)
+    setError('')
+    const { error: updErr } = await supabase.from('purchase_orders').update({ status: 'Acknowledged' }).eq('id', id)
+    if (updErr) { setError(updErr.message); setSaving(false); setConfirmAcknowledge(false); return }
+    await supabase.from('audit_logs').insert({
+      action: 'PO_ACKNOWLEDGED',
+      description: `Acknowledged ${po.po_number}`,
+      performed_by: profile?.id,
+    })
+    setSaving(false)
+    setConfirmAcknowledge(false)
     load()
   }
 
@@ -127,6 +143,9 @@ export default function PurchaseOrderDetail() {
           <button className="btn btn-secondary" onClick={() => setShowPrint(true)}><FontAwesomeIcon icon={faPrint} style={{ marginRight: 6 }} />Print</button>
           {po.status === 'Draft' && (
             <button className="btn btn-success" disabled={saving} onClick={() => setConfirmIssue(true)}>Issue PO</button>
+          )}
+          {po.status === 'Issued' && (
+            <button className="btn btn-primary" disabled={saving} onClick={() => setConfirmAcknowledge(true)}>Acknowledge PO</button>
           )}
         </div>
       </div>
@@ -239,6 +258,17 @@ export default function PurchaseOrderDetail() {
           busy={saving}
           onConfirm={handleIssue}
           onCancel={() => setConfirmIssue(false)}
+        />
+      )}
+      {confirmAcknowledge && (
+        <ConfirmDialog
+          title="Acknowledge this Purchase Order?"
+          message={`Mark "${po.po_number}" as acknowledged — confirming the supplier has received and accepted this order. This cannot be undone.`}
+          confirmLabel="Acknowledge"
+          confirmClass="btn-primary"
+          busy={saving}
+          onConfirm={handleAcknowledge}
+          onCancel={() => setConfirmAcknowledge(false)}
         />
       )}
     </Layout>
