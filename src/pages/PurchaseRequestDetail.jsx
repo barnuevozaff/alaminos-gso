@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faPrint, faXmark, faCheck, faArrowLeft, faFilePdf } from '@fortawesome/free-solid-svg-icons'
+import { faPrint, faXmark, faCheck, faArrowLeft, faFilePdf, faFileInvoiceDollar } from '@fortawesome/free-solid-svg-icons'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { generatePurchaseRequestPDF } from '../lib/generatePrPdf'
@@ -17,6 +17,7 @@ export default function PurchaseRequestDetail() {
 
   const [pr, setPr] = useState(null)
   const [items, setItems] = useState([])
+  const [linkedPo, setLinkedPo] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
@@ -30,11 +31,15 @@ export default function PurchaseRequestDetail() {
   async function load() {
     setLoading(true)
     setError('')
-    const { data: prData, error: prErr } = await supabase.from('purchase_requests').select('*').eq('id', id).single()
-    const { data: itemsData } = await supabase.from('pr_items_live').select('*').eq('pr_id', id).order('sort_order')
+    const [{ data: prData, error: prErr }, { data: itemsData }, { data: linkedPoData }] = await Promise.all([
+      supabase.from('purchase_requests').select('*').eq('id', id).single(),
+      supabase.from('pr_items_live').select('*').eq('pr_id', id).order('sort_order'),
+      supabase.from('purchase_orders').select('id, po_number, status').eq('pr_id', id).maybeSingle(),
+    ])
     if (prErr) setError(prErr.message)
     setPr(prData)
     setItems(itemsData || [])
+    setLinkedPo(linkedPoData)
     setLoading(false)
   }
 
@@ -50,10 +55,35 @@ export default function PurchaseRequestDetail() {
 
   async function handleApprove() {
     setBusy(true)
-    const { error } = await supabase.rpc('approve_purchase_request', { p_pr_id: id, p_user_id: user.id })
+    const { error: approveErr } = await supabase.rpc('approve_purchase_request', { p_pr_id: id, p_user_id: user.id })
+    if (approveErr) { setError(approveErr.message); setBusy(false); setConfirmAction(null); return }
+
+    // Auto-create a linked PO (only if none exists yet)
+    const { data: existingPo } = await supabase.from('purchase_orders').select('id').eq('pr_id', id).maybeSingle()
+    if (!existingPo) {
+      const { data: freshItems } = await supabase.from('pr_items_live').select('*').eq('pr_id', id).order('sort_order')
+      const { data: newPo } = await supabase.from('purchase_orders').insert({
+        pr_id: id,
+        pr_numbers: pr.pr_number,
+        status: 'Draft',
+      }).select().single()
+      if (newPo && freshItems?.length) {
+        await supabase.from('po_items').insert(
+          freshItems.map((it, idx) => ({
+            po_id: newPo.id,
+            stock_property_no: it.item_code || null,
+            unit: it.unit,
+            description: it.item_description,
+            quantity: Number(it.quantity),
+            unit_cost: Number(it.unit_cost) || 0,
+            sort_order: idx,
+          }))
+        )
+      }
+    }
+
     setBusy(false)
     setConfirmAction(null)
-    if (error) { setError(error.message); return }
     load()
   }
 
@@ -103,6 +133,22 @@ export default function PurchaseRequestDetail() {
 
       {error && <div className="alert alert-error">{error}</div>}
 
+      {/* Linked PO banner */}
+      {linkedPo && (
+        <div className="card" style={{ marginBottom: 20, borderLeft: '4px solid var(--green)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <FontAwesomeIcon icon={faFileInvoiceDollar} style={{ fontSize: 22, color: 'var(--green)' }} />
+            <div>
+              <div style={{ fontWeight: 700 }}>Linked Purchase Order</div>
+              <div className="text-muted" style={{ fontSize: 13 }}>{linkedPo.po_number} · <StatusBadge status={linkedPo.status} /></div>
+            </div>
+          </div>
+          <button className="btn btn-primary btn-sm" onClick={() => navigate(`/admin/purchase-orders/${linkedPo.id}`)}>
+            <FontAwesomeIcon icon={faFileInvoiceDollar} style={{ marginRight: 6 }} />View PO
+          </button>
+        </div>
+      )}
+
       <div className="card" style={{ marginBottom: 20 }}>
         <h3 style={{ marginTop: 0 }}>Details</h3>
         <div className="print-meta-grid">
@@ -147,7 +193,7 @@ export default function PurchaseRequestDetail() {
       {confirmAction === 'approve' && (
         <ConfirmDialog
           title="Approve this request?"
-          message={`Approving ${pr.pr_number} will deduct requested quantities from inventory. This cannot be undone.`}
+          message={`Approving ${pr.pr_number} will deduct requested quantities from inventory and automatically create a Draft Purchase Order. This cannot be undone.`}
           confirmLabel="Approve"
           confirmClass="btn-success"
           busy={busy}
