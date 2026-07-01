@@ -160,9 +160,23 @@ export default function Inventory() {
                     </td>
                   )}
                   <td><strong>{item.item_name}</strong><div className="text-muted" style={{ fontSize: 12 }}>{item.item_code}</div></td>
-                  <td>{item.categories?.name || '—'}</td>
+                  <td>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                      <span>{item.categories?.name || '—'}</span>
+                      {item.quantity <= (item.reorder_level ?? 10) && (
+                        <span style={{
+                          display: 'inline-flex', alignItems: 'center', gap: 4,
+                          fontSize: 11, fontWeight: 700, color: '#b45309',
+                          background: 'rgba(180,83,9,0.1)', borderRadius: 4,
+                          padding: '1px 6px', width: 'fit-content',
+                        }}>
+                          ⚠ Low Stock
+                        </span>
+                      )}
+                    </div>
+                  </td>
                   <td>{item.unit}</td>
-                  <td>{item.quantity}</td>
+                  <td style={{ color: item.quantity <= (item.reorder_level ?? 10) ? '#b45309' : undefined, fontWeight: item.quantity <= (item.reorder_level ?? 10) ? 700 : undefined }}>{item.quantity}</td>
                   <td>₱{fmt(item.unit_cost)}</td>
                   <td>₱{fmt(item.quantity * item.unit_cost)}</td>
                   {!deleteMode && (
