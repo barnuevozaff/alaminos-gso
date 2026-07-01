@@ -58,33 +58,37 @@ export default function PurchaseRequestDetail() {
     const { error: approveErr } = await supabase.rpc('approve_purchase_request', { p_pr_id: id, p_user_id: user.id })
     if (approveErr) { setError(approveErr.message); setBusy(false); setConfirmAction(null); return }
 
-    // Auto-create a linked PO (only if none exists yet)
+    // Auto-create a linked PO (only if none exists yet) then navigate to it
     const { data: existingPo } = await supabase.from('purchase_orders').select('id').eq('pr_id', id).maybeSingle()
-    if (!existingPo) {
-      const { data: freshItems } = await supabase.from('pr_items_live').select('*').eq('pr_id', id).order('sort_order')
-      const { data: newPo } = await supabase.from('purchase_orders').insert({
-        pr_id: id,
-        pr_numbers: pr.pr_number,
-        status: 'Draft',
-      }).select().single()
-      if (newPo && freshItems?.length) {
-        await supabase.from('po_items').insert(
-          freshItems.map((it, idx) => ({
-            po_id: newPo.id,
-            stock_property_no: it.item_code || null,
-            unit: it.unit,
-            description: it.item_description,
-            quantity: Number(it.quantity),
-            unit_cost: Number(it.unit_cost) || 0,
-            sort_order: idx,
-          }))
-        )
-      }
+    if (existingPo) {
+      navigate(`/admin/purchase-orders/${existingPo.id}`)
+      return
+    }
+
+    const { data: freshItems } = await supabase.from('pr_items_live').select('*').eq('pr_id', id).order('sort_order')
+    const { data: newPo } = await supabase.from('purchase_orders').insert({
+      pr_id: id,
+      pr_numbers: pr.pr_number,
+      status: 'Draft',
+    }).select().single()
+
+    if (newPo && freshItems?.length) {
+      await supabase.from('po_items').insert(
+        freshItems.map((it, idx) => ({
+          po_id: newPo.id,
+          stock_property_no: it.item_code || null,
+          unit: it.unit,
+          description: it.item_description,
+          quantity: Number(it.quantity),
+          unit_cost: Number(it.unit_cost) || 0,
+          sort_order: idx,
+        }))
+      )
     }
 
     setBusy(false)
     setConfirmAction(null)
-    load()
+    if (newPo) navigate(`/admin/purchase-orders/${newPo.id}`)
   }
 
   async function handleReject() {
