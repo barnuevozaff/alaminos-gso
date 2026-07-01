@@ -151,7 +151,7 @@ export default function Settings() {
       <h1 className="page-title">Settings</h1>
       <p className="page-subtitle">Select a section to configure.</p>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, maxWidth: 640 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
         <SettingTile
           icon="✍️"
           title="PDF Signatories"
