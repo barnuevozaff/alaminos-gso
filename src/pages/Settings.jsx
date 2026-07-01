@@ -3,40 +3,8 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import Layout from '../components/Layout'
 
-function Section({ title, subtitle, open, onToggle, children }) {
-  return (
-    <div className="card" style={{ maxWidth: 600, marginBottom: 16, padding: 0, overflow: 'hidden' }}>
-      <button
-        onClick={onToggle}
-        style={{
-          width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-          padding: '18px 22px', background: 'none', border: 'none', cursor: 'pointer',
-          textAlign: 'left',
-        }}
-      >
-        <div>
-          <div style={{ fontWeight: 700, fontSize: 15 }}>{title}</div>
-          {subtitle && <div style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 2 }}>{subtitle}</div>}
-        </div>
-        <span style={{ fontSize: 18, color: 'var(--text-muted)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>▾</span>
-      </button>
-      {open && (
-        <div style={{ padding: '0 22px 22px', borderTop: '1px solid var(--border)' }}>
-          <div style={{ height: 18 }} />
-          {children}
-        </div>
-      )}
-    </div>
-  )
-}
-
 export default function Settings() {
   const { profile } = useAuth()
-  const [openSection, setOpenSection] = useState(null)
-
-  function toggle(key) {
-    setOpenSection((prev) => (prev === key ? null : key))
-  }
 
   // PDF Signatories
   const [mayor, setMayor] = useState('')
@@ -124,81 +92,129 @@ export default function Settings() {
   return (
     <Layout>
       <h1 className="page-title">Settings</h1>
-      <p className="page-subtitle">Click a section to expand and edit.</p>
+      <p className="page-subtitle">Manage your PDF signatories and account details.</p>
 
-      {/* PDF Signatories */}
-      <Section
-        title="PDF Signatories"
-        subtitle="Names printed on generated Purchase Request PDFs"
-        open={openSection === 'sig'}
-        onToggle={() => toggle('sig')}
-      >
-        <p className="text-muted" style={{ marginTop: 0, marginBottom: 16, fontSize: 13 }}>
-          Leave a field blank to leave that signature line blank on the PDF.
-        </p>
-        {sigError && <div className="alert alert-error" style={{ marginBottom: 12 }}>{sigError}</div>}
-        {sigSaved && <div className="alert alert-success" style={{ marginBottom: 12 }}>Signatories saved.</div>}
-        <div className="form-group">
-          <label className="form-label">Municipal Mayor</label>
-          <input className="form-input" value={mayor} onChange={(e) => setMayor(e.target.value)} placeholder="e.g. Hon. ERICSON R. LOPEZ" />
-        </div>
-        <div className="form-group">
-          <label className="form-label">General Services Officer</label>
-          <input className="form-input" value={gso} onChange={(e) => setGso(e.target.value)} placeholder="e.g. FLORENTINO J. DESTACAMENTO" />
-        </div>
-        <div className="form-group">
-          <label className="form-label">Municipal Treasurer</label>
-          <input className="form-input" value={treasurer} onChange={(e) => setTreasurer(e.target.value)} placeholder="e.g. ROWENA C. LANDICHO" />
-        </div>
-        <button className="btn btn-primary" disabled={saving} onClick={handleSaveSig}>
-          {saving ? 'Saving…' : 'Save Signatories'}
-        </button>
-      </Section>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, alignItems: 'start' }}>
 
-      {/* Account Settings */}
-      <Section
-        title="Account Settings"
-        subtitle="Change your display name or password"
-        open={openSection === 'account'}
-        onToggle={() => toggle('account')}
-      >
-        {/* Display Name */}
-        <div style={{ marginBottom: 28 }}>
-          <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 10 }}>Display Name</div>
-          <p className="text-muted" style={{ marginTop: -6, marginBottom: 12, fontSize: 13 }}>
-            Shown in the sidebar and on audit logs.
-          </p>
-          {nameError && <div className="alert alert-error" style={{ marginBottom: 12 }}>{nameError}</div>}
-          {nameSaved && <div className="alert alert-success" style={{ marginBottom: 12 }}>Name updated successfully.</div>}
-          <div className="form-group">
-            <label className="form-label">Name</label>
-            <input className="form-input" value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder="Your full name" />
+        {/* LEFT — PDF Signatories */}
+        <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+          {/* Card header */}
+          <div style={{
+            background: 'var(--maroon)', color: '#fff',
+            padding: '20px 24px', display: 'flex', alignItems: 'center', gap: 14,
+          }}>
+            <div style={{
+              width: 44, height: 44, borderRadius: 12,
+              background: 'rgba(255,255,255,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: 22, flexShrink: 0,
+            }}>✍️</div>
+            <div>
+              <div style={{ fontWeight: 700, fontSize: 15 }}>PDF Signatories</div>
+              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.75)', marginTop: 2 }}>
+                Names printed on generated Purchase Request PDFs
+              </div>
+            </div>
           </div>
-          <button className="btn btn-primary" disabled={savingName} onClick={handleSaveName}>
-            {savingName ? 'Saving…' : 'Update Name'}
-          </button>
+
+          {/* Card body */}
+          <div style={{ padding: 24 }}>
+            <p style={{ margin: '0 0 16px', fontSize: 13, color: 'var(--text-muted)' }}>
+              Leave a field blank to omit that signature line from the PDF.
+            </p>
+
+            {sigError && <div className="alert alert-error" style={{ marginBottom: 12 }}>{sigError}</div>}
+            {sigSaved && <div className="alert alert-success" style={{ marginBottom: 12 }}>Signatories saved.</div>}
+
+            <div className="form-group">
+              <label className="form-label">🏛 Municipal Mayor</label>
+              <input className="form-input" value={mayor} onChange={(e) => setMayor(e.target.value)} placeholder="e.g. Hon. ERICSON R. LOPEZ" />
+            </div>
+            <div className="form-group">
+              <label className="form-label">🗂 General Services Officer</label>
+              <input className="form-input" value={gso} onChange={(e) => setGso(e.target.value)} placeholder="e.g. FLORENTINO J. DESTACAMENTO" />
+            </div>
+            <div className="form-group" style={{ marginBottom: 20 }}>
+              <label className="form-label">💰 Municipal Treasurer</label>
+              <input className="form-input" value={treasurer} onChange={(e) => setTreasurer(e.target.value)} placeholder="e.g. ROWENA C. LANDICHO" />
+            </div>
+
+            <button className="btn btn-primary" style={{ width: '100%' }} disabled={saving} onClick={handleSaveSig}>
+              {saving ? 'Saving…' : 'Save Signatories'}
+            </button>
+          </div>
         </div>
 
-        <div style={{ borderTop: '1px solid var(--border)', paddingTop: 24 }}>
-          <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 10 }}>Change Password</div>
-          <p className="text-muted" style={{ marginTop: -6, marginBottom: 12, fontSize: 13 }}>
-            Minimum 6 characters.
-          </p>
-          {pwError && <div className="alert alert-error" style={{ marginBottom: 12 }}>{pwError}</div>}
-          {pwSaved && <div className="alert alert-success" style={{ marginBottom: 12 }}>Password changed successfully.</div>}
-          <div className="form-group">
-            <label className="form-label">New Password</label>
-            <input type="password" className="form-input" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="Enter new password" />
+        {/* RIGHT — Account Settings */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+
+          {/* Display Name */}
+          <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+            <div style={{
+              background: '#2d6a4f', color: '#fff',
+              padding: '20px 24px', display: 'flex', alignItems: 'center', gap: 14,
+            }}>
+              <div style={{
+                width: 44, height: 44, borderRadius: 12,
+                background: 'rgba(255,255,255,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 22, flexShrink: 0,
+              }}>👤</div>
+              <div>
+                <div style={{ fontWeight: 700, fontSize: 15 }}>Display Name</div>
+                <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.75)', marginTop: 2 }}>
+                  Shown in the sidebar and audit logs
+                </div>
+              </div>
+            </div>
+            <div style={{ padding: 24 }}>
+              {nameError && <div className="alert alert-error" style={{ marginBottom: 12 }}>{nameError}</div>}
+              {nameSaved && <div className="alert alert-success" style={{ marginBottom: 12 }}>Name updated successfully.</div>}
+              <div className="form-group" style={{ marginBottom: 20 }}>
+                <label className="form-label">Full Name</label>
+                <input className="form-input" value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder="Your full name" />
+              </div>
+              <button className="btn btn-primary" style={{ width: '100%' }} disabled={savingName} onClick={handleSaveName}>
+                {savingName ? 'Saving…' : 'Update Name'}
+              </button>
+            </div>
           </div>
-          <div className="form-group">
-            <label className="form-label">Confirm New Password</label>
-            <input type="password" className="form-input" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Re-enter new password" />
+
+          {/* Change Password */}
+          <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+            <div style={{
+              background: '#1a4a7a', color: '#fff',
+              padding: '20px 24px', display: 'flex', alignItems: 'center', gap: 14,
+            }}>
+              <div style={{
+                width: 44, height: 44, borderRadius: 12,
+                background: 'rgba(255,255,255,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 22, flexShrink: 0,
+              }}>🔒</div>
+              <div>
+                <div style={{ fontWeight: 700, fontSize: 15 }}>Change Password</div>
+                <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.75)', marginTop: 2 }}>
+                  Minimum 6 characters
+                </div>
+              </div>
+            </div>
+            <div style={{ padding: 24 }}>
+              {pwError && <div className="alert alert-error" style={{ marginBottom: 12 }}>{pwError}</div>}
+              {pwSaved && <div className="alert alert-success" style={{ marginBottom: 12 }}>Password changed successfully.</div>}
+              <div className="form-group">
+                <label className="form-label">New Password</label>
+                <input type="password" className="form-input" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="Enter new password" />
+              </div>
+              <div className="form-group" style={{ marginBottom: 20 }}>
+                <label className="form-label">Confirm New Password</label>
+                <input type="password" className="form-input" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Re-enter new password" />
+              </div>
+              <button className="btn btn-primary" style={{ width: '100%' }} disabled={savingPw} onClick={handleChangePassword}>
+                {savingPw ? 'Changing…' : 'Change Password'}
+              </button>
+            </div>
           </div>
-          <button className="btn btn-primary" disabled={savingPw} onClick={handleChangePassword}>
-            {savingPw ? 'Changing…' : 'Change Password'}
-          </button>
+
         </div>
-      </Section>
+      </div>
     </Layout>
   )
 }
