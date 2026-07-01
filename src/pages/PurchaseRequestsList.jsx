@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faEye, faTrash, faPlus } from '@fortawesome/free-solid-svg-icons'
+import { faEye, faTrash, faPlus, faXmark } from '@fortawesome/free-solid-svg-icons'
 import { supabase } from '../lib/supabase'
 import Layout from '../components/Layout'
 import StatusBadge from '../components/StatusBadge'
@@ -13,6 +13,7 @@ export default function PurchaseRequestsList() {
   const [error, setError] = useState('')
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('All')
+  const [deleteMode, setDeleteMode] = useState(false)
   const [selectedIds, setSelectedIds] = useState([])
   const [confirmBulkDelete, setConfirmBulkDelete] = useState(false)
   const [deleting, setDeleting] = useState(false)
@@ -30,6 +31,7 @@ export default function PurchaseRequestsList() {
     if (error) setError(error.message)
     setRequests(data || [])
     setSelectedIds([])
+    setDeleteMode(false)
     setLoading(false)
   }
 
@@ -94,11 +96,30 @@ export default function PurchaseRequestsList() {
           </select>
           <button className="btn btn-secondary" onClick={load}>Refresh</button>
         </div>
-        {selectedIds.length > 0 && (
-          <button className="btn btn-danger btn-sm" onClick={() => setConfirmBulkDelete(true)}>
-            <FontAwesomeIcon icon={faTrash} style={{ marginRight: 6 }} />Delete Selected ({selectedIds.length})
-          </button>
-        )}
+        <div className="gap-8">
+          {!deleteMode ? (
+            <button className="btn btn-danger btn-sm" onClick={() => setDeleteMode(true)}>
+              <FontAwesomeIcon icon={faTrash} style={{ marginRight: 6 }} />Delete
+            </button>
+          ) : (
+            <>
+              <button className="btn btn-secondary btn-sm" onClick={toggleSelectAll}>
+                {allSelected ? 'Deselect All' : 'Select All'}
+              </button>
+              <button
+                className="btn btn-danger btn-sm"
+                disabled={selectedIds.length === 0}
+                onClick={() => setConfirmBulkDelete(true)}
+              >
+                <FontAwesomeIcon icon={faTrash} style={{ marginRight: 6 }} />
+                Delete{selectedIds.length > 0 ? ` (${selectedIds.length})` : ''}
+              </button>
+              <button className="btn btn-secondary btn-sm" onClick={() => { setDeleteMode(false); setSelectedIds([]) }}>
+                <FontAwesomeIcon icon={faXmark} style={{ marginRight: 6 }} />Cancel
+              </button>
+            </>
+          )}
+        </div>
       </div>
 
       {error && <div className="alert alert-error">{error}</div>}
@@ -115,7 +136,7 @@ export default function PurchaseRequestsList() {
           <table className="data-table">
             <thead>
               <tr>
-                <th><input type="checkbox" checked={allSelected} onChange={toggleSelectAll} /></th>
+                {deleteMode && <th style={{ width: 40 }}></th>}
                 <th>PR Number</th>
                 <th>Date</th>
                 <th>Requester</th>
@@ -125,14 +146,24 @@ export default function PurchaseRequestsList() {
             </thead>
             <tbody>
               {filtered.map((r) => (
-                <tr key={r.id}>
-                  <td><input type="checkbox" checked={selectedIds.includes(r.id)} onChange={() => toggleSelect(r.id)} /></td>
+                <tr
+                  key={r.id}
+                  onClick={deleteMode ? () => toggleSelect(r.id) : undefined}
+                  style={deleteMode ? { cursor: 'pointer', background: selectedIds.includes(r.id) ? 'rgba(185,28,28,0.07)' : undefined } : undefined}
+                >
+                  {deleteMode && (
+                    <td onClick={(e) => e.stopPropagation()}>
+                      <input type="checkbox" checked={selectedIds.includes(r.id)} onChange={() => toggleSelect(r.id)} />
+                    </td>
+                  )}
                   <td><strong>{r.pr_number}</strong></td>
                   <td>{new Date(r.pr_date).toLocaleDateString()}</td>
                   <td>{r.requester_name}</td>
                   <td><StatusBadge status={r.status} /></td>
                   <td>
-                    <button className="btn btn-outline btn-sm" onClick={() => navigate(`/admin/requests/${r.id}`)}><FontAwesomeIcon icon={faEye} style={{ marginRight: 6 }} />View</button>
+                    {!deleteMode && (
+                      <button className="btn btn-outline btn-sm" onClick={() => navigate(`/admin/requests/${r.id}`)}><FontAwesomeIcon icon={faEye} style={{ marginRight: 6 }} />View</button>
+                    )}
                   </td>
                 </tr>
               ))}
