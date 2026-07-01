@@ -74,6 +74,34 @@ async function pdfToImageBlob(file) {
   return new Promise((res) => canvas.toBlob(res, 'image/png'))
 }
 
+// ── Category keyword map ──────────────────────────────────
+const CATEGORY_KEYWORDS = {
+  'cleaning': ['cleaning', 'soap', 'bleach', 'disinfect', 'broom', 'mop', 'detergent', 'wipes', 'alcohol', 'sanitizer', 'trash', 'garbage', 'dust', 'floor', 'polish'],
+  'it':       ['computer', 'laptop', 'printer', 'ink', 'cartridge', 'toner', 'usb', 'cable', 'monitor', 'keyboard', 'mouse', 'router', 'battery', 'charger', 'scanner', 'tablet', 'hard', 'drive', 'flash', 'webcam', 'projector'],
+  'office':   ['paper', 'bond', 'folder', 'staple', 'pencil', 'pen', 'ballpen', 'marker', 'highlighter', 'tape', 'clip', 'binder', 'envelope', 'notebook', 'pad', 'eraser', 'ruler', 'record', 'board', 'stamp', 'ribbon', 'correction', 'scissors', 'glue'],
+}
+
+function guessCategory(itemName, categories) {
+  if (!categories?.length) return ''
+  const lower = itemName.toLowerCase()
+
+  // 1. Direct word-overlap against existing category names
+  for (const cat of categories) {
+    const words = cat.name.toLowerCase().split(/\s+/)
+    if (words.some((w) => w.length > 3 && lower.includes(w))) return cat.name
+  }
+
+  // 2. Keyword-map fallback
+  for (const [key, keywords] of Object.entries(CATEGORY_KEYWORDS)) {
+    if (keywords.some((kw) => lower.includes(kw))) {
+      const match = categories.find((c) => c.name.toLowerCase().includes(key))
+      if (match) return match.name
+    }
+  }
+
+  return ''
+}
+
 // ── Text parser — detects section headers as categories ───
 function parseInventoryText(raw) {
   const items = []
@@ -182,7 +210,13 @@ export default function InventoryImportModal({ categories, onClose, onSaved }) {
         setStep('upload')
         return
       }
-      setRows(parsed)
+      const withCats = parsed
+        .map((item) => ({
+          ...item,
+          categoryName: item.categoryName || guessCategory(item.name, categories),
+        }))
+        .sort((a, b) => a.name.localeCompare(b.name))
+      setRows(withCats)
       setStep('confirm')
     } catch (e) {
       setError(e.message || 'Processing failed.')
