@@ -243,6 +243,13 @@ export default function InventoryImportModal({ categories, onClose, onSaved }) {
     setSaving(true)
     setError('')
 
+    // Ensure "Others" category exists as fallback for items with no category
+    let othersId = categories.find((c) => c.name.toLowerCase() === 'others')?.id || null
+    if (!othersId) {
+      const { data } = await supabase.from('categories').insert({ name: 'Others' }).select('id').single()
+      if (data) othersId = data.id
+    }
+
     // Find unique new category names (not in existing categories)
     const uniqueNewNames = [...new Set(
       rows
@@ -257,11 +264,13 @@ export default function InventoryImportModal({ categories, onClose, onSaved }) {
       if (data) newCatMap[name.toLowerCase()] = data.id
     }
 
-    // Build final rows with resolved category IDs
+    // Build final rows with resolved category IDs (fallback to Others if blank)
     const itemsToInsert = rows.map((r) => {
       const catName = r.categoryName.trim()
       const existing = categories.find((c) => c.name.toLowerCase() === catName.toLowerCase())
-      const catId = existing ? existing.id : (newCatMap[catName.toLowerCase()] || null)
+      const catId = catName
+        ? (existing ? existing.id : (newCatMap[catName.toLowerCase()] || othersId))
+        : othersId
       return {
         item_name: r.name.trim(),
         category_id: catId,
