@@ -17,22 +17,30 @@ const ACCENT = {
   red:    { bg: 'rgba(192,49,43,0.10)',  color: 'var(--red)',       border: 'var(--red)' },
 }
 
-function StatCard({ accent, icon, label, value, sub }) {
+function StatCard({ accent, icon, label, value, sub, to, navigate }) {
   const a = ACCENT[accent]
+  const clickable = !!to
   return (
-    <div style={{
-      background: 'var(--card-bg)',
-      border: '1px solid var(--border)',
-      borderLeft: `4px solid ${a.border}`,
-      borderRadius: 14,
-      padding: '20px 22px',
-      boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
-      display: 'flex',
-      flexDirection: 'column',
-      gap: 8,
-      position: 'relative',
-      overflow: 'hidden',
-    }}>
+    <div
+      onClick={clickable ? () => navigate(to) : undefined}
+      style={{
+        background: 'var(--card-bg)',
+        border: '1px solid var(--border)',
+        borderLeft: `4px solid ${a.border}`,
+        borderRadius: 14,
+        padding: '20px 22px',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 8,
+        position: 'relative',
+        overflow: 'hidden',
+        cursor: clickable ? 'pointer' : 'default',
+        transition: 'box-shadow 0.15s, transform 0.15s',
+      }}
+      onMouseEnter={clickable ? (e) => { e.currentTarget.style.boxShadow = '0 6px 20px rgba(0,0,0,0.12)'; e.currentTarget.style.transform = 'translateY(-2px)' } : undefined}
+      onMouseLeave={clickable ? (e) => { e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.05)'; e.currentTarget.style.transform = 'none' } : undefined}
+    >
       {/* faded watermark icon */}
       <FontAwesomeIcon icon={icon} style={{
         position: 'absolute', right: 18, top: 16,
@@ -46,6 +54,9 @@ function StatCard({ accent, icon, label, value, sub }) {
       </div>
       {sub && (
         <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{sub}</div>
+      )}
+      {clickable && (
+        <div style={{ fontSize: 11, color: a.color, opacity: 0.7, marginTop: 2 }}>Click to view →</div>
       )}
       <div style={{
         position: 'absolute', bottom: 0, left: 0, right: 0,
@@ -133,16 +144,16 @@ export default function Dashboard() {
         <>
           {/* Stat Cards — 4 columns desktop, 2 tablet, 2 mobile */}
           <div className="stats-grid" style={{ marginBottom: 16 }}>
-            <StatCard accent="maroon" icon={faFileLines}        label="Total Requests"   value={stats.total} />
-            <StatCard accent="gold"   icon={faClock}            label="Pending"           value={stats.pending} sub="Awaiting review" />
-            <StatCard accent="green"  icon={faCheck}            label="Approved"          value={stats.approved} />
-            <StatCard accent="red"    icon={faXmark}            label="Rejected"          value={stats.rejected} />
+            <StatCard navigate={navigate} accent="maroon" icon={faFileLines}        label="Total Requests"   value={stats.total}        to="/admin/requests" />
+            <StatCard navigate={navigate} accent="gold"   icon={faClock}            label="Pending"           value={stats.pending}       to="/admin/requests?status=Submitted" sub="Awaiting review" />
+            <StatCard navigate={navigate} accent="green"  icon={faCheck}            label="Approved"          value={stats.approved}      to="/admin/requests?status=Approved" />
+            <StatCard navigate={navigate} accent="red"    icon={faXmark}            label="Rejected"          value={stats.rejected}      to="/admin/requests?status=Rejected" />
           </div>
           <div className="stats-grid" style={{ marginBottom: 28 }}>
-            <StatCard accent="gold"   icon={faCalendarDay}      label="Requests Today"   value={stats.requestsToday} />
-            <StatCard accent="maroon" icon={faBoxOpen}          label="Inventory Items"  value={stats.invItems} />
-            <StatCard accent="red"    icon={faTriangleExclamation} label="Low Stock (≤10)" value={stats.lowStock} sub="Needs restocking" />
-            <StatCard accent="maroon" icon={faFileInvoiceDollar} label="Purchase Orders" value={stats.poCount} />
+            <StatCard navigate={navigate} accent="gold"   icon={faCalendarDay}      label="Requests Today"   value={stats.requestsToday} to="/admin/requests" />
+            <StatCard navigate={navigate} accent="maroon" icon={faBoxOpen}          label="Inventory Items"  value={stats.invItems}      to="/admin/inventory" />
+            <StatCard navigate={navigate} accent="red"    icon={faTriangleExclamation} label="Low Stock (≤10)" value={stats.lowStock}   to="/admin/inventory" sub="Needs restocking" />
+            <StatCard navigate={navigate} accent="maroon" icon={faFileInvoiceDollar} label="Purchase Orders" value={stats.poCount}       to="/admin/purchase-orders" />
           </div>
 
           {/* Recent Requests */}

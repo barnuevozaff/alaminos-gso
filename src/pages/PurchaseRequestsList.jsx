@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faEye, faTrash, faPlus, faXmark } from '@fortawesome/free-solid-svg-icons'
 import { supabase } from '../lib/supabase'
@@ -8,11 +8,12 @@ import StatusBadge from '../components/StatusBadge'
 import ConfirmDialog from '../components/ConfirmDialog'
 
 export default function PurchaseRequestsList() {
+  const [searchParams] = useSearchParams()
   const [requests, setRequests] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [search, setSearch] = useState('')
-  const [statusFilter, setStatusFilter] = useState('All')
+  const [statusFilter, setStatusFilter] = useState(searchParams.get('status') || 'All')
   const [deleteMode, setDeleteMode] = useState(false)
   const [selectedIds, setSelectedIds] = useState([])
   const [confirmBulkDelete, setConfirmBulkDelete] = useState(false)
