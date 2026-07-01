@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faTrash, faPenToSquare, faPlus, faXmark } from '@fortawesome/free-solid-svg-icons'
+import { faTrash, faPenToSquare, faPlus, faXmark, faFileArrowUp } from '@fortawesome/free-solid-svg-icons'
 import { supabase } from '../lib/supabase'
 import { UNITS } from '../lib/units'
 import Layout from '../components/Layout'
 import ConfirmDialog from '../components/ConfirmDialog'
+import InventoryImportModal from '../components/InventoryImportModal'
 
 export default function Inventory() {
   const [items, setItems] = useState([])
@@ -14,6 +15,7 @@ export default function Inventory() {
   const [search, setSearch] = useState('')
   const [categoryFilter, setCategoryFilter] = useState('all')
   const [showModal, setShowModal] = useState(false)
+  const [showImport, setShowImport] = useState(false)
   const [editing, setEditing] = useState(null)
   const [deleteTarget, setDeleteTarget] = useState(null)
 
@@ -61,7 +63,10 @@ export default function Inventory() {
             {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
           </select>
         </div>
-        <button className="btn btn-primary" onClick={() => { setEditing(null); setShowModal(true) }}><FontAwesomeIcon icon={faPlus} style={{ marginRight: 6 }} />Add Item</button>
+        <div className="gap-8">
+          <button className="btn btn-secondary" onClick={() => setShowImport(true)}><FontAwesomeIcon icon={faFileArrowUp} style={{ marginRight: 6 }} />Scan / Upload</button>
+          <button className="btn btn-primary" onClick={() => { setEditing(null); setShowModal(true) }}><FontAwesomeIcon icon={faPlus} style={{ marginRight: 6 }} />Add Item</button>
+        </div>
       </div>
 
       {error && <div className="alert alert-error">{error}</div>}
@@ -105,6 +110,14 @@ export default function Inventory() {
           categories={categories}
           onClose={() => setShowModal(false)}
           onSaved={() => { setShowModal(false); load() }}
+        />
+      )}
+
+      {showImport && (
+        <InventoryImportModal
+          categories={categories}
+          onClose={() => setShowImport(false)}
+          onSaved={() => { setShowImport(false); load() }}
         />
       )}
 
