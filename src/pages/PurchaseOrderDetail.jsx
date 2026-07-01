@@ -1,3 +1,4 @@
+import { fmt } from '../lib/fmt.js'
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -206,16 +207,16 @@ export default function PurchaseOrderDetail() {
                   )}
                 </td>
                 <td>
-                  {isLocked ? `₱${Number(it.unit_cost).toFixed(2)}` : (
+                  {isLocked ? `₱${fmt(it.unit_cost)}` : (
                     <input type="number" min="0" step="0.01" value={it.unit_cost} onChange={(e) => updateUnitCost(idx, e.target.value)} style={{ width: 100 }} />
                   )}
                 </td>
-                <td className="text-muted">₱{(Number(it.quantity) * Number(it.unit_cost)).toFixed(2)}</td>
+                <td className="text-muted">₱{fmt(Number(it.quantity) * Number(it.unit_cost))}</td>
               </tr>
             ))}
           </tbody>
         </table>
-        <div style={{ padding: 14, textAlign: 'right', fontWeight: 700, borderTop: '1px solid var(--border)' }}>Total: ₱{total.toFixed(2)}</div>
+        <div style={{ padding: 14, textAlign: 'right', fontWeight: 700, borderTop: '1px solid var(--border)' }}>Total: ₱{fmt(total)}</div>
       </div>
       {items.length > 0 && !isLocked && (
         <p className="form-hint" style={{ marginTop: -8, marginBottom: 16 }}>Quantity and unit cost can be adjusted to match the supplier's actual quote.</p>

@@ -1,3 +1,4 @@
+import { fmt } from '../lib/fmt.js'
 import { useState } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faXmark, faPrint } from '@fortawesome/free-solid-svg-icons'
@@ -69,13 +70,13 @@ export default function PrintPreviewModal({ pr, items, onClose }) {
                   <td>{it?.unit || ''}</td>
                   <td>{it?.item_description || ''}</td>
                   <td style={{ textAlign: 'right' }}>{it?.quantity || ''}</td>
-                  <td style={{ textAlign: 'right' }}>{it ? Number(it.unit_cost).toFixed(2) : ''}</td>
-                  <td style={{ textAlign: 'right' }}>{it ? Number(it.total_cost ?? it.quantity * it.unit_cost).toFixed(2) : ''}</td>
+                  <td style={{ textAlign: 'right' }}>{it ? fmt(it.unit_cost) : ''}</td>
+                  <td style={{ textAlign: 'right' }}>{it ? fmt(it.total_cost ?? it.quantity * it.unit_cost) : ''}</td>
                 </tr>
               ))}
               <tr>
                 <td colSpan={5} style={{ textAlign: 'right', fontWeight: 700 }}>GRAND TOTAL</td>
-                <td style={{ textAlign: 'right', fontWeight: 700 }}>{grandTotal.toFixed(2)}</td>
+                <td style={{ textAlign: 'right', fontWeight: 700 }}>{fmt(grandTotal)}</td>
               </tr>
             </tbody>
           </table>

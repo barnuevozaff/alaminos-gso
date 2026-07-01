@@ -1,3 +1,4 @@
+import { fmt } from '../lib/fmt.js'
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -156,8 +157,8 @@ export default function PublicPurchaseRequestForm() {
                       <input type="number" min="1" max={it.available} className="form-input" style={{ width: 90 }}
                         value={it.quantity} onChange={(e) => updateQuantity(idx, e.target.value)} />
                     </td>
-                    <td className="text-muted">₱{Number(it.unit_cost).toFixed(2)}</td>
-                    <td className="text-muted">₱{((Number(it.quantity) || 0) * Number(it.unit_cost)).toFixed(2)}</td>
+                    <td className="text-muted">₱{fmt(it.unit_cost)}</td>
+                    <td className="text-muted">₱{fmt((Number(it.quantity) || 0) * Number(it.unit_cost))}</td>
                     <td><button className="icon-btn danger" onClick={() => removeItem(idx)}><FontAwesomeIcon icon={faTrash} /></button></td>
                   </tr>
                 ))}
@@ -166,7 +167,7 @@ export default function PublicPurchaseRequestForm() {
           </div>
           <p className="form-hint" style={{ marginTop: 8 }}>Pricing is set by the GSO Inventory and cannot be edited here.</p>
           {items.length > 0 && (
-            <div style={{ textAlign: 'right', fontWeight: 700, marginTop: 10 }}>Grand Total: ₱{grandTotal.toFixed(2)}</div>
+            <div style={{ textAlign: 'right', fontWeight: 700, marginTop: 10 }}>Grand Total: ₱{fmt(grandTotal)}</div>
           )}
         </div>
 

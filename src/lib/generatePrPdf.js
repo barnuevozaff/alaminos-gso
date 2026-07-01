@@ -1,3 +1,4 @@
+import { fmt } from "./fmt.js"
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
 import sealLogo from '../assets/alaminos-seal.jpeg'
@@ -70,8 +71,8 @@ export async function generatePurchaseRequestPDF(pr, items, signatories = {}) {
     it?.unit || '',
     it?.item_description || '',
     it ? String(it.quantity) : '',
-    it ? Number(it.unit_cost).toFixed(2) : '',
-    it ? Number(it.total_cost ?? it.quantity * it.unit_cost).toFixed(2) : '',
+    it ? fmt(it.unit_cost) : '',
+    it ? fmt(it.total_cost ?? it.quantity * it.unit_cost) : '',
   ])
 
   const grandTotal = items.reduce((sum, it) => sum + Number(it.total_cost ?? it.quantity * it.unit_cost), 0)
@@ -81,7 +82,7 @@ export async function generatePurchaseRequestPDF(pr, items, signatories = {}) {
     margin: { left: margin, right: margin },
     head: [['Item No.', 'Unit', 'Item Description', 'Quantity', 'Unit Cost', 'Total Cost']],
     body: rows,
-    foot: [['', '', '', '', 'GRAND TOTAL', grandTotal.toFixed(2)]],
+    foot: [['', '', '', '', 'GRAND TOTAL', fmt(grandTotal)]],
     theme: 'grid',
     styles: { fontSize: 9, cellPadding: 4 },
     headStyles: { fillColor: [240, 240, 240], textColor: 20, fontStyle: 'bold' },

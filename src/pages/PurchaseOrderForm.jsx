@@ -1,3 +1,4 @@
+import { fmt } from '../lib/fmt.js'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -208,7 +209,7 @@ export default function PurchaseOrderForm() {
                 <td><input className="form-input" value={it.description} onChange={(e) => updateItem(idx, 'description', e.target.value)} /></td>
                 <td><input className="form-input" type="number" min="1" value={it.quantity} onChange={(e) => updateItem(idx, 'quantity', e.target.value)} style={{ width: 80 }} /></td>
                 <td><input className="form-input" type="number" min="0" step="0.01" value={it.unit_cost} onChange={(e) => updateItem(idx, 'unit_cost', e.target.value)} style={{ width: 100 }} /></td>
-                <td className="text-muted">₱{((Number(it.quantity) || 0) * (Number(it.unit_cost) || 0)).toFixed(2)}</td>
+                <td className="text-muted">₱{fmt((Number(it.quantity) || 0) * (Number(it.unit_cost) || 0))}</td>
                 <td><button className="icon-btn danger" onClick={() => removeItem(idx)}><FontAwesomeIcon icon={faTrash} /></button></td>
               </tr>
             ))}
@@ -216,7 +217,7 @@ export default function PurchaseOrderForm() {
         </table>
         {items.length > 0 && (
           <div style={{ padding: 14, textAlign: 'right', fontWeight: 700, borderTop: '1px solid var(--border)' }}>
-            Total: ₱{total.toFixed(2)}
+            Total: ₱{fmt(total)}
           </div>
         )}
       </div>

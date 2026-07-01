@@ -1,3 +1,4 @@
+import { fmt } from '../lib/fmt.js'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faXmark, faPrint } from '@fortawesome/free-solid-svg-icons'
 import sealLogo from '../assets/alaminos-seal.png'
@@ -83,13 +84,13 @@ export default function PrintPOModal({ po, items, prNumber, onClose }) {
                   <td>{it?.unit || ''}</td>
                   <td>{it?.description || ''}</td>
                   <td style={{ textAlign: 'right' }}>{it?.quantity || ''}</td>
-                  <td style={{ textAlign: 'right' }}>{it ? Number(it.unit_cost).toFixed(2) : ''}</td>
-                  <td style={{ textAlign: 'right' }}>{it ? Number(it.amount ?? it.quantity * it.unit_cost).toFixed(2) : ''}</td>
+                  <td style={{ textAlign: 'right' }}>{it ? fmt(it.unit_cost) : ''}</td>
+                  <td style={{ textAlign: 'right' }}>{it ? fmt(it.amount ?? it.quantity * it.unit_cost) : ''}</td>
                 </tr>
               ))}
               <tr>
                 <td colSpan={5} style={{ textAlign: 'right', fontWeight: 700 }}>TOTAL</td>
-                <td style={{ textAlign: 'right', fontWeight: 700 }}>{total.toFixed(2)}</td>
+                <td style={{ textAlign: 'right', fontWeight: 700 }}>{fmt(total)}</td>
               </tr>
             </tbody>
           </table>

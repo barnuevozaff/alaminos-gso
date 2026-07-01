@@ -1,3 +1,4 @@
+import { fmt } from '../lib/fmt.js'
 import { useEffect, useState } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faTrash, faPenToSquare, faPlus, faXmark, faFileArrowUp } from '@fortawesome/free-solid-svg-icons'
@@ -162,8 +163,8 @@ export default function Inventory() {
                   <td>{item.categories?.name || '—'}</td>
                   <td>{item.unit}</td>
                   <td>{item.quantity}</td>
-                  <td>₱{Number(item.unit_cost).toFixed(2)}</td>
-                  <td>₱{(item.quantity * item.unit_cost).toFixed(2)}</td>
+                  <td>₱{fmt(item.unit_cost)}</td>
+                  <td>₱{fmt(item.quantity * item.unit_cost)}</td>
                   {!deleteMode && (
                     <td style={{ display: 'flex', gap: 8 }}>
                       <button className="btn btn-outline btn-sm" onClick={() => { setEditing(item); setShowModal(true) }}><FontAwesomeIcon icon={faPenToSquare} style={{ marginRight: 6 }} />Edit</button>
@@ -294,7 +295,7 @@ function ItemModal({ item, categories, onClose, onSaved }) {
           <div className="form-hint">Item is flagged as low stock at or below this quantity.</div>
         </div>
 
-        <p className="text-muted">Total Cost: ₱{totalCost.toFixed(2)}</p>
+        <p className="text-muted">Total Cost: ₱{fmt(totalCost)}</p>
 
         <div className="print-actions">
           <button className="btn btn-secondary" onClick={onClose}>Cancel</button>

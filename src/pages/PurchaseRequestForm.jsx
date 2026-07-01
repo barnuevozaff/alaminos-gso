@@ -1,3 +1,4 @@
+import { fmt } from '../lib/fmt.js'
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -209,8 +210,8 @@ export default function PurchaseRequestForm() {
                   )}
                   {it.available !== undefined && !isLocked && <div className="form-hint">available: {it.available}</div>}
                 </td>
-                <td className="text-muted">₱{Number(it.unit_cost).toFixed(2)}</td>
-                <td className="text-muted">₱{((Number(it.quantity) || 0) * (Number(it.unit_cost) || 0)).toFixed(2)}</td>
+                <td className="text-muted">₱{fmt(it.unit_cost)}</td>
+                <td className="text-muted">₱{fmt((Number(it.quantity) || 0) * (Number(it.unit_cost) || 0))}</td>
                 {!isLocked && <td><button className="icon-btn danger" onClick={() => removeItem(idx)}><FontAwesomeIcon icon={faTrash} /></button></td>}
               </tr>
             ))}
@@ -218,7 +219,7 @@ export default function PurchaseRequestForm() {
         </table>
         {items.length > 0 && (
           <div style={{ padding: 14, textAlign: 'right', fontWeight: 700, borderTop: '1px solid var(--border)' }}>
-            Grand Total: ₱{grandTotal.toFixed(2)}
+            Grand Total: ₱{fmt(grandTotal)}
           </div>
         )}
       </div>

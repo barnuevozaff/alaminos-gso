@@ -1,3 +1,4 @@
+import { fmt } from '../lib/fmt.js'
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -188,13 +189,13 @@ export default function PurchaseRequestDetail() {
                 <td>{it.unit}</td>
                 <td><strong>{it.item_description}</strong></td>
                 <td>{it.quantity}</td>
-                <td>₱{Number(it.unit_cost).toFixed(2)}</td>
-                <td>₱{Number(it.total_cost ?? it.quantity * it.unit_cost).toFixed(2)}</td>
+                <td>₱{fmt(it.unit_cost)}</td>
+                <td>₱{fmt(it.total_cost ?? it.quantity * it.unit_cost)}</td>
               </tr>
             ))}
             <tr>
               <td colSpan={5} style={{ textAlign: 'right', fontWeight: 700 }}>Grand Total</td>
-              <td style={{ fontWeight: 700 }}>₱{grandTotal.toFixed(2)}</td>
+              <td style={{ fontWeight: 700 }}>₱{fmt(grandTotal)}</td>
             </tr>
           </tbody>
         </table>
