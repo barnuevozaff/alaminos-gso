@@ -78,7 +78,7 @@ function ActionCard({ to, icon, iconBg, iconShadow, title, description, label, a
   return (
     <Link
       to={to}
-      style={{ textDecoration: 'none' }}
+      style={{ textDecoration: 'none', display: 'flex' }}
     >
       <div
         style={{
@@ -91,6 +91,9 @@ function ActionCard({ to, icon, iconBg, iconShadow, title, description, label, a
           cursor: 'pointer',
           position: 'relative',
           overflow: 'hidden',
+          height: '100%',
+          display: 'flex',
+          flexDirection: 'column',
         }}
         onMouseEnter={(e) => {
           e.currentTarget.style.transform = 'translateY(-6px)'
@@ -122,7 +125,7 @@ function ActionCard({ to, icon, iconBg, iconShadow, title, description, label, a
         <h3 style={{ margin: '0 0 10px', fontSize: 18, fontWeight: 700, color: '#1a1210', lineHeight: 1.3 }}>
           {title}
         </h3>
-        <p style={{ margin: '0 0 24px', fontSize: 14, color: '#6b6260', lineHeight: 1.65 }}>
+        <p style={{ margin: '0 0 24px', fontSize: 14, color: '#6b6260', lineHeight: 1.65, flex: 1 }}>
           {description}
         </p>
 
