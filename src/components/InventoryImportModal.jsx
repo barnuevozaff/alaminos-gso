@@ -162,8 +162,17 @@ function parseInventoryText(raw) {
   return items
 }
 
+// ── Duplicate finder ──────────────────────────────────────
+function findDuplicate(name, existingItems) {
+  const lower = name.toLowerCase().trim()
+  return existingItems?.find((item) => {
+    const ex = item.item_name.toLowerCase().trim()
+    return ex === lower || ex.includes(lower) || lower.includes(ex)
+  }) || null
+}
+
 // ── Component ──────────────────────────────────────────────
-export default function InventoryImportModal({ categories, onClose, onSaved }) {
+export default function InventoryImportModal({ categories, existingItems = [], onClose, onSaved }) {
   const [step, setStep] = useState('upload')   // 'upload' | 'processing' | 'confirm'
   const [rows, setRows] = useState([])
   const [progress, setProgress] = useState(0)
@@ -211,10 +220,17 @@ export default function InventoryImportModal({ categories, onClose, onSaved }) {
         return
       }
       const withCats = parsed
-        .map((item) => ({
-          ...item,
-          categoryName: item.categoryName || guessCategory(item.name, categories),
-        }))
+        .map((item) => {
+          const dup = findDuplicate(item.name, existingItems)
+          return {
+            ...item,
+            categoryName: item.categoryName || guessCategory(item.name, categories),
+            mode: dup ? 'update' : 'add',
+            existingId: dup?.id || null,
+            existingQty: dup?.quantity || 0,
+            existingName: dup?.item_name || null,
+          }
+        })
         .sort((a, b) => a.name.localeCompare(b.name))
       setRows(withCats)
       setStep('confirm')
@@ -264,13 +280,27 @@ export default function InventoryImportModal({ categories, onClose, onSaved }) {
       if (data) newCatMap[name.toLowerCase()] = data.id
     }
 
+    // Resolve category ID helper
+    const resolveCatId = (catName) => {
+      const trimmed = catName.trim()
+      if (!trimmed) return othersId
+      const existing = categories.find((c) => c.name.toLowerCase() === trimmed.toLowerCase())
+      return existing ? existing.id : (newCatMap[trimmed.toLowerCase()] || othersId)
+    }
+
+    // Split rows into inserts and updates
+    const toInsert = rows.filter((r) => r.mode === 'add')
+    const toUpdate = rows.filter((r) => r.mode === 'update' && r.existingId)
+
+    // Handle stock updates (add qty to existing)
+    for (const r of toUpdate) {
+      const newQty = Number(r.existingQty) + Number(r.quantity)
+      await supabase.from('inventory').update({ quantity: newQty }).eq('id', r.existingId)
+    }
+
     // Build final rows with resolved category IDs (fallback to Others if blank)
-    const itemsToInsert = rows.map((r) => {
-      const catName = r.categoryName.trim()
-      const existing = categories.find((c) => c.name.toLowerCase() === catName.toLowerCase())
-      const catId = catName
-        ? (existing ? existing.id : (newCatMap[catName.toLowerCase()] || othersId))
-        : othersId
+    const itemsToInsert = toInsert.map((r) => {
+      const catId = resolveCatId(r.categoryName)
       return {
         item_name: r.name.trim(),
         category_id: catId,
@@ -281,9 +311,11 @@ export default function InventoryImportModal({ categories, onClose, onSaved }) {
       }
     })
 
-    const { error: insErr } = await supabase.from('inventory').insert(itemsToInsert)
+    if (itemsToInsert.length > 0) {
+      const { error: insErr } = await supabase.from('inventory').insert(itemsToInsert)
+      if (insErr) { setSaving(false); setError(insErr.message); return }
+    }
     setSaving(false)
-    if (insErr) { setError(insErr.message); return }
     onSaved()
   }
 
@@ -383,14 +415,21 @@ export default function InventoryImportModal({ categories, onClose, onSaved }) {
               {categories.map((c) => <option key={c.id} value={c.name} />)}
             </datalist>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', background: 'rgba(31,138,58,0.08)', border: '1px solid rgba(31,138,58,0.25)', borderRadius: 10, marginBottom: 16 }}>
-              <FontAwesomeIcon icon={faCircleCheck} style={{ color: 'var(--green)', fontSize: 18 }} />
-              <span style={{ fontSize: 13 }}>
-                Extracted <strong>{rows.length} item{rows.length !== 1 ? 's' : ''}</strong>.
-                Review and correct any errors before saving.
-                Each item can have its own category — type a new name to create it automatically.
-              </span>
-            </div>
+            {(() => {
+              const newCount = rows.filter((r) => r.mode === 'add').length
+              const updateCount = rows.filter((r) => r.mode === 'update').length
+              return (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', background: 'rgba(31,138,58,0.08)', border: '1px solid rgba(31,138,58,0.25)', borderRadius: 10, marginBottom: 16 }}>
+                  <FontAwesomeIcon icon={faCircleCheck} style={{ color: 'var(--green)', fontSize: 18 }} />
+                  <span style={{ fontSize: 13 }}>
+                    Extracted <strong>{rows.length} item{rows.length !== 1 ? 's' : ''}</strong>
+                    {updateCount > 0 && <> — <strong style={{ color: '#b45309' }}>{updateCount} duplicate{updateCount > 1 ? 's' : ''} detected</strong> (will update stock)</>}
+                    {newCount > 0 && <>, <strong>{newCount} new</strong></>}.
+                    {' '}Review before saving.
+                  </span>
+                </div>
+              )
+            })()}
 
             <div style={{ overflowX: 'auto', marginBottom: 12 }}>
               <table className="data-table">
@@ -401,12 +440,13 @@ export default function InventoryImportModal({ categories, onClose, onSaved }) {
                     <th style={{ minWidth: 110 }}>Unit</th>
                     <th style={{ minWidth: 75 }}>Qty</th>
                     <th style={{ minWidth: 120 }}>Unit Cost (₱)</th>
+                    <th style={{ minWidth: 130 }}>Action</th>
                     <th style={{ width: 40 }}></th>
                   </tr>
                 </thead>
                 <tbody>
                   {rows.map((r, idx) => (
-                    <tr key={idx}>
+                    <tr key={idx} style={r.mode === 'update' ? { background: 'rgba(180,83,9,0.06)' } : undefined}>
                       <td>
                         <input
                           className="form-input"
@@ -414,6 +454,11 @@ export default function InventoryImportModal({ categories, onClose, onSaved }) {
                           value={r.name}
                           onChange={(e) => updateRow(idx, 'name', e.target.value)}
                         />
+                        {r.mode === 'update' && (
+                          <div style={{ fontSize: 11, color: '#b45309', marginTop: 3 }}>
+                            Matches: "{r.existingName}" (current qty: {r.existingQty})
+                          </div>
+                        )}
                       </td>
                       <td>
                         <input
@@ -443,6 +488,11 @@ export default function InventoryImportModal({ categories, onClose, onSaved }) {
                           value={r.quantity}
                           onChange={(e) => updateRow(idx, 'quantity', e.target.value)}
                         />
+                        {r.mode === 'update' && (
+                          <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 2 }}>
+                            +{r.quantity} → {Number(r.existingQty) + Number(r.quantity)}
+                          </div>
+                        )}
                       </td>
                       <td>
                         <input
@@ -454,6 +504,25 @@ export default function InventoryImportModal({ categories, onClose, onSaved }) {
                           value={r.unit_cost}
                           onChange={(e) => updateRow(idx, 'unit_cost', e.target.value)}
                         />
+                      </td>
+                      <td>
+                        {r.mode === 'update' ? (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                            <span style={{ fontSize: 11, fontWeight: 700, color: '#b45309', background: 'rgba(180,83,9,0.12)', borderRadius: 4, padding: '2px 6px', whiteSpace: 'nowrap' }}>
+                              Update Stock
+                            </span>
+                            <button
+                              style={{ fontSize: 10, color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, textAlign: 'left', textDecoration: 'underline' }}
+                              onClick={() => updateRow(idx, 'mode', 'add')}
+                            >
+                              Add as new instead
+                            </button>
+                          </div>
+                        ) : (
+                          <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--green)', background: 'rgba(31,138,58,0.1)', borderRadius: 4, padding: '2px 6px' }}>
+                            New Item
+                          </span>
+                        )}
                       </td>
                       <td>
                         <button className="icon-btn danger" title="Remove row" onClick={() => deleteRow(idx)}>

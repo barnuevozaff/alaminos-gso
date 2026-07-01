@@ -37,9 +37,13 @@ export default function Inventory() {
     setLoading(false)
   }
 
+  const othersCat = categories.find((c) => c.name.toLowerCase() === 'others')
+
   const filtered = items.filter((i) => {
     const matchesSearch = !search || i.item_name.toLowerCase().includes(search.toLowerCase()) || i.item_code?.toLowerCase().includes(search.toLowerCase())
-    const matchesCategory = categoryFilter === 'all' || i.category_id === categoryFilter
+    const matchesCategory = categoryFilter === 'all' ||
+      i.category_id === categoryFilter ||
+      (othersCat && categoryFilter === othersCat.id && !i.category_id)
     return matchesSearch && matchesCategory
   })
 
@@ -185,6 +189,7 @@ export default function Inventory() {
       {showImport && (
         <InventoryImportModal
           categories={categories}
+          existingItems={items}
           onClose={() => setShowImport(false)}
           onSaved={() => { setShowImport(false); load() }}
         />
