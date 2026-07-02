@@ -92,7 +92,7 @@ export default function Dashboard() {
       supabase.from('inventory').select('id').eq('status', 'Low Stock'),
       supabase.from('purchase_orders').select('*', { count: 'exact', head: true }),
       supabase.from('purchase_requests').select('id').gte('created_at', new Date().toISOString().slice(0, 10)),
-      supabase.from('purchase_requests').select('pr_number, department, requester_name, status, created_at').order('created_at', { ascending: false }).limit(5),
+      supabase.from('purchase_requests').select('id, pr_number, department, requester_name, status, created_at').order('created_at', { ascending: false }).limit(5),
     ])
 
     setStats({
