@@ -235,7 +235,8 @@ p.page-subtitle { color: var(--text-muted); font-size: 14px; margin: 0 0 22px; }
   font-weight: 600;
   font-size: 13px;
   padding: 10px 14px;
-  border-bottom: 1px solid var(--border);
+  background: var(--card-bg);
+  box-shadow: 0 1px 0 var(--border);
 }
 .data-table td {
   padding: 14px;

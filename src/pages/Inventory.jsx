@@ -153,7 +153,7 @@ export default function Inventory() {
 
       {error && <div className="alert alert-error">{error}</div>}
 
-      <div className="card" style={{ padding: 0, overflowX: 'auto' }}>
+      <div className="card" style={{ padding: 0, overflow: 'auto', maxHeight: 'calc(100vh - 220px)' }}>
         {loading ? (
           <div className="state-box"><div className="spinner"></div>Loading inventory…</div>
         ) : filtered.length === 0 ? (
@@ -163,7 +163,7 @@ export default function Inventory() {
           </div>
         ) : (
           <table className="data-table">
-            <thead>
+            <thead style={{ position: 'sticky', top: 0, zIndex: 5 }}>
               <tr>
                 {deleteMode && <th style={{ width: 40 }}></th>}
                 <th>Item</th><th>Category</th><th>Unit</th><th>Qty</th><th>Unit Cost</th><th>Total Cost</th>
