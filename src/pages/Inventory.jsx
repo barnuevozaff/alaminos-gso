@@ -95,14 +95,23 @@ export default function Inventory() {
 
   return (
     <Layout>
-      <div className="flex-between">
-        <div>
-          <h1 className="page-title">Inventory</h1>
-          <p className="page-subtitle">Manage items, units, stock, and prices.</p>
+      <div style={{
+        position: 'sticky',
+        top: 75,
+        zIndex: 10,
+        background: 'var(--bg)',
+        paddingBottom: 12,
+        marginBottom: 4,
+        borderBottom: '1px solid var(--border)',
+      }}>
+        <div className="flex-between">
+          <div>
+            <h1 className="page-title">Inventory</h1>
+            <p className="page-subtitle" style={{ marginBottom: 12 }}>Manage items, units, stock, and prices.</p>
+          </div>
         </div>
-      </div>
 
-      <div className="toolbar" style={{ justifyContent: 'space-between' }}>
+        <div className="toolbar" style={{ justifyContent: 'space-between' }}>
         <div className="gap-8">
           <input className="form-input" placeholder="Search items…" value={search} onChange={(e) => setSearch(e.target.value)} />
           <select className="form-select" value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)}>
@@ -139,6 +148,7 @@ export default function Inventory() {
             </>
           )}
         </div>
+      </div>
       </div>
 
       {error && <div className="alert alert-error">{error}</div>}
