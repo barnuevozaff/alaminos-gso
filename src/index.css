@@ -511,7 +511,7 @@ p.page-subtitle { color: var(--text-muted); font-size: 14px; margin: 0 0 22px; }
 .flex-between { display: flex; align-items: center; justify-content: space-between; }
 .text-muted { color: var(--text-muted); }
 .mt-0 { margin-top: 0; }
-.gap-8 { display: flex; gap: 8px; flex-wrap: wrap; }
+.gap-8 { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .line-items-table input { width: 100%; border: none; background: transparent; padding: 4px; font-size: 13px; }
 .line-items-table input:focus { outline: 1px solid var(--maroon); border-radius: 3px; }
 .icon-btn { background: none; border: none; padding: 4px; color: var(--text-muted); border-radius: 4px; }
