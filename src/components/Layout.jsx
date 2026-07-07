@@ -47,24 +47,18 @@ export default function Layout({ children }) {
   const groupHasActiveChild = (item) =>
     item.children?.some((child) => location.pathname.startsWith(child.to))
 
-  const [openGroups, setOpenGroups] = useState(() => {
-    const initial = {}
-    NAV_ITEMS.forEach((item) => {
-      if (item.children) initial[item.label] = groupHasActiveChild(item)
-    })
-    return initial
+  const [openGroup, setOpenGroup] = useState(() => {
+    const active = NAV_ITEMS.find((item) => item.children && groupHasActiveChild(item))
+    return active?.label ?? null
   })
 
   useEffect(() => {
-    NAV_ITEMS.forEach((item) => {
-      if (item.children && groupHasActiveChild(item)) {
-        setOpenGroups((prev) => (prev[item.label] ? prev : { ...prev, [item.label]: true }))
-      }
-    })
+    const active = NAV_ITEMS.find((item) => item.children && groupHasActiveChild(item))
+    if (active) setOpenGroup(active.label)
   }, [location.pathname]) // eslint-disable-line react-hooks/exhaustive-deps
 
   function toggleGroup(label) {
-    setOpenGroups((prev) => ({ ...prev, [label]: !prev[label] }))
+    setOpenGroup((prev) => (prev === label ? null : label))
   }
 
   useEffect(() => {
@@ -115,7 +109,7 @@ export default function Layout({ children }) {
               return <div key={`divider-${index}`} className="sidebar-divider" />
             }
             if (item.children) {
-              const isOpen = !!openGroups[item.label]
+              const isOpen = openGroup === item.label
               return (
                 <div key={item.label} className="sidebar-group">
                   <button
