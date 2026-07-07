@@ -13,10 +13,10 @@ import LOGO from '../assets/alaminos-seal.png'
 const NAV_ITEMS = [
   { to: '/admin/dashboard', label: 'Dashboard', icon: faGauge },
   {
-    label: 'Procurement',
+    label: 'Purchase Request',
     icon: faCartShopping,
     children: [
-      { to: '/admin/requests', label: 'History', icon: faFileLines },
+      { to: '/admin/requests', label: 'Submitted Requests', icon: faFileLines },
       { to: '/admin/inventory', label: 'Inventory', icon: faBoxOpen },
       { to: '/admin/categories', label: 'Categories', icon: faTags },
       { to: '/admin/purchase-orders', label: 'Purchase Orders', icon: faFileInvoiceDollar },
