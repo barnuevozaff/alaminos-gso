@@ -4,6 +4,7 @@ import { Link, useSearchParams } from 'react-router-dom'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faMagnifyingGlass, faHouse } from '@fortawesome/free-solid-svg-icons'
 import { supabase } from '../lib/supabase'
+import { generateRequisitionIssueSlipPDF } from '../lib/generateRisPdf'
 import StatusBadge from '../components/StatusBadge'
 import LOGO from '../assets/alaminos-seal.png'
 
@@ -14,6 +15,7 @@ export default function TrackRequisitionIssueSlip() {
   const [items, setItems] = useState([])
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [downloadingPdf, setDownloadingPdf] = useState(false)
   const justSubmitted = params.get('submitted') === '1'
 
   useEffect(() => {
@@ -39,6 +41,13 @@ export default function TrackRequisitionIssueSlip() {
     setResult(data)
     setItems(itemsData || [])
     setLoading(false)
+  }
+
+  async function handleDownloadPdf() {
+    setDownloadingPdf(true)
+    const { data: signatories } = await supabase.from('pdf_signatories').select('*').eq('id', 1).maybeSingle()
+    await generateRequisitionIssueSlipPDF(result, items, signatories || {})
+    setDownloadingPdf(false)
   }
 
   return (
@@ -86,7 +95,12 @@ export default function TrackRequisitionIssueSlip() {
           <div className="card" style={{ marginTop: 20 }}>
             <div className="flex-between">
               <h3 style={{ margin: 0 }}>{result.ris_number}</h3>
-              <StatusBadge status={result.status} />
+              <div className="gap-8">
+                <StatusBadge status={result.status} />
+                <button className="btn btn-secondary btn-sm" disabled={downloadingPdf} onClick={handleDownloadPdf}>
+                  {downloadingPdf ? 'Generating…' : '⬇ PDF'}
+                </button>
+              </div>
             </div>
             <div className="print-meta-grid" style={{ marginTop: 14 }}>
               <div><strong>Requested by:</strong> {result.requester_name}</div>

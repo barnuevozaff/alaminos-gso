@@ -2,11 +2,13 @@ import { fmtDate } from '../lib/dateUtils'
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faXmark, faCheck, faArrowLeft } from '@fortawesome/free-solid-svg-icons'
+import { faXmark, faCheck, faArrowLeft, faPrint, faFilePdf } from '@fortawesome/free-solid-svg-icons'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
+import { generateRequisitionIssueSlipPDF } from '../lib/generateRisPdf'
 import Layout from '../components/Layout'
 import StatusBadge from '../components/StatusBadge'
+import RisPrintPreviewModal from '../components/RisPrintPreviewModal'
 import ConfirmDialog from '../components/ConfirmDialog'
 
 export default function RisRequestDetail() {
@@ -19,6 +21,8 @@ export default function RisRequestDetail() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
+  const [showPrint, setShowPrint] = useState(false)
+  const [generatingPdf, setGeneratingPdf] = useState(false)
   const [confirmAction, setConfirmAction] = useState(null) // 'approve' | 'reject' | null
   const [rejectReason, setRejectReason] = useState('')
 
@@ -35,6 +39,14 @@ export default function RisRequestDetail() {
     setRis(risData)
     setItems(itemsData || [])
     setLoading(false)
+  }
+
+  async function handleDownloadPdf() {
+    setGeneratingPdf(true)
+    const { data: freshItems } = await supabase.from('ris_items').select('*').eq('ris_id', id).order('sort_order')
+    const { data: signatories } = await supabase.from('pdf_signatories').select('*').eq('id', 1).maybeSingle()
+    await generateRequisitionIssueSlipPDF(ris, freshItems || items, signatories || {})
+    setGeneratingPdf(false)
   }
 
   async function handleApprove() {
@@ -74,6 +86,10 @@ export default function RisRequestDetail() {
           </p>
         </div>
         <div className="gap-8">
+          <button className="btn btn-secondary" onClick={() => setShowPrint(true)}><FontAwesomeIcon icon={faPrint} style={{ marginRight: 6 }} />Print</button>
+          <button className="btn btn-secondary" disabled={generatingPdf} onClick={handleDownloadPdf}>
+            <FontAwesomeIcon icon={faFilePdf} style={{ marginRight: 6 }} />{generatingPdf ? 'Generating…' : 'Download PDF'}
+          </button>
           {ris.status === 'Submitted' && (
             <>
               <button className="btn btn-danger" disabled={busy} onClick={() => setConfirmAction('reject')}><FontAwesomeIcon icon={faXmark} style={{ marginRight: 6 }} />Reject</button>
@@ -122,6 +138,8 @@ export default function RisRequestDetail() {
           </tbody>
         </table>
       </div>
+
+      {showPrint && <RisPrintPreviewModal ris={ris} items={items} onClose={() => setShowPrint(false)} />}
 
       {confirmAction === 'approve' && (
         <ConfirmDialog
