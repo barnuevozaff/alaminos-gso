@@ -4,7 +4,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faXmark, faPrint } from '@fortawesome/free-solid-svg-icons'
 import sealLogo from '../assets/alaminos-seal.png'
 
-export default function RsmiPrintPreviewModal({ dateFrom, dateTo, fund, serialNumber, printDate, items, recap, grandTotal, onClose }) {
+export default function RsmiPrintPreviewModal({ dateFrom, dateTo, fund, onFundChange, serialNumber, printDate, items, recap, grandTotal, onClose }) {
   function handlePrint() {
     window.print()
   }
@@ -15,6 +15,11 @@ export default function RsmiPrintPreviewModal({ dateFrom, dateTo, fund, serialNu
         <button className="modal-close" aria-label="Close" onClick={onClose}><FontAwesomeIcon icon={faXmark} /></button>
         <h3 className="modal-title">Print Preview — Report of Supplies and Materials Issued</h3>
         <p className="text-muted" style={{ marginTop: -8, marginBottom: 16 }}>Signature blocks are left blank for manual completion on the printed copy.</p>
+
+        <div className="form-group">
+          <label className="form-label">Fund (optional)</label>
+          <input className="form-input" placeholder="e.g. General Fund" value={fund} onChange={(e) => onFundChange(e.target.value)} autoFocus />
+        </div>
 
         <div className="print-sheet">
           <div className="print-header-center">

@@ -111,10 +111,6 @@ export default function RsmiReport() {
           <label className="form-label">To</label>
           <input type="date" className="form-input" value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
         </div>
-        <div className="form-group">
-          <label className="form-label">Fund (optional)</label>
-          <input className="form-input" placeholder="e.g. General Fund" value={fund} onChange={(e) => setFund(e.target.value)} />
-        </div>
       </div>
 
       {error && <div className="alert alert-error">{error}</div>}
@@ -184,6 +180,7 @@ export default function RsmiReport() {
           dateFrom={dateFrom}
           dateTo={dateTo}
           fund={fund}
+          onFundChange={setFund}
           serialNumber={serialNumber}
           printDate={printDate}
           items={items}
