@@ -20,12 +20,12 @@ function loadImageAsDataURL(url) {
  *   Issuance (Quantity | Remarks) table
  * - Purpose line
  * - Requested by / Approved by / Issued by / Received by signatory block
+ *   (left blank for physical signing — no printed names or lines)
  *
  * @param {object} ris - requisition_issue_slips row
  * @param {array} items - ris_items rows
- * @param {object} signatories - { general_services_officer }
  */
-export async function generateRequisitionIssueSlipPDF(ris, items, signatories = {}) {
+export async function generateRequisitionIssueSlipPDF(ris, items) {
   const doc = new jsPDF({ unit: 'pt', format: 'letter' })
   const pageWidth = doc.internal.pageSize.getWidth()
   const margin = 40
@@ -115,23 +115,18 @@ export async function generateRequisitionIssueSlipPDF(ris, items, signatories = 
   finalY += 40
 
   // ---- Signatory block (Requested by / Approved by / Issued by / Received by) ----
+  // Left blank on purpose — signed and printed-named by hand on the physical copy.
   const colWidth = (pageWidth - margin * 2) / 4
   const cols = [margin, margin + colWidth, margin + colWidth * 2, margin + colWidth * 3]
   const labels = ['Requested by:', 'Approved by:', 'Issued by:', 'Received by:']
-  const printedNames = [ris.requester_name || '', signatories.general_services_officer || '', signatories.general_services_officer || '', '']
 
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(10)
   labels.forEach((label, i) => doc.text(label, cols[i], finalY))
-  finalY += 34
+  finalY += 50
 
   doc.setFont('helvetica', 'normal')
-  cols.forEach((x) => doc.text('_______________________', x, finalY))
-  finalY += 14
-
   doc.setFontSize(9)
-  printedNames.forEach((name, i) => doc.text(name, cols[i], finalY))
-  finalY += 12
   cols.forEach((x) => doc.text('Signature over Printed Name', x, finalY))
 
   doc.save(`${ris.ris_number || 'Requisition-and-Issue-Slip'}.pdf`)

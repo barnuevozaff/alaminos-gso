@@ -44,8 +44,7 @@ export default function RisRequestDetail() {
   async function handleDownloadPdf() {
     setGeneratingPdf(true)
     const { data: freshItems } = await supabase.from('ris_items').select('*').eq('ris_id', id).order('sort_order')
-    const { data: signatories } = await supabase.from('pdf_signatories').select('*').eq('id', 1).maybeSingle()
-    await generateRequisitionIssueSlipPDF(ris, freshItems || items, signatories || {})
+    await generateRequisitionIssueSlipPDF(ris, freshItems || items)
     setGeneratingPdf(false)
   }
 

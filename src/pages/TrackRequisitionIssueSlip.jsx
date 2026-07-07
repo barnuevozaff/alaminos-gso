@@ -2,10 +2,11 @@ import { fmtDate } from '../lib/dateUtils'
 import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faMagnifyingGlass, faHouse } from '@fortawesome/free-solid-svg-icons'
+import { faMagnifyingGlass, faHouse, faEye } from '@fortawesome/free-solid-svg-icons'
 import { supabase } from '../lib/supabase'
 import { generateRequisitionIssueSlipPDF } from '../lib/generateRisPdf'
 import StatusBadge from '../components/StatusBadge'
+import RisPrintPreviewModal from '../components/RisPrintPreviewModal'
 import LOGO from '../assets/alaminos-seal.png'
 
 export default function TrackRequisitionIssueSlip() {
@@ -16,6 +17,7 @@ export default function TrackRequisitionIssueSlip() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [downloadingPdf, setDownloadingPdf] = useState(false)
+  const [showPrint, setShowPrint] = useState(false)
   const justSubmitted = params.get('submitted') === '1'
 
   useEffect(() => {
@@ -45,8 +47,7 @@ export default function TrackRequisitionIssueSlip() {
 
   async function handleDownloadPdf() {
     setDownloadingPdf(true)
-    const { data: signatories } = await supabase.from('pdf_signatories').select('*').eq('id', 1).maybeSingle()
-    await generateRequisitionIssueSlipPDF(result, items, signatories || {})
+    await generateRequisitionIssueSlipPDF(result, items)
     setDownloadingPdf(false)
   }
 
@@ -97,6 +98,9 @@ export default function TrackRequisitionIssueSlip() {
               <h3 style={{ margin: 0 }}>{result.ris_number}</h3>
               <div className="gap-8">
                 <StatusBadge status={result.status} />
+                <button className="btn btn-secondary btn-sm" onClick={() => setShowPrint(true)}>
+                  <FontAwesomeIcon icon={faEye} style={{ marginRight: 6 }} />View / Print
+                </button>
                 <button className="btn btn-secondary btn-sm" disabled={downloadingPdf} onClick={handleDownloadPdf}>
                   {downloadingPdf ? 'Generating…' : '⬇ PDF'}
                 </button>
@@ -131,6 +135,8 @@ export default function TrackRequisitionIssueSlip() {
           </div>
         )}
       </div>
+
+      {showPrint && <RisPrintPreviewModal ris={result} items={items} onClose={() => setShowPrint(false)} />}
     </div>
   )
 }

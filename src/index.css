@@ -423,6 +423,7 @@ p.page-subtitle { color: var(--text-muted); font-size: 14px; margin: 0 0 22px; }
 .print-header-center .doc-title { font-size: 18px; font-weight: 700; letter-spacing: 0.03em; margin-top: 4px; }
 .print-meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 24px; margin-bottom: 16px; font-size: 13px; }
 .signature-line { border-top: 1px solid #000; margin-top: 38px; padding-top: 4px; font-size: 12px; text-align: center; }
+.signature-blank { margin-top: 60px; font-size: 12px; text-align: center; }
 .print-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; }
 
 @media print {

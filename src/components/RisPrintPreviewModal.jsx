@@ -1,13 +1,8 @@
-import { useState } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faXmark, faPrint } from '@fortawesome/free-solid-svg-icons'
 import sealLogo from '../assets/alaminos-seal.png'
 
 export default function RisPrintPreviewModal({ ris, items, onClose }) {
-  const [approvedBy, setApprovedBy] = useState('FLORENTINO J. DESTACAMENTO')
-  const [issuedBy, setIssuedBy] = useState('FLORENTINO J. DESTACAMENTO')
-  const [receivedBy, setReceivedBy] = useState('')
-
   const rows = [...items]
   while (rows.length < 12) rows.push(null)
 
@@ -20,21 +15,7 @@ export default function RisPrintPreviewModal({ ris, items, onClose }) {
       <div className="modal-box">
         <button className="modal-close" aria-label="Close" onClick={onClose}><FontAwesomeIcon icon={faXmark} /></button>
         <h3 className="modal-title">Print Preview — {ris.ris_number}</h3>
-
-        <div className="form-row" style={{ marginBottom: 20 }}>
-          <div className="form-group">
-            <label className="form-label">Approved by</label>
-            <input className="form-input" value={approvedBy} onChange={(e) => setApprovedBy(e.target.value)} />
-          </div>
-          <div className="form-group">
-            <label className="form-label">Issued by</label>
-            <input className="form-input" value={issuedBy} onChange={(e) => setIssuedBy(e.target.value)} />
-          </div>
-          <div className="form-group">
-            <label className="form-label">Received by</label>
-            <input className="form-input" value={receivedBy} onChange={(e) => setReceivedBy(e.target.value)} />
-          </div>
-        </div>
+        <p className="text-muted" style={{ marginTop: -8, marginBottom: 16 }}>Signatures are left blank for physical signing on the printed copy.</p>
 
         <div className="print-sheet">
           <div className="print-header-center">
@@ -84,10 +65,10 @@ export default function RisPrintPreviewModal({ ris, items, onClose }) {
           <p style={{ marginTop: 14, fontSize: 13 }}><strong>Purpose:</strong> {ris.purpose || '—'}</p>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 16, marginTop: 30 }}>
-            <div className="signature-line">{ris.requester_name}<br /><span className="text-muted">Requested by</span></div>
-            <div className="signature-line">{approvedBy}<br /><span className="text-muted">Approved by</span></div>
-            <div className="signature-line">{issuedBy}<br /><span className="text-muted">Issued by</span></div>
-            <div className="signature-line">{receivedBy}<br /><span className="text-muted">Received by</span></div>
+            <div className="signature-blank">Requested by</div>
+            <div className="signature-blank">Approved by</div>
+            <div className="signature-blank">Issued by</div>
+            <div className="signature-blank">Received by</div>
           </div>
         </div>
 
