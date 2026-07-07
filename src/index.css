@@ -381,6 +381,14 @@ p.page-subtitle { color: var(--text-muted); font-size: 14px; margin: 0 0 22px; }
 }
 .modal-title { font-size: 19px; font-weight: 700; margin: 0 0 18px; }
 
+.ris-choice-option {
+  padding: 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(0,0,0,0.07);
+  transition: background 0.15s, border-color 0.15s;
+}
+.ris-choice-option:hover { background: rgba(0,0,0,0.03); border-color: rgba(0,0,0,0.12); }
+
 /* ---------- Print document ---------- */
 .print-sheet {
   border: 1px solid var(--border);

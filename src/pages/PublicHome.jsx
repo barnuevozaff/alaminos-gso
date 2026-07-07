@@ -1,9 +1,15 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faFileLines, faMagnifyingGlass, faArrowRight } from '@fortawesome/free-solid-svg-icons'
+import {
+  faFileLines, faMagnifyingGlass, faArrowRight, faClipboardList,
+  faXmark, faHourglassHalf,
+} from '@fortawesome/free-solid-svg-icons'
 import LOGO from '../assets/alaminos-seal.png'
 
 export default function PublicHome() {
+  const [openModal, setOpenModal] = useState(null) // 'purchase-request' | 'ris' | null
+
   return (
     <div style={{ minHeight: '100vh', background: 'linear-gradient(160deg, #fdf8f6 0%, #f5ede8 50%, #f0e8f0 100%)' }}>
 
@@ -45,23 +51,23 @@ export default function PublicHome() {
         gap: 24, maxWidth: 760, margin: '0 auto', padding: '0 24px 80px',
       }}>
         <ActionCard
-          to="/purchase-request"
+          onClick={() => setOpenModal('purchase-request')}
           icon={faFileLines}
           iconBg="linear-gradient(135deg, #7a1e2a 0%, #a8293a 100%)"
           iconShadow="rgba(122,30,42,0.35)"
-          title="Submit a Purchase Request"
-          description="Fill out a request for items needed by your department. The GSO will review and process it."
-          label="Submit Request"
+          title="Purchase Request"
+          description="Submit a new request for items needed by your department, or track one you already sent."
+          label="Get Started"
           accentColor="#7a1e2a"
         />
         <ActionCard
-          to="/track-request"
-          icon={faMagnifyingGlass}
+          onClick={() => setOpenModal('ris')}
+          icon={faClipboardList}
           iconBg="linear-gradient(135deg, #1a4a7a 0%, #2563a8 100%)"
           iconShadow="rgba(26,74,122,0.35)"
-          title="Track a Purchase Request"
-          description="Check the current status of your submitted request using its PR number."
-          label="Track Request"
+          title="Requisition and Issue Slip"
+          description="Request supplies already available in GSO inventory, or track one you already sent."
+          label="Get Started"
           accentColor="#1a4a7a"
         />
       </div>
@@ -70,15 +76,88 @@ export default function PublicHome() {
       <div style={{ textAlign: 'center', padding: '0 0 32px', fontSize: 12, color: '#a09090' }}>
         Municipality of Alaminos · General Services Office · {new Date().getFullYear()}
       </div>
+
+      {openModal === 'purchase-request' && (
+        <ChoiceModal onClose={() => setOpenModal(null)} title="Purchase Request">
+          <ChoiceOption
+            to="/purchase-request"
+            icon={faFileLines}
+            title="Submit a Purchase Request"
+            description="Fill out a request for items needed by your department."
+            accentColor="#7a1e2a"
+          />
+          <ChoiceOption
+            to="/track-request"
+            icon={faMagnifyingGlass}
+            title="Track a Purchase Request"
+            description="Check the current status of your submitted request using its PR number."
+            accentColor="#1a4a7a"
+          />
+        </ChoiceModal>
+      )}
+
+      {openModal === 'ris' && (
+        <ChoiceModal onClose={() => setOpenModal(null)} title="Requisition and Issue Slip">
+          <div style={{
+            display: 'flex', flexDirection: 'column', alignItems: 'center',
+            textAlign: 'center', gap: 12, padding: '20px 8px',
+          }}>
+            <FontAwesomeIcon icon={faHourglassHalf} style={{ fontSize: 28, color: '#a09090' }} />
+            <p style={{ margin: 0, fontSize: 14, color: '#6b6260', lineHeight: 1.6 }}>
+              This feature is coming soon. You won&apos;t be able to submit or track a Requisition and Issue Slip just yet.
+            </p>
+          </div>
+        </ChoiceModal>
+      )}
     </div>
   )
 }
 
-function ActionCard({ to, icon, iconBg, iconShadow, title, description, label, accentColor }) {
+function ChoiceModal({ title, onClose, children }) {
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-box modal-sm" onClick={(e) => e.stopPropagation()}>
+        <button className="modal-close" aria-label="Close" onClick={onClose}><FontAwesomeIcon icon={faXmark} /></button>
+        <h2 className="modal-title">{title}</h2>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {children}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function ChoiceOption({ to, icon, title, description, accentColor }) {
   return (
     <Link
       to={to}
-      style={{ textDecoration: 'none', display: 'flex' }}
+      style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 14 }}
+      className="ris-choice-option"
+    >
+      <div style={{
+        width: 42, height: 42, borderRadius: 12, flexShrink: 0,
+        background: `${accentColor}14`, color: accentColor,
+        display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 17,
+      }}>
+        <FontAwesomeIcon icon={icon} />
+      </div>
+      <div style={{ flex: 1 }}>
+        <div style={{ fontWeight: 700, fontSize: 14.5, color: '#1a1210' }}>{title}</div>
+        <div style={{ fontSize: 12.5, color: '#6b6260', marginTop: 2, lineHeight: 1.5 }}>{description}</div>
+      </div>
+      <FontAwesomeIcon icon={faArrowRight} style={{ fontSize: 12, color: accentColor, flexShrink: 0 }} />
+    </Link>
+  )
+}
+
+function ActionCard({ onClick, icon, iconBg, iconShadow, title, description, label, accentColor }) {
+  return (
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={onClick}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onClick() }}
+      style={{ display: 'flex' }}
     >
       <div
         style={{
@@ -138,6 +217,6 @@ function ActionCard({ to, icon, iconBg, iconShadow, title, description, label, a
           <FontAwesomeIcon icon={faArrowRight} style={{ fontSize: 11, transition: 'transform 0.2s' }} />
         </div>
       </div>
-    </Link>
+    </div>
   )
 }
