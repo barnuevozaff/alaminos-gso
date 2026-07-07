@@ -1,46 +1,53 @@
 import { useState, useEffect } from 'react'
-import { NavLink, useNavigate } from 'react-router-dom'
+import { NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
   faGauge, faFileLines, faBoxOpen, faTags,
   faFileInvoiceDollar, faClockRotateLeft, faGear, faRightFromBracket,
-  faBars, faXmark, faClipboardList, faFileInvoice,
+  faBars, faXmark, faCartShopping, faChevronDown, faClipboardList, faFileInvoice,
 } from '@fortawesome/free-solid-svg-icons'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 import LOGO from '../assets/alaminos-seal.png'
 
-const NAV_SECTIONS = [
+const NAV_ITEMS = [
   {
+    type: 'section',
     label: 'Overview',
     items: [
       { to: '/admin/dashboard', label: 'Dashboard', icon: faGauge },
     ],
   },
   {
-    label: 'Procurement',
-    items: [
+    type: 'group',
+    label: 'Purchase Request',
+    icon: faCartShopping,
+    children: [
       { to: '/admin/requests', label: 'Purchase Requests', icon: faFileLines },
       { to: '/admin/categories', label: 'Categories', icon: faTags },
       { to: '/admin/purchase-orders', label: 'Purchase Orders', icon: faFileInvoiceDollar },
     ],
   },
   {
-    label: 'Requisition',
-    items: [
-      { to: '/admin/ris', label: 'Requisition Slips', icon: faClipboardList },
+    type: 'group',
+    label: 'Requisition Slip',
+    icon: faClipboardList,
+    children: [
+      { to: '/admin/ris', label: 'Requisition Slips', icon: faFileLines },
       { to: '/admin/ris-inventory', label: 'RIS Inventory', icon: faBoxOpen },
       { to: '/admin/ris-categories', label: 'RIS Categories', icon: faTags },
       { to: '/admin/rsmi-report', label: 'RSMI Report', icon: faFileInvoice },
     ],
   },
   {
+    type: 'section',
     label: 'Assets',
     items: [
       { to: '/admin/inventory', label: 'Inventory', icon: faBoxOpen },
     ],
   },
   {
+    type: 'section',
     label: 'System',
     items: [
       { to: '/admin/audit-logs', label: 'Audit Logs', icon: faClockRotateLeft },
@@ -52,9 +59,27 @@ const NAV_SECTIONS = [
 export default function Layout({ children }) {
   const { profile, signOut } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
   const toast = useToast()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [isOnline, setIsOnline] = useState(navigator.onLine)
+
+  const groupHasActiveChild = (item) =>
+    item.children?.some((child) => location.pathname.startsWith(child.to))
+
+  const [openGroup, setOpenGroup] = useState(() => {
+    const active = NAV_ITEMS.find((item) => item.type === 'group' && groupHasActiveChild(item))
+    return active?.label ?? null
+  })
+
+  useEffect(() => {
+    const active = NAV_ITEMS.find((item) => item.type === 'group' && groupHasActiveChild(item))
+    if (active) setOpenGroup(active.label)
+  }, [location.pathname]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  function toggleGroup(label) {
+    setOpenGroup((prev) => (prev === label ? null : label))
+  }
 
   useEffect(() => {
     function handleOffline() { setIsOnline(false) }
@@ -98,22 +123,65 @@ export default function Layout({ children }) {
         </div>
 
         <nav className="sidebar-nav">
-          {NAV_SECTIONS.map((section) => (
-            <div key={section.label} className="sidebar-section">
-              <div className="sidebar-section-label">{section.label}</div>
-              {section.items.map((item) => (
-                <NavLink
-                  key={item.to}
-                  to={item.to}
-                  className={({ isActive }) => 'sidebar-link' + (isActive ? ' active' : '')}
-                  onClick={closeSidebar}
+          {NAV_ITEMS.map((item) => {
+            if (item.type === 'section') {
+              return (
+                <div key={item.label} className="sidebar-section">
+                  <div className="sidebar-section-label">{item.label}</div>
+                  {item.items.map((link) => (
+                    <NavLink
+                      key={link.to}
+                      to={link.to}
+                      className={({ isActive }) => 'sidebar-link' + (isActive ? ' active' : '')}
+                      onClick={closeSidebar}
+                    >
+                      <FontAwesomeIcon icon={link.icon} style={{ width: 16, flexShrink: 0 }} />
+                      <span>{link.label}</span>
+                    </NavLink>
+                  ))}
+                </div>
+              )
+            }
+
+            // Collapsible dropdown group
+            const isOpen = openGroup === item.label
+            return (
+              <div key={item.label} className="sidebar-section sidebar-group">
+                <button
+                  type="button"
+                  className={
+                    'sidebar-link sidebar-group-toggle'
+                    + (groupHasActiveChild(item) ? ' active-group' : '')
+                    + (isOpen ? ' open' : '')
+                  }
+                  onClick={() => toggleGroup(item.label)}
                 >
                   <FontAwesomeIcon icon={item.icon} style={{ width: 16, flexShrink: 0 }} />
                   <span>{item.label}</span>
-                </NavLink>
-              ))}
-            </div>
-          ))}
+                  <FontAwesomeIcon
+                    icon={faChevronDown}
+                    className="sidebar-group-chevron"
+                    style={{ marginLeft: 'auto', transform: isOpen ? 'rotate(180deg)' : 'none' }}
+                  />
+                </button>
+                <div className={'sidebar-submenu-wrapper' + (isOpen ? ' open' : '')}>
+                  <div className="sidebar-submenu">
+                    {item.children.map((child) => (
+                      <NavLink
+                        key={child.to}
+                        to={child.to}
+                        className={({ isActive }) => 'sidebar-link sidebar-sublink' + (isActive ? ' active' : '')}
+                        onClick={closeSidebar}
+                      >
+                        <FontAwesomeIcon icon={child.icon} style={{ width: 14, flexShrink: 0 }} />
+                        <span>{child.label}</span>
+                      </NavLink>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )
+          })}
         </nav>
 
         <div className="sidebar-footer">

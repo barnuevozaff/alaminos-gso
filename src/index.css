@@ -115,6 +115,41 @@ a { color: inherit; }
 .sidebar-link:hover { background: rgba(255,255,255,0.08); }
 .sidebar-link.active { background: var(--bg); color: var(--maroon); font-weight: 700; }
 
+.sidebar-group-toggle {
+  width: 100%;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  transition: background 0.15s;
+}
+.sidebar-group-toggle.active-group { color: #fff; font-weight: 600; }
+.sidebar-group-toggle.open {
+  background: rgba(255,255,255,0.1);
+  box-shadow: inset 3px 0 0 var(--gold);
+}
+.sidebar-group-chevron { font-size: 11px; opacity: 0.75; transition: transform 0.2s ease; }
+
+.sidebar-submenu-wrapper {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.22s ease;
+}
+.sidebar-submenu-wrapper.open { grid-template-rows: 1fr; }
+
+.sidebar-submenu {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-left: 14px;
+  margin-top: 2px;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.sidebar-sublink { padding-top: 9px; padding-bottom: 9px; font-size: 13.5px; }
+
 .sidebar-footer {
   padding: 16px 20px 0;
   border-top: 1px solid rgba(255,255,255,0.15);
