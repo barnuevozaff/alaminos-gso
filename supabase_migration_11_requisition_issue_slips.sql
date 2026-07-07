@@ -181,7 +181,7 @@ begin
       where id = v_item.id;
 
     insert into ris_stock_movements (ris_inventory_id, movement_type, quantity, reference, performed_by, notes)
-      values (v_item.ris_inventory_id, 'Out',
+      values (v_item.ris_inventory_id, 'Out', v_item.quantity,
               (select ris_number from requisition_issue_slips where id = p_ris_id),
               p_user_id, v_item.description);
   end loop;
