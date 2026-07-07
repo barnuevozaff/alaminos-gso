@@ -162,9 +162,16 @@ function parseInventoryText(raw) {
       continue
     }
 
-    if (/^(item\s*(?:description|name)?|description|qty|quantity|no\.?|sl\.?\s*no|#|unit)\s*$/i.test(line)) continue
+    if (/^(item\s*(?:description|name)?|description|qty|quantity|unit\s*cost|amount|total\s*(?:cost|amount)?|no\.?|sl\.?\s*no|#|price|cost|unit)\s*$/i.test(line)) continue
     if (/^\d{1,2}$/.test(line)) continue
     if (/^[-=_]{3,}$/.test(line)) continue
+
+    // Extract price
+    const priceMatch =
+      line.match(/[₱P]\s*([\d,]+(?:\.\d+)?)/) ||
+      line.match(/\b([\d,]+\.\d{2})\s*$/) ||
+      line.match(/\b([\d,]+)\s*$/)
+    const unit_cost = priceMatch ? parseFloat(priceMatch[1].replace(/,/g, '')) : 0
 
     const unitMatch = line.match(UNIT_PATTERN)
     const unit = unitMatch ? unitMatch[1].toLowerCase() : 'piece'
@@ -176,7 +183,9 @@ function parseInventoryText(raw) {
     else if (qtyStandalone) quantity = parseInt(qtyStandalone[1])
 
     let name = line
+      .replace(/[₱P]\s*[\d,]+(?:\.\d+)?/g, '')
       .replace(new RegExp(`\\b\\d+\\s*(?:${UNIT_WORDS.join('|')})s?\\b`, 'gi'), '')
+      .replace(/\b[\d,]+\.\d{2}\b/g, '')
       .replace(/[-–]\s*\d+\s+/g, '')
       .replace(/\|\s*[\d.]+\s*\|?/g, '')
       .replace(/^\d+[\.\)]\s*/, '')
@@ -185,7 +194,7 @@ function parseInventoryText(raw) {
 
     if (name.length < 2 || /^[\W\d]+$/.test(name)) continue
 
-    items.push({ name, unit, quantity, categoryName: currentCategory })
+    items.push({ name, unit, quantity, unit_cost, categoryName: currentCategory })
   }
 
   return items
@@ -287,7 +296,7 @@ export default function RisInventoryImportModal({ categories, existingItems = []
   }
 
   function addRow() {
-    setRows((prev) => [...prev, { name: '', unit: 'piece', quantity: 1, categoryName: '' }])
+    setRows((prev) => [...prev, { name: '', unit: 'piece', quantity: 1, unit_cost: 0, categoryName: '' }])
   }
 
   async function handleSave() {
@@ -344,7 +353,7 @@ export default function RisInventoryImportModal({ categories, existingItems = []
         category_id: catId,
         unit: r.unit,
         quantity: Number(r.quantity) || 0,
-        reorder_level: 10,
+        unit_cost: Number(r.unit_cost) || 0,
       }
     })
 
@@ -476,6 +485,7 @@ export default function RisInventoryImportModal({ categories, existingItems = []
                     <th style={{ minWidth: 160 }}>Category</th>
                     <th style={{ minWidth: 110 }}>Unit</th>
                     <th style={{ minWidth: 75 }}>Qty</th>
+                    <th style={{ minWidth: 120 }}>Price (₱)</th>
                     <th style={{ minWidth: 130 }}>Action</th>
                     <th style={{ width: 40 }}></th>
                   </tr>
@@ -545,6 +555,17 @@ export default function RisInventoryImportModal({ categories, existingItems = []
                             +{r.quantity} → {Number(r.existingQty) + Number(r.quantity)}
                           </div>
                         )}
+                      </td>
+                      <td>
+                        <input
+                          type="number"
+                          className="form-input"
+                          style={{ width: 110 }}
+                          min="0"
+                          step="0.01"
+                          value={r.unit_cost}
+                          onChange={(e) => updateRow(idx, 'unit_cost', e.target.value)}
+                        />
                       </td>
                       <td>
                         {r.mode === 'update' ? (

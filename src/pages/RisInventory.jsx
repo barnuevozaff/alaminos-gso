@@ -1,3 +1,4 @@
+import { fmt } from '../lib/fmt.js'
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useToast } from '../context/ToastContext'
@@ -165,7 +166,7 @@ export default function RisInventory() {
             <thead style={{ position: 'sticky', top: 0, zIndex: 5 }}>
               <tr>
                 {deleteMode && <th style={{ width: 40 }}></th>}
-                <th>Item</th><th>Category</th><th>Unit</th><th>Qty</th>
+                <th>Item</th><th>Category</th><th>Unit</th><th>Qty</th><th>Price</th><th>Total</th>
                 {!deleteMode && <th>Actions</th>}
               </tr>
             </thead>
@@ -199,6 +200,8 @@ export default function RisInventory() {
                   </td>
                   <td>{item.unit}</td>
                   <td style={{ color: item.quantity <= (item.reorder_level ?? 10) ? '#b45309' : undefined, fontWeight: item.quantity <= (item.reorder_level ?? 10) ? 700 : undefined }}>{item.quantity}</td>
+                  <td>₱{fmt(item.unit_cost)}</td>
+                  <td>₱{fmt(item.quantity * item.unit_cost)}</td>
                   {!deleteMode && (
                     <td style={{ display: 'flex', gap: 8 }}>
                       <button className="btn btn-outline btn-sm" onClick={() => { setEditing(item); setShowModal(true) }}><FontAwesomeIcon icon={faPenToSquare} style={{ marginRight: 6 }} />Edit</button>
@@ -261,19 +264,21 @@ function RisItemModal({ item, categories, onClose, onSaved }) {
   const [categoryId, setCategoryId] = useState(item?.category_id || categories[0]?.id || '')
   const [unit, setUnit] = useState(item?.unit || 'piece')
   const [quantity, setQuantity] = useState(item?.quantity ?? 0)
-  const [reorderLevel, setReorderLevel] = useState(item?.reorder_level ?? 10)
+  const [unitCost, setUnitCost] = useState(item?.unit_cost ?? 0)
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
+
+  const totalCost = (Number(quantity) || 0) * (Number(unitCost) || 0)
 
   async function handleSave() {
     if (!name.trim()) { setError('Item name is required.'); return }
     if (Number(quantity) < 0) { setError('Quantity cannot be negative.'); return }
-    if (Number(reorderLevel) < 0) { setError('Reorder level cannot be negative.'); return }
+    if (Number(unitCost) < 0) { setError('Price cannot be negative.'); return }
     setSaving(true)
     setError('')
     const payload = {
       item_name: name, category_id: categoryId || null, unit,
-      quantity: Number(quantity), reorder_level: Number(reorderLevel),
+      quantity: Number(quantity), unit_cost: Number(unitCost),
     }
     const { error } = item
       ? await supabase.from('ris_inventory').update(payload).eq('id', item.id)
@@ -317,11 +322,12 @@ function RisItemModal({ item, categories, onClose, onSaved }) {
             <input type="number" className="form-input" value={quantity} onChange={(e) => setQuantity(e.target.value)} />
           </div>
           <div className="form-group">
-            <label className="form-label">Reorder Level</label>
-            <input type="number" className="form-input" value={reorderLevel} onChange={(e) => setReorderLevel(e.target.value)} />
+            <label className="form-label">Price (₱)</label>
+            <input type="number" step="0.01" className="form-input" value={unitCost} onChange={(e) => setUnitCost(e.target.value)} />
           </div>
         </div>
-        <div className="form-hint">Item is flagged as low stock at or below the reorder level.</div>
+
+        <p className="text-muted">Total Cost: ₱{fmt(totalCost)}</p>
 
         <div className="print-actions">
           <button className="btn btn-secondary" onClick={onClose}>Cancel</button>
