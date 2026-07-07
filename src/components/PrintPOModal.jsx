@@ -55,13 +55,13 @@ export default function PrintPOModal({ po, items, prNumber, onClose }) {
           </div>
 
           <div className="print-meta-grid">
-            <div><strong>Supplier:</strong> {po.supplier || '____________________'}</div>
+            <div><strong>Supplier:</strong> {po.supplier || ''}</div>
             <div><strong>P.O. No.:</strong> {po.po_number}</div>
             <div><strong>Address:</strong> {po.address}</div>
             <div><strong>Date:</strong> {new Date(po.po_date).toLocaleDateString()}</div>
-            <div><strong>TIN:</strong> {po.tin || '—'}</div>
-            <div><strong>Mode of Procurement:</strong> {po.mode_of_procurement || '—'}</div>
-            <div><strong>Contact Number:</strong> {po.contact_number || '—'}</div>
+            <div><strong>TIN:</strong> {po.tin || ''}</div>
+            <div><strong>Mode of Procurement:</strong> {po.mode_of_procurement || ''}</div>
+            <div><strong>Contact Number:</strong> {po.contact_number || ''}</div>
             <div><strong>PR No./s:</strong> {prNumber}</div>
           </div>
 
@@ -71,7 +71,7 @@ export default function PrintPOModal({ po, items, prNumber, onClose }) {
           <div className="print-meta-grid">
             <div><strong>Place of Delivery:</strong> {po.place_of_delivery}</div>
             <div><strong>Delivery Term:</strong> {po.delivery_term}</div>
-            <div><strong>Date of Delivery:</strong> {po.date_of_delivery ? new Date(po.date_of_delivery).toLocaleDateString() : '____________________'}</div>
+            <div><strong>Date of Delivery:</strong> {po.date_of_delivery ? new Date(po.date_of_delivery).toLocaleDateString() : ''}</div>
             <div><strong>Payment Term:</strong> {po.payment_term}</div>
           </div>
 
@@ -116,7 +116,7 @@ export default function PrintPOModal({ po, items, prNumber, onClose }) {
 
           <p style={{ fontSize: 11, marginTop: 22 }}>
             (In case of Negotiated Purchase pursuant to Section 369 (a) of RA 7160, this portion must be accomplished.)<br />
-            Approved per Sanggunian BAC Resolution No. {po.bac_resolution_no || '____'} Series of {po.bac_series_year}
+            Approved per Sanggunian BAC Resolution No. {po.bac_resolution_no || ''} Series of {po.bac_series_year}
           </p>
 
           <div style={{ marginTop: 14 }}>
