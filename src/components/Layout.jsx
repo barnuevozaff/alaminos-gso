@@ -1,11 +1,10 @@
 import { useState, useEffect } from 'react'
 import { NavLink, useNavigate, useLocation } from 'react-router-dom'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
-  faGauge, faFileLines, faBoxOpen, faTags,
-  faFileInvoiceDollar, faClockRotateLeft, faGear, faRightFromBracket,
-  faBars, faXmark, faCartShopping, faChevronDown, faClipboardList, faFileInvoice,
-} from '@fortawesome/free-solid-svg-icons'
+  LayoutDashboard, FileText, Boxes, Tags,
+  FileSpreadsheet, ScrollText, Settings, LogOut,
+  Menu, X, ShoppingCart, ChevronDown, ClipboardList, ReceiptText, Warehouse,
+} from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 import LOGO from '../assets/alaminos-seal.png'
@@ -15,43 +14,43 @@ const NAV_ITEMS = [
     type: 'section',
     label: 'Overview',
     items: [
-      { to: '/admin/dashboard', label: 'Dashboard', icon: faGauge },
+      { to: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     ],
   },
   {
     type: 'group',
     label: 'Purchase Request',
-    icon: faCartShopping,
+    icon: ShoppingCart,
     children: [
-      { to: '/admin/requests', label: 'Purchase Requests', icon: faFileLines },
-      { to: '/admin/categories', label: 'Categories', icon: faTags },
-      { to: '/admin/purchase-orders', label: 'Purchase Orders', icon: faFileInvoiceDollar },
+      { to: '/admin/requests', label: 'Purchase Requests', icon: FileText },
+      { to: '/admin/categories', label: 'Categories', icon: Tags },
+      { to: '/admin/purchase-orders', label: 'Purchase Orders', icon: FileSpreadsheet },
     ],
   },
   {
     type: 'group',
     label: 'Requisition Slip',
-    icon: faClipboardList,
+    icon: ClipboardList,
     children: [
-      { to: '/admin/ris', label: 'Requisition Slips', icon: faFileLines },
-      { to: '/admin/ris-categories', label: 'RIS Categories', icon: faTags },
-      { to: '/admin/rsmi-report', label: 'RSMI Report', icon: faFileInvoice },
+      { to: '/admin/ris', label: 'Requisition Slips', icon: FileText },
+      { to: '/admin/ris-categories', label: 'RIS Categories', icon: Tags },
+      { to: '/admin/rsmi-report', label: 'RSMI Report', icon: ReceiptText },
     ],
   },
   {
     type: 'section',
     label: 'Assets',
     items: [
-      { to: '/admin/inventory', label: 'PR Inventory', icon: faBoxOpen },
-      { to: '/admin/ris-inventory', label: 'RIS Inventory', icon: faBoxOpen },
+      { to: '/admin/inventory', label: 'PR Inventory', icon: Boxes },
+      { to: '/admin/ris-inventory', label: 'RIS Inventory', icon: Warehouse },
     ],
   },
   {
     type: 'section',
     label: 'System',
     items: [
-      { to: '/admin/audit-logs', label: 'Audit Logs', icon: faClockRotateLeft },
-      { to: '/admin/settings', label: 'Settings', icon: faGear },
+      { to: '/admin/audit-logs', label: 'Audit Logs', icon: ScrollText },
+      { to: '/admin/settings', label: 'Settings', icon: Settings },
     ],
   },
 ]
@@ -135,7 +134,7 @@ export default function Layout({ children }) {
                       className={({ isActive }) => 'sidebar-link' + (isActive ? ' active' : '')}
                       onClick={closeSidebar}
                     >
-                      <FontAwesomeIcon icon={link.icon} style={{ width: 16, flexShrink: 0 }} />
+                      <link.icon size={16} style={{ flexShrink: 0 }} />
                       <span>{link.label}</span>
                     </NavLink>
                   ))}
@@ -156,10 +155,10 @@ export default function Layout({ children }) {
                   }
                   onClick={() => toggleGroup(item.label)}
                 >
-                  <FontAwesomeIcon icon={item.icon} style={{ width: 16, flexShrink: 0 }} />
+                  <item.icon size={16} style={{ flexShrink: 0 }} />
                   <span>{item.label}</span>
-                  <FontAwesomeIcon
-                    icon={faChevronDown}
+                  <ChevronDown
+                    size={14}
                     className="sidebar-group-chevron"
                     style={{ marginLeft: 'auto', transform: isOpen ? 'rotate(180deg)' : 'none' }}
                   />
@@ -173,7 +172,7 @@ export default function Layout({ children }) {
                         className={({ isActive }) => 'sidebar-link sidebar-sublink' + (isActive ? ' active' : '')}
                         onClick={closeSidebar}
                       >
-                        <FontAwesomeIcon icon={child.icon} style={{ width: 14, flexShrink: 0 }} />
+                        <child.icon size={14} style={{ flexShrink: 0 }} />
                         <span>{child.label}</span>
                       </NavLink>
                     ))}
@@ -188,7 +187,7 @@ export default function Layout({ children }) {
           <div className="sidebar-user-name">{profile?.full_name || 'Administrator'}</div>
           <div className="sidebar-user-role">{profile?.role?.toUpperCase() || 'GSO ADMIN'}</div>
           <button className="btn-signout" onClick={handleSignOut}>
-            <FontAwesomeIcon icon={faRightFromBracket} style={{ marginRight: 6 }} />Sign out
+            <LogOut size={16} style={{ marginRight: 6 }} />Sign out
           </button>
         </div>
       </aside>
@@ -197,7 +196,7 @@ export default function Layout({ children }) {
         <div className="topbar">
           <div style={{ display: 'flex', alignItems: 'center' }}>
             <button className="hamburger-btn" onClick={() => setSidebarOpen((v) => !v)} aria-label="Toggle menu">
-              <FontAwesomeIcon icon={sidebarOpen ? faXmark : faBars} />
+              {sidebarOpen ? <X size={18} /> : <Menu size={18} />}
             </button>
             <div className="topbar-title">
               <img src={LOGO} alt="" onError={(e) => { e.target.style.visibility = 'hidden' }} />

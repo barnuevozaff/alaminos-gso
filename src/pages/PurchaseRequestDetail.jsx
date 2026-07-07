@@ -2,8 +2,7 @@ import { fmt } from '../lib/fmt.js'
 import { fmtDate } from '../lib/dateUtils'
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faPrint, faXmark, faCheck, faArrowLeft, faFilePdf, faFileInvoiceDollar } from '@fortawesome/free-solid-svg-icons'
+import { Printer, X, Check, ArrowLeft, FileDown, FileSpreadsheet } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { generatePurchaseRequestPDF } from '../lib/generatePrPdf'
@@ -125,7 +124,7 @@ export default function PurchaseRequestDetail() {
     <Layout>
       <div className="flex-between" style={{ marginBottom: 18 }}>
         <div>
-          <button className="btn-signout" style={{ width: 'auto', background: 'none', border: 'none', color: 'var(--text)', padding: 0, marginBottom: 8 }} onClick={() => navigate('/admin/requests')}><FontAwesomeIcon icon={faArrowLeft} style={{ marginRight: 6 }} />Back</button>
+          <button className="btn-signout" style={{ width: 'auto', background: 'none', border: 'none', color: 'var(--text)', padding: 0, marginBottom: 8 }} onClick={() => navigate('/admin/requests')}><ArrowLeft size={16} style={{ marginRight: 6 }} />Back</button>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <h1 className="page-title" style={{ margin: 0 }}>{pr.pr_number}</h1>
             <StatusBadge status={pr.status} />
@@ -136,25 +135,25 @@ export default function PurchaseRequestDetail() {
         </div>
         <div className="gap-8">
           {pr.status === 'Draft' && <button className="btn btn-secondary" onClick={() => navigate(`/admin/requests/${id}/edit`)}>Edit</button>}
-          <button className="btn btn-secondary" onClick={() => setShowPrint(true)}><FontAwesomeIcon icon={faPrint} style={{ marginRight: 6 }} />Print</button>
+          <button className="btn btn-secondary" onClick={() => setShowPrint(true)}><Printer size={16} style={{ marginRight: 6 }} />Print</button>
           <button className="btn btn-secondary" disabled={generatingPdf} onClick={handleDownloadPdf}>
-            <FontAwesomeIcon icon={faFilePdf} style={{ marginRight: 6 }} />{generatingPdf ? 'Generating…' : 'Download PDF'}
+            <FileDown size={16} style={{ marginRight: 6 }} />{generatingPdf ? 'Generating…' : 'Download PDF'}
           </button>
           {pr.status === 'Submitted' && (
             <>
-              <button className="btn btn-danger" disabled={busy} onClick={() => setConfirmAction('reject')}><FontAwesomeIcon icon={faXmark} style={{ marginRight: 6 }} />Reject</button>
-              <button className="btn btn-success" disabled={busy} onClick={() => setConfirmAction('approve')}><FontAwesomeIcon icon={faCheck} style={{ marginRight: 6 }} />Approve</button>
+              <button className="btn btn-danger" disabled={busy} onClick={() => setConfirmAction('reject')}><X size={16} style={{ marginRight: 6 }} />Reject</button>
+              <button className="btn btn-success" disabled={busy} onClick={() => setConfirmAction('approve')}><Check size={16} style={{ marginRight: 6 }} />Approve</button>
             </>
           )}
           {pr.status === 'Approved' && !linkedPo && (
             <button className="btn btn-primary" disabled={busy} onClick={handleGeneratePo}>
-              <FontAwesomeIcon icon={faFileInvoiceDollar} style={{ marginRight: 6 }} />
+              <FileSpreadsheet size={16} style={{ marginRight: 6 }} />
               {busy ? 'Generating…' : 'Generate Purchase Order'}
             </button>
           )}
           {linkedPo && (
             <button className="btn btn-secondary" onClick={() => navigate(`/admin/purchase-orders/${linkedPo.id}`)}>
-              <FontAwesomeIcon icon={faFileInvoiceDollar} style={{ marginRight: 6 }} />View Purchase Order
+              <FileSpreadsheet size={16} style={{ marginRight: 6 }} />View Purchase Order
             </button>
           )}
         </div>
@@ -166,14 +165,14 @@ export default function PurchaseRequestDetail() {
       {linkedPo && (
         <div className="card" style={{ marginBottom: 20, borderLeft: '4px solid var(--green)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <FontAwesomeIcon icon={faFileInvoiceDollar} style={{ fontSize: 22, color: 'var(--green)' }} />
+            <FileSpreadsheet size={22} style={{ color: 'var(--green)' }} />
             <div>
               <div style={{ fontWeight: 700 }}>Linked Purchase Order</div>
               <div className="text-muted" style={{ fontSize: 13 }}>{linkedPo.po_number} · <StatusBadge status={linkedPo.status} /></div>
             </div>
           </div>
           <button className="btn btn-primary btn-sm" onClick={() => navigate(`/admin/purchase-orders/${linkedPo.id}`)}>
-            <FontAwesomeIcon icon={faFileInvoiceDollar} style={{ marginRight: 6 }} />View PO
+            <FileSpreadsheet size={16} style={{ marginRight: 6 }} />View PO
           </button>
         </div>
       )}

@@ -2,8 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useToast } from '../context/ToastContext'
 import { fmtDate } from '../lib/dateUtils'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faEye, faTrash, faXmark } from '@fortawesome/free-solid-svg-icons'
+import { Eye, Trash2, X } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import Layout from '../components/Layout'
 import StatusBadge from '../components/StatusBadge'
@@ -128,7 +127,7 @@ export default function RisRequestsList() {
         <div className="gap-8">
           {!deleteMode ? (
             <button className="btn btn-danger btn-sm" onClick={() => setDeleteMode(true)}>
-              <FontAwesomeIcon icon={faTrash} style={{ marginRight: 6 }} />Delete
+              <Trash2 size={16} style={{ marginRight: 6 }} />Delete
             </button>
           ) : (
             <>
@@ -140,11 +139,11 @@ export default function RisRequestsList() {
                 disabled={selectedIds.length === 0}
                 onClick={() => setConfirmBulkDelete(true)}
               >
-                <FontAwesomeIcon icon={faTrash} style={{ marginRight: 6 }} />
+                <Trash2 size={16} style={{ marginRight: 6 }} />
                 Delete{selectedIds.length > 0 ? ` (${selectedIds.length})` : ''}
               </button>
               <button className="btn btn-secondary btn-sm" onClick={() => { setDeleteMode(false); setSelectedIds([]) }}>
-                <FontAwesomeIcon icon={faXmark} style={{ marginRight: 6 }} />Cancel
+                <X size={16} style={{ marginRight: 6 }} />Cancel
               </button>
             </>
           )}
@@ -193,7 +192,7 @@ export default function RisRequestsList() {
                   <td><StatusBadge status={r.status} /></td>
                   <td>
                     {!deleteMode && (
-                      <button className="btn btn-outline btn-sm" onClick={() => navigate(`/admin/ris/${r.id}`)}><FontAwesomeIcon icon={faEye} style={{ marginRight: 6 }} />View</button>
+                      <button className="btn btn-outline btn-sm" onClick={() => navigate(`/admin/ris/${r.id}`)}><Eye size={16} style={{ marginRight: 6 }} />View</button>
                     )}
                   </td>
                 </tr>

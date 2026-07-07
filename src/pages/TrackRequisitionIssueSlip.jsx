@@ -1,8 +1,7 @@
 import { fmtDate } from '../lib/dateUtils'
 import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faMagnifyingGlass, faHouse, faEye } from '@fortawesome/free-solid-svg-icons'
+import { Search, Home, Eye } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { generateRequisitionIssueSlipPDF } from '../lib/generateRisPdf'
 import StatusBadge from '../components/StatusBadge'
@@ -63,7 +62,7 @@ export default function TrackRequisitionIssueSlip() {
           </div>
         </div>
         <Link to="/" className="btn" style={{ flexShrink: 0, background: 'rgba(255,255,255,0.15)', color: '#fff', border: '1px solid rgba(255,255,255,0.35)', backdropFilter: 'blur(4px)', fontWeight: 600 }}>
-          <FontAwesomeIcon icon={faHouse} style={{ marginRight: 7 }} />Home
+          <Home size={16} style={{ marginRight: 7 }} />Home
         </Link>
       </div>
 
@@ -85,7 +84,7 @@ export default function TrackRequisitionIssueSlip() {
               onKeyDown={(e) => e.key === 'Enter' && handleTrack()}
             />
             <button className="btn btn-primary" onClick={() => handleTrack()} disabled={loading}>
-              {loading ? 'Searching…' : <><FontAwesomeIcon icon={faMagnifyingGlass} style={{ marginRight: 6 }} />Track</>}
+              {loading ? 'Searching…' : <><Search size={16} style={{ marginRight: 6 }} />Track</>}
             </button>
           </div>
 
@@ -99,7 +98,7 @@ export default function TrackRequisitionIssueSlip() {
               <div className="gap-8">
                 <StatusBadge status={result.status} />
                 <button className="btn btn-secondary btn-sm" onClick={() => setShowPrint(true)}>
-                  <FontAwesomeIcon icon={faEye} style={{ marginRight: 6 }} />View / Print
+                  <Eye size={16} style={{ marginRight: 6 }} />View / Print
                 </button>
                 <button className="btn btn-secondary btn-sm" disabled={downloadingPdf} onClick={handleDownloadPdf}>
                   {downloadingPdf ? 'Generating…' : '⬇ PDF'}

@@ -1,6 +1,5 @@
 import { useState, useRef } from 'react'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faCamera, faFileArrowUp, faXmark, faPlus, faSpinner, faCircleCheck } from '@fortawesome/free-solid-svg-icons'
+import { Camera, FileUp, X, Plus, Loader2, CircleCheck } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { UNITS } from '../lib/units'
@@ -390,7 +389,7 @@ export default function RisInventoryImportModal({ categories, existingItems = []
         style={{ maxWidth: 860, maxHeight: '92vh', overflowY: 'auto' }}
         onClick={(e) => e.stopPropagation()}
       >
-        <button className="modal-close" aria-label="Close" onClick={onClose}><FontAwesomeIcon icon={faXmark} /></button>
+        <button className="modal-close" aria-label="Close" onClick={onClose}><X size={16} /></button>
         <h3 className="modal-title">
           {step === 'upload' && 'Import Items from File / Camera'}
           {step === 'processing' && 'Processing File…'}
@@ -419,7 +418,7 @@ export default function RisInventoryImportModal({ categories, existingItems = []
                 onClick={() => cameraRef.current.click()}
               >
                 <div style={{ width: 72, height: 72, borderRadius: 20, background: 'rgba(122,30,42,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <FontAwesomeIcon icon={faCamera} style={{ fontSize: 32, color: 'var(--maroon)' }} />
+                  <Camera size={32} style={{ color: 'var(--maroon)' }} />
                 </div>
                 <div>
                   <div style={{ fontWeight: 700, fontSize: 15 }}>Use Camera</div>
@@ -438,7 +437,7 @@ export default function RisInventoryImportModal({ categories, existingItems = []
                 onClick={() => fileRef.current.click()}
               >
                 <div style={{ width: 72, height: 72, borderRadius: 20, background: 'rgba(26,74,122,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <FontAwesomeIcon icon={faFileArrowUp} style={{ fontSize: 32, color: '#1a4a7a' }} />
+                  <FileUp size={32} style={{ color: '#1a4a7a' }} />
                 </div>
                 <div>
                   <div style={{ fontWeight: 700, fontSize: 15 }}>Upload Files</div>
@@ -457,7 +456,7 @@ export default function RisInventoryImportModal({ categories, existingItems = []
         {/* STEP 2: Processing */}
         {step === 'processing' && (
           <div style={{ textAlign: 'center', padding: '48px 0' }}>
-            <FontAwesomeIcon icon={faSpinner} spin style={{ fontSize: 48, color: 'var(--maroon)', marginBottom: 20 }} />
+            <Loader2 size={48} className="icon-spin" style={{ color: 'var(--maroon)', marginBottom: 20 }} />
             <div style={{ fontWeight: 600, fontSize: 16, marginBottom: 8 }}>{progressLabel}</div>
             <div className="text-muted" style={{ fontSize: 13, marginBottom: 20 }}>Do not close this window…</div>
             {progress > 0 && (
@@ -484,7 +483,7 @@ export default function RisInventoryImportModal({ categories, existingItems = []
               const updateCount = rows.filter((r) => r.mode === 'update').length
               return (
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', background: 'rgba(31,138,58,0.08)', border: '1px solid rgba(31,138,58,0.25)', borderRadius: 10, marginBottom: 16 }}>
-                  <FontAwesomeIcon icon={faCircleCheck} style={{ color: 'var(--green)', fontSize: 18 }} />
+                  <CircleCheck size={18} style={{ color: 'var(--green)' }} />
                   <span style={{ fontSize: 13 }}>
                     Extracted <strong>{rows.length} item{rows.length !== 1 ? 's' : ''}</strong>
                     {updateCount > 0 && <> — <strong style={{ color: '#b45309' }}>{updateCount} duplicate{updateCount > 1 ? 's' : ''} detected</strong> (will update stock)</>}
@@ -606,7 +605,7 @@ export default function RisInventoryImportModal({ categories, existingItems = []
                       </td>
                       <td>
                         <button className="icon-btn danger" title="Remove row" onClick={() => deleteRow(idx)}>
-                          <FontAwesomeIcon icon={faXmark} />
+                          <X size={16} />
                         </button>
                       </td>
                     </tr>
@@ -616,7 +615,7 @@ export default function RisInventoryImportModal({ categories, existingItems = []
             </div>
 
             <button className="btn btn-secondary btn-sm" onClick={addRow} style={{ marginBottom: 24 }}>
-              <FontAwesomeIcon icon={faPlus} style={{ marginRight: 6 }} />Add Row
+              <Plus size={16} style={{ marginRight: 6 }} />Add Row
             </button>
 
             <div className="print-actions">

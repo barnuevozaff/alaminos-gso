@@ -1,8 +1,7 @@
 import { fmt } from '../lib/fmt.js'
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faTrash, faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons'
+import { Trash2, Search } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import DepartmentAutocomplete from '../components/DepartmentAutocomplete'
 import ItemAutocomplete from '../components/ItemAutocomplete'
@@ -104,7 +103,7 @@ export default function PublicPurchaseRequestForm() {
           </div>
         </div>
         <Link to="/track-request" className="btn" style={{ flexShrink: 0, background: 'rgba(255,255,255,0.15)', color: '#fff', border: '1px solid rgba(255,255,255,0.35)', backdropFilter: 'blur(4px)', fontWeight: 600 }}>
-          <FontAwesomeIcon icon={faMagnifyingGlass} style={{ marginRight: 7 }} />Track a Request
+          <Search size={16} style={{ marginRight: 7 }} />Track a Request
         </Link>
       </div>
 
@@ -159,7 +158,7 @@ export default function PublicPurchaseRequestForm() {
                     </td>
                     <td className="text-muted">₱{fmt(it.unit_cost)}</td>
                     <td className="text-muted">₱{fmt((Number(it.quantity) || 0) * Number(it.unit_cost))}</td>
-                    <td><button className="icon-btn danger" onClick={() => removeItem(idx)}><FontAwesomeIcon icon={faTrash} /></button></td>
+                    <td><button className="icon-btn danger" onClick={() => removeItem(idx)}><Trash2 size={14} /></button></td>
                   </tr>
                 ))}
               </tbody>

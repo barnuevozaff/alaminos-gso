@@ -2,8 +2,7 @@ import { fmt } from '../lib/fmt.js'
 import { fmtDate } from '../lib/dateUtils'
 import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faMagnifyingGlass, faHouse } from '@fortawesome/free-solid-svg-icons'
+import { Search, Home } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { generatePurchaseRequestPDF } from '../lib/generatePrPdf'
 import StatusBadge from '../components/StatusBadge'
@@ -65,7 +64,7 @@ export default function TrackRequest() {
           </div>
         </div>
         <Link to="/" className="btn" style={{ flexShrink: 0, background: 'rgba(255,255,255,0.15)', color: '#fff', border: '1px solid rgba(255,255,255,0.35)', backdropFilter: 'blur(4px)', fontWeight: 600 }}>
-          <FontAwesomeIcon icon={faHouse} style={{ marginRight: 7 }} />Home
+          <Home size={16} style={{ marginRight: 7 }} />Home
         </Link>
       </div>
 
@@ -87,7 +86,7 @@ export default function TrackRequest() {
               onKeyDown={(e) => e.key === 'Enter' && handleTrack()}
             />
             <button className="btn btn-primary" onClick={() => handleTrack()} disabled={loading}>
-              {loading ? 'Searching…' : <><FontAwesomeIcon icon={faMagnifyingGlass} style={{ marginRight: 6 }} />Track</>}
+              {loading ? 'Searching…' : <><Search size={16} style={{ marginRight: 6 }} />Track</>}
             </button>
           </div>
 

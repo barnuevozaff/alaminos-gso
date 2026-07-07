@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faTrash, faPenToSquare } from '@fortawesome/free-solid-svg-icons'
+import { Trash2, SquarePen } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import Layout from '../components/Layout'
 import ConfirmDialog from '../components/ConfirmDialog'
@@ -113,8 +112,8 @@ export default function Categories() {
                       </div>
                     ) : (
                       <div style={{ display: 'flex', gap: 8, justifyContent: 'space-between' }}>
-                        <button className="btn btn-outline btn-sm" aria-label={`Edit ${c.name}`} onClick={() => { setEditingId(c.id); setEditingName(c.name) }}><FontAwesomeIcon icon={faPenToSquare} style={{ marginRight: 6 }} />Edit</button>
-                        <button className="btn btn-danger btn-sm" aria-label={`Delete ${c.name}`} onClick={() => confirmDelete(c)}><FontAwesomeIcon icon={faTrash} style={{ marginRight: 6 }} />Delete</button>
+                        <button className="btn btn-outline btn-sm" aria-label={`Edit ${c.name}`} onClick={() => { setEditingId(c.id); setEditingName(c.name) }}><SquarePen size={16} style={{ marginRight: 6 }} />Edit</button>
+                        <button className="btn btn-danger btn-sm" aria-label={`Delete ${c.name}`} onClick={() => confirmDelete(c)}><Trash2 size={16} style={{ marginRight: 6 }} />Delete</button>
                       </div>
                     )}
                   </td>

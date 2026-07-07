@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faTrash, faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons'
+import { Trash2, Search } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import DepartmentAutocomplete from '../components/DepartmentAutocomplete'
 import RisItemAutocomplete from '../components/RisItemAutocomplete'
@@ -105,7 +104,7 @@ export default function PublicRequisitionIssueSlipForm() {
           </div>
         </div>
         <Link to="/track-ris" className="btn" style={{ flexShrink: 0, background: 'rgba(255,255,255,0.15)', color: '#fff', border: '1px solid rgba(255,255,255,0.35)', backdropFilter: 'blur(4px)', fontWeight: 600 }}>
-          <FontAwesomeIcon icon={faMagnifyingGlass} style={{ marginRight: 7 }} />Track a RIS
+          <Search size={16} style={{ marginRight: 7 }} />Track a RIS
         </Link>
       </div>
 
@@ -173,7 +172,7 @@ export default function PublicRequisitionIssueSlipForm() {
                       <input type="number" min="1" max={it.available} className="form-input" style={{ width: 90 }}
                         value={it.quantity} onChange={(e) => updateQuantity(idx, e.target.value)} />
                     </td>
-                    <td><button className="icon-btn danger" onClick={() => removeItem(idx)}><FontAwesomeIcon icon={faTrash} /></button></td>
+                    <td><button className="icon-btn danger" onClick={() => removeItem(idx)}><Trash2 size={14} /></button></td>
                   </tr>
                 ))}
               </tbody>

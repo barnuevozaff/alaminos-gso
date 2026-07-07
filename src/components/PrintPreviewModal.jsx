@@ -1,7 +1,6 @@
 import { fmt } from '../lib/fmt.js'
 import { useState } from 'react'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faXmark, faPrint } from '@fortawesome/free-solid-svg-icons'
+import { X, Printer } from 'lucide-react'
 import sealLogo from '../assets/alaminos-seal.png'
 
 export default function PrintPreviewModal({ pr, items, onClose }) {
@@ -20,7 +19,7 @@ export default function PrintPreviewModal({ pr, items, onClose }) {
   return (
     <div className="modal-overlay">
       <div className="modal-box">
-        <button className="modal-close" aria-label="Close" onClick={onClose}><FontAwesomeIcon icon={faXmark} /></button>
+        <button className="modal-close" aria-label="Close" onClick={onClose}><X size={16} /></button>
         <h3 className="modal-title">Print Preview — {pr.pr_number}</h3>
 
         <div className="form-row" style={{ marginBottom: 20 }}>
@@ -90,7 +89,7 @@ export default function PrintPreviewModal({ pr, items, onClose }) {
 
         <div className="print-actions">
           <button className="btn btn-secondary" onClick={onClose}>Close</button>
-          <button className="btn btn-primary" onClick={handlePrint}><FontAwesomeIcon icon={faPrint} style={{ marginRight: 6 }} />Print</button>
+          <button className="btn btn-primary" onClick={handlePrint}><Printer size={16} style={{ marginRight: 6 }} />Print</button>
         </div>
       </div>
     </div>

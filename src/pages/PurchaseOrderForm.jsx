@@ -1,8 +1,7 @@
 import { fmt } from '../lib/fmt.js'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faTrash, faPlus } from '@fortawesome/free-solid-svg-icons'
+import { Trash2, Plus } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { UNITS } from '../lib/units'
@@ -180,7 +179,7 @@ export default function PurchaseOrderForm() {
       <div className="card" style={{ padding: 0, overflowX: 'auto' }}>
         <div style={{ padding: '16px 22px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h3 style={{ margin: 0 }}>Items</h3>
-          <button className="btn btn-secondary btn-sm" onClick={addItem}><FontAwesomeIcon icon={faPlus} style={{ marginRight: 6 }} />Add Item</button>
+          <button className="btn btn-secondary btn-sm" onClick={addItem}><Plus size={16} style={{ marginRight: 6 }} />Add Item</button>
         </div>
         <table className="data-table">
           <thead>
@@ -210,7 +209,7 @@ export default function PurchaseOrderForm() {
                 <td><input className="form-input" type="number" min="1" value={it.quantity} onChange={(e) => updateItem(idx, 'quantity', e.target.value)} style={{ width: 80 }} /></td>
                 <td><input className="form-input" type="number" min="0" step="0.01" value={it.unit_cost} onChange={(e) => updateItem(idx, 'unit_cost', e.target.value)} style={{ width: 100 }} /></td>
                 <td className="text-muted">₱{fmt((Number(it.quantity) || 0) * (Number(it.unit_cost) || 0))}</td>
-                <td><button className="icon-btn danger" onClick={() => removeItem(idx)}><FontAwesomeIcon icon={faTrash} /></button></td>
+                <td><button className="icon-btn danger" onClick={() => removeItem(idx)}><Trash2 size={14} /></button></td>
               </tr>
             ))}
           </tbody>

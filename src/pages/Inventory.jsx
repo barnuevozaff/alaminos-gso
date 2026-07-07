@@ -2,8 +2,7 @@ import { fmt } from '../lib/fmt.js'
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useToast } from '../context/ToastContext'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faTrash, faPenToSquare, faPlus, faXmark, faFileArrowUp } from '@fortawesome/free-solid-svg-icons'
+import { Trash2, SquarePen, Plus, X, FileUp } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { UNITS } from '../lib/units'
 import Layout from '../components/Layout'
@@ -121,13 +120,13 @@ export default function Inventory() {
           </select>
         </div>
         <div className="gap-8">
-          <button className="btn btn-secondary" onClick={() => setShowImport(true)}><FontAwesomeIcon icon={faFileArrowUp} style={{ marginRight: 6 }} />Scan / Upload</button>
+          <button className="btn btn-secondary" onClick={() => setShowImport(true)}><FileUp size={16} style={{ marginRight: 6 }} />Scan / Upload</button>
           {!deleteMode ? (
             <>
               <button className="btn btn-danger btn-sm" onClick={() => setDeleteMode(true)}>
-                <FontAwesomeIcon icon={faTrash} style={{ marginRight: 6 }} />Delete
+                <Trash2 size={16} style={{ marginRight: 6 }} />Delete
               </button>
-              <button className="btn btn-primary" onClick={() => { setEditing(null); setShowModal(true) }}><FontAwesomeIcon icon={faPlus} style={{ marginRight: 6 }} />Add Item</button>
+              <button className="btn btn-primary" onClick={() => { setEditing(null); setShowModal(true) }}><Plus size={16} style={{ marginRight: 6 }} />Add Item</button>
             </>
           ) : (
             <>
@@ -139,11 +138,11 @@ export default function Inventory() {
                 disabled={selectedIds.length === 0}
                 onClick={() => setConfirmBulkDelete(true)}
               >
-                <FontAwesomeIcon icon={faTrash} style={{ marginRight: 6 }} />
+                <Trash2 size={16} style={{ marginRight: 6 }} />
                 Delete{selectedIds.length > 0 ? ` (${selectedIds.length})` : ''}
               </button>
               <button className="btn btn-secondary btn-sm" onClick={() => { setDeleteMode(false); setSelectedIds([]) }}>
-                <FontAwesomeIcon icon={faXmark} style={{ marginRight: 6 }} />Cancel
+                <X size={16} style={{ marginRight: 6 }} />Cancel
               </button>
             </>
           )}
@@ -204,8 +203,8 @@ export default function Inventory() {
                   <td>₱{fmt(item.quantity * item.unit_cost)}</td>
                   {!deleteMode && (
                     <td style={{ display: 'flex', gap: 8 }}>
-                      <button className="btn btn-outline btn-sm" onClick={() => { setEditing(item); setShowModal(true) }}><FontAwesomeIcon icon={faPenToSquare} style={{ marginRight: 6 }} />Edit</button>
-                      <button className="btn btn-danger btn-sm" onClick={() => setDeleteTarget(item)}><FontAwesomeIcon icon={faTrash} style={{ marginRight: 6 }} />Delete</button>
+                      <button className="btn btn-outline btn-sm" onClick={() => { setEditing(item); setShowModal(true) }}><SquarePen size={16} style={{ marginRight: 6 }} />Edit</button>
+                      <button className="btn btn-danger btn-sm" onClick={() => setDeleteTarget(item)}><Trash2 size={16} style={{ marginRight: 6 }} />Delete</button>
                     </td>
                   )}
                 </tr>
@@ -293,7 +292,7 @@ function ItemModal({ item, categories, onClose, onSaved }) {
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-box modal-sm" onClick={(e) => e.stopPropagation()}>
-        <button className="modal-close" aria-label="Close" onClick={onClose}><FontAwesomeIcon icon={faXmark} /></button>
+        <button className="modal-close" aria-label="Close" onClick={onClose}><X size={16} /></button>
         <h3 className="modal-title">{item ? 'Edit Item' : 'Add Item'}</h3>
 
         {error && <div className="alert alert-error">{error}</div>}

@@ -1,8 +1,7 @@
 import { fmtDate } from '../lib/dateUtils'
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faXmark, faCheck, faArrowLeft, faPrint, faFilePdf } from '@fortawesome/free-solid-svg-icons'
+import { X, Check, ArrowLeft, Printer, FileDown } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { generateRequisitionIssueSlipPDF } from '../lib/generateRisPdf'
@@ -75,7 +74,7 @@ export default function RisRequestDetail() {
     <Layout>
       <div className="flex-between" style={{ marginBottom: 18 }}>
         <div>
-          <button className="btn-signout" style={{ width: 'auto', background: 'none', border: 'none', color: 'var(--text)', padding: 0, marginBottom: 8 }} onClick={() => navigate('/admin/ris')}><FontAwesomeIcon icon={faArrowLeft} style={{ marginRight: 6 }} />Back</button>
+          <button className="btn-signout" style={{ width: 'auto', background: 'none', border: 'none', color: 'var(--text)', padding: 0, marginBottom: 8 }} onClick={() => navigate('/admin/ris')}><ArrowLeft size={16} style={{ marginRight: 6 }} />Back</button>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <h1 className="page-title" style={{ margin: 0 }}>{ris.ris_number}</h1>
             <StatusBadge status={ris.status} />
@@ -85,14 +84,14 @@ export default function RisRequestDetail() {
           </p>
         </div>
         <div className="gap-8">
-          <button className="btn btn-secondary" onClick={() => setShowPrint(true)}><FontAwesomeIcon icon={faPrint} style={{ marginRight: 6 }} />Print</button>
+          <button className="btn btn-secondary" onClick={() => setShowPrint(true)}><Printer size={16} style={{ marginRight: 6 }} />Print</button>
           <button className="btn btn-secondary" disabled={generatingPdf} onClick={handleDownloadPdf}>
-            <FontAwesomeIcon icon={faFilePdf} style={{ marginRight: 6 }} />{generatingPdf ? 'Generating…' : 'Download PDF'}
+            <FileDown size={16} style={{ marginRight: 6 }} />{generatingPdf ? 'Generating…' : 'Download PDF'}
           </button>
           {ris.status === 'Submitted' && (
             <>
-              <button className="btn btn-danger" disabled={busy} onClick={() => setConfirmAction('reject')}><FontAwesomeIcon icon={faXmark} style={{ marginRight: 6 }} />Reject</button>
-              <button className="btn btn-success" disabled={busy} onClick={() => setConfirmAction('approve')}><FontAwesomeIcon icon={faCheck} style={{ marginRight: 6 }} />Approve</button>
+              <button className="btn btn-danger" disabled={busy} onClick={() => setConfirmAction('reject')}><X size={16} style={{ marginRight: 6 }} />Reject</button>
+              <button className="btn btn-success" disabled={busy} onClick={() => setConfirmAction('approve')}><Check size={16} style={{ marginRight: 6 }} />Approve</button>
             </>
           )}
         </div>

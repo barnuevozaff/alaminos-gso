@@ -1,9 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import {
-  faFileLines, faMagnifyingGlass, faArrowRight, faClipboardList, faXmark,
-} from '@fortawesome/free-solid-svg-icons'
+import { FileText, Search, ArrowRight, ClipboardList, X } from 'lucide-react'
 import LOGO from '../assets/alaminos-seal.png'
 
 export default function PublicHome() {
@@ -51,7 +48,7 @@ export default function PublicHome() {
       }}>
         <ActionCard
           onClick={() => setOpenModal('purchase-request')}
-          icon={faFileLines}
+          icon={FileText}
           iconBg="linear-gradient(135deg, #7a1e2a 0%, #a8293a 100%)"
           iconShadow="rgba(122,30,42,0.35)"
           title="Purchase Request"
@@ -61,7 +58,7 @@ export default function PublicHome() {
         />
         <ActionCard
           onClick={() => setOpenModal('ris')}
-          icon={faClipboardList}
+          icon={ClipboardList}
           iconBg="linear-gradient(135deg, #1a4a7a 0%, #2563a8 100%)"
           iconShadow="rgba(26,74,122,0.35)"
           title="Requisition and Issue Slip"
@@ -80,14 +77,14 @@ export default function PublicHome() {
         <ChoiceModal onClose={() => setOpenModal(null)} title="Purchase Request">
           <ChoiceOption
             to="/purchase-request"
-            icon={faFileLines}
+            icon={FileText}
             title="Submit a Purchase Request"
             description="Fill out a request for items needed by your department."
             accentColor="#7a1e2a"
           />
           <ChoiceOption
             to="/track-request"
-            icon={faMagnifyingGlass}
+            icon={Search}
             title="Track a Purchase Request"
             description="Check the current status of your submitted request using its PR number."
             accentColor="#1a4a7a"
@@ -99,14 +96,14 @@ export default function PublicHome() {
         <ChoiceModal onClose={() => setOpenModal(null)} title="Requisition and Issue Slip">
           <ChoiceOption
             to="/requisition-issue-slip"
-            icon={faClipboardList}
+            icon={ClipboardList}
             title="Submit a Requisition and Issue Slip"
             description="Request supplies already available in GSO inventory."
             accentColor="#7a1e2a"
           />
           <ChoiceOption
             to="/track-ris"
-            icon={faMagnifyingGlass}
+            icon={Search}
             title="Track a Requisition and Issue Slip"
             description="Check the current status of your submitted request using its RIS number."
             accentColor="#1a4a7a"
@@ -121,7 +118,7 @@ function ChoiceModal({ title, onClose, children }) {
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-box modal-sm" onClick={(e) => e.stopPropagation()}>
-        <button className="modal-close" aria-label="Close" onClick={onClose}><FontAwesomeIcon icon={faXmark} /></button>
+        <button className="modal-close" aria-label="Close" onClick={onClose}><X size={16} /></button>
         <h2 className="modal-title">{title}</h2>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {children}
@@ -131,7 +128,7 @@ function ChoiceModal({ title, onClose, children }) {
   )
 }
 
-function ChoiceOption({ to, icon, title, description, accentColor }) {
+function ChoiceOption({ to, icon: Icon, title, description, accentColor }) {
   return (
     <Link
       to={to}
@@ -143,18 +140,18 @@ function ChoiceOption({ to, icon, title, description, accentColor }) {
         background: `${accentColor}14`, color: accentColor,
         display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 17,
       }}>
-        <FontAwesomeIcon icon={icon} />
+        <Icon size={18} />
       </div>
       <div style={{ flex: 1 }}>
         <div style={{ fontWeight: 700, fontSize: 14.5, color: '#1a1210' }}>{title}</div>
         <div style={{ fontSize: 12.5, color: '#6b6260', marginTop: 2, lineHeight: 1.5 }}>{description}</div>
       </div>
-      <FontAwesomeIcon icon={faArrowRight} style={{ fontSize: 12, color: accentColor, flexShrink: 0 }} />
+      <ArrowRight size={14} style={{ color: accentColor, flexShrink: 0 }} />
     </Link>
   )
 }
 
-function ActionCard({ onClick, icon, iconBg, iconShadow, title, description, label, accentColor }) {
+function ActionCard({ onClick, icon: Icon, iconBg, iconShadow, title, description, label, accentColor }) {
   return (
     <div
       role="button"
@@ -202,7 +199,7 @@ function ActionCard({ onClick, icon, iconBg, iconShadow, title, description, lab
           boxShadow: `0 8px 24px ${iconShadow}`,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
-          <FontAwesomeIcon icon={icon} style={{ fontSize: 26, color: '#fff' }} />
+          <Icon size={26} style={{ color: '#fff' }} />
         </div>
 
         <h3 style={{ margin: '0 0 10px', fontSize: 18, fontWeight: 700, color: '#1a1210', lineHeight: 1.3 }}>
@@ -218,7 +215,7 @@ function ActionCard({ onClick, icon, iconBg, iconShadow, title, description, lab
           fontSize: 13, fontWeight: 700, color: accentColor,
         }}>
           {label}
-          <FontAwesomeIcon icon={faArrowRight} style={{ fontSize: 11, transition: 'transform 0.2s' }} />
+          <ArrowRight size={13} style={{ transition: 'transform 0.2s' }} />
         </div>
       </div>
     </div>

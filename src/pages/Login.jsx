@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faEye, faEyeSlash, faTriangleExclamation } from '@fortawesome/free-solid-svg-icons'
+import { Eye, EyeOff, TriangleAlert } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import LOGO from '../assets/alaminos-seal.png'
 
@@ -79,12 +78,12 @@ export default function Login() {
                   color: 'var(--text-muted)', padding: 4, lineHeight: 1,
                 }}
               >
-                <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} />
+                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
             </div>
             {capsLock && (
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 6, fontSize: 12, color: '#b45309' }}>
-                <FontAwesomeIcon icon={faTriangleExclamation} />
+                <TriangleAlert size={14} />
                 Caps Lock is on
               </div>
             )}

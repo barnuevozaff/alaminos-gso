@@ -1,7 +1,6 @@
 import { fmt } from '../lib/fmt.js'
 import { useEffect, useMemo, useState } from 'react'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faPrint } from '@fortawesome/free-solid-svg-icons'
+import { Printer } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import Layout from '../components/Layout'
 import RsmiPrintPreviewModal from '../components/RsmiPrintPreviewModal'
@@ -98,7 +97,7 @@ export default function RsmiReport() {
           <p className="page-subtitle" style={{ marginBottom: 12 }}>Items deducted from RIS inventory for a given period (Appendix 40).</p>
         </div>
         <button className="btn btn-primary" disabled={loading || preparingPrint || items.length === 0} onClick={handlePrintClick}>
-          <FontAwesomeIcon icon={faPrint} style={{ marginRight: 6 }} />{preparingPrint ? 'Preparing…' : 'Print'}
+          <Printer size={16} style={{ marginRight: 6 }} />{preparingPrint ? 'Preparing…' : 'Print'}
         </button>
       </div>
 

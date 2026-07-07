@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faPrint, faArrowLeft } from '@fortawesome/free-solid-svg-icons'
+import { Printer, ArrowLeft } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import Layout from '../components/Layout'
 import PrintAIRModal from '../components/PrintAIRModal'
@@ -61,11 +60,11 @@ export default function AIRDetail() {
     <Layout>
       <div className="flex-between" style={{ marginBottom: 18 }}>
         <div>
-          <button style={{ background: 'none', border: 'none', padding: 0, marginBottom: 8, cursor: 'pointer', color: 'var(--text)' }} onClick={() => navigate(`/admin/purchase-orders/${air.po_id}`)}><FontAwesomeIcon icon={faArrowLeft} style={{ marginRight: 6 }} />Back to PO</button>
+          <button style={{ background: 'none', border: 'none', padding: 0, marginBottom: 8, cursor: 'pointer', color: 'var(--text)' }} onClick={() => navigate(`/admin/purchase-orders/${air.po_id}`)}><ArrowLeft size={16} style={{ marginRight: 6 }} />Back to PO</button>
           <h1 className="page-title" style={{ margin: 0 }}>{air.air_number}</h1>
           <p className="page-subtitle" style={{ marginTop: 4 }}>Acceptance and Inspection Report{po ? ` for ${po.po_number}` : ''}</p>
         </div>
-        <button className="btn btn-secondary" onClick={() => setShowPrint(true)}><FontAwesomeIcon icon={faPrint} style={{ marginRight: 6 }} />Print</button>
+        <button className="btn btn-secondary" onClick={() => setShowPrint(true)}><Printer size={16} style={{ marginRight: 6 }} />Print</button>
       </div>
 
       {error && <div className="alert alert-error">{error}</div>}

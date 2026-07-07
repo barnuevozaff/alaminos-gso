@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { PieChart, Pie, Cell, BarChart, Bar, XAxis, ResponsiveContainer, Tooltip } from 'recharts'
 import {
-  faFileLines, faClock, faCheck, faXmark,
-  faBoxOpen, faTriangleExclamation, faFileInvoiceDollar,
-  faPlus, faEye, faClipboardList, faClockRotateLeft,
-} from '@fortawesome/free-solid-svg-icons'
+  FileText, Clock, CheckCircle2, XCircle,
+  Boxes, PackageX, ShoppingCart,
+  Plus, Eye, ClipboardList, ScrollText, FilePlus2, ClipboardPlus, AlertTriangle,
+} from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import Layout from '../components/Layout'
 import StatusBadge from '../components/StatusBadge'
@@ -13,10 +13,10 @@ import { timeAgo } from '../lib/dateUtils'
 import { useAuth } from '../context/AuthContext'
 
 const QUICK_ACTIONS = [
-  { title: 'New Purchase Request', sub: 'Draft a new PR form', icon: faFileLines, to: '/admin/requests/new', accent: 'maroon' },
-  { title: 'New Requisition Slip', sub: 'Issue a RIS document', icon: faClipboardList, to: '/requisition-issue-slip', accent: 'gold' },
-  { title: 'Add Inventory Item', sub: 'Register a new item', icon: faBoxOpen, to: '/admin/inventory?action=new', accent: 'maroon' },
-  { title: 'Create Purchase Order', sub: 'Generate a PO', icon: faFileInvoiceDollar, to: '/admin/purchase-orders/new', accent: 'gold' },
+  { title: 'New Purchase Request', sub: 'Draft a new PR form', icon: FilePlus2, to: '/admin/requests/new', accent: 'maroon' },
+  { title: 'New Requisition Slip', sub: 'Issue a RIS document', icon: ClipboardPlus, to: '/requisition-issue-slip', accent: 'gold' },
+  { title: 'Add Inventory Item', sub: 'Register a new item', icon: Boxes, to: '/admin/inventory?action=new', accent: 'maroon' },
+  { title: 'Create Purchase Order', sub: 'Generate a PO', icon: ShoppingCart, to: '/admin/purchase-orders/new', accent: 'gold' },
 ]
 
 const ACCENT = {
@@ -31,12 +31,10 @@ const ACCENT = {
 // the same thing everywhere on the page.
 const STATUS_COLORS = { Approved: 'var(--green)', Pending: 'var(--gold-dark)', Rejected: 'var(--red)', Processing: '#3a6fa8' }
 
-function StatCard({ accent, icon, label, value, corner, to, navigate }) {
+function StatCard({ accent, icon: Icon, label, value, corner }) {
   const a = ACCENT[accent]
-  const clickable = !!to
   return (
     <div
-      onClick={clickable ? () => navigate(to) : undefined}
       style={{
         background: 'var(--card-bg)',
         border: '1px solid var(--border)',
@@ -46,18 +44,14 @@ function StatCard({ accent, icon, label, value, corner, to, navigate }) {
         display: 'flex',
         flexDirection: 'column',
         gap: 12,
-        cursor: clickable ? 'pointer' : 'default',
-        transition: 'box-shadow 0.15s, transform 0.15s',
       }}
-      onMouseEnter={clickable ? (e) => { e.currentTarget.style.boxShadow = '0 6px 20px rgba(0,0,0,0.1)'; e.currentTarget.style.transform = 'translateY(-2px)' } : undefined}
-      onMouseLeave={clickable ? (e) => { e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.04)'; e.currentTarget.style.transform = 'none' } : undefined}
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <span style={{
           display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
           width: 44, height: 44, borderRadius: 12, background: a.bg, color: a.color, fontSize: 17,
         }}>
-          <FontAwesomeIcon icon={icon} />
+          <Icon size={20} />
         </span>
         {corner && <span style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 600, whiteSpace: 'nowrap' }}>{corner}</span>}
       </div>
@@ -69,7 +63,7 @@ function StatCard({ accent, icon, label, value, corner, to, navigate }) {
   )
 }
 
-function PanelCard({ title, sub, action, children }) {
+function PanelCard({ title, icon: Icon, sub, action, children }) {
   return (
     <div className="card" style={{ padding: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
       <div style={{
@@ -77,7 +71,10 @@ function PanelCard({ title, sub, action, children }) {
         borderBottom: '1px solid var(--border)', gap: 12,
       }}>
         <div>
-          <div style={{ fontWeight: 700, fontSize: 15 }}>{title}</div>
+          <div style={{ fontWeight: 700, fontSize: 15, display: 'flex', alignItems: 'center', gap: 8 }}>
+            {Icon && <Icon size={16} style={{ color: 'var(--maroon)' }} />}
+            {title}
+          </div>
           {sub && <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>{sub}</div>}
         </div>
         {action}
@@ -101,41 +98,17 @@ function ActivityChip({ type }) {
 }
 
 function DonutChart({ segments, total }) {
-  const [hovered, setHovered] = useState(null)
-  const size = 168, stroke = 24, r = (size - stroke) / 2, c = 2 * Math.PI * r
-  const gap = total > 0 ? c * 0.014 : 0
-  let offset = 0
-
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 28, flexWrap: 'wrap' }}>
-      <div style={{ position: 'relative', width: size, height: size, flexShrink: 0 }}>
-        <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
-          <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="var(--border)" strokeWidth={stroke} opacity={0.5} />
-          {segments.map((s) => {
-            if (!s.value) return null
-            const frac = s.value / total
-            const len = Math.max(frac * c - gap, 0)
-            const dashoffset = -offset
-            offset += frac * c
-            const isDim = hovered && hovered !== s.label
-            return (
-              <circle
-                key={s.label}
-                cx={size / 2} cy={size / 2} r={r} fill="none"
-                stroke={s.color}
-                strokeWidth={hovered === s.label ? stroke + 4 : stroke}
-                strokeDasharray={`${len} ${c - len}`}
-                strokeDashoffset={dashoffset}
-                strokeLinecap="round"
-                style={{ transition: 'stroke-width 0.15s, opacity 0.15s', opacity: isDim ? 0.4 : 1, cursor: 'pointer' }}
-                onMouseEnter={() => setHovered(s.label)}
-                onMouseLeave={() => setHovered(null)}
-              >
-                <title>{`${s.label}: ${s.value} (${Math.round(frac * 100)}%)`}</title>
-              </circle>
-            )
-          })}
-        </svg>
+      <div style={{ position: 'relative', width: 208, height: 208, flexShrink: 0 }}>
+        <ResponsiveContainer width="100%" height="100%">
+          <PieChart>
+            <Pie data={segments} dataKey="value" nameKey="label" innerRadius={62} outerRadius={92} paddingAngle={2} stroke="none">
+              {segments.map((s) => <Cell key={s.label} fill={s.color} />)}
+            </Pie>
+            <Tooltip contentStyle={{ borderRadius: 12, border: '1px solid var(--border)', fontSize: 12 }} />
+          </PieChart>
+        </ResponsiveContainer>
         <div style={{
           position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column',
           alignItems: 'center', justifyContent: 'center', pointerEvents: 'none',
@@ -146,12 +119,7 @@ function DonutChart({ segments, total }) {
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
         {segments.map((s) => (
-          <div
-            key={s.label}
-            onMouseEnter={() => setHovered(s.label)}
-            onMouseLeave={() => setHovered(null)}
-            style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'default', opacity: hovered && hovered !== s.label ? 0.5 : 1 }}
-          >
+          <div key={s.label} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <span style={{ width: 11, height: 11, borderRadius: 3, background: s.color, flexShrink: 0 }} />
             <span style={{ fontSize: 13, color: 'var(--text)', minWidth: 84 }}>{s.label}</span>
             <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>{s.value.toLocaleString()}</span>
@@ -163,10 +131,7 @@ function DonutChart({ segments, total }) {
 }
 
 function MonthlyActivityChart({ data }) {
-  const [hovered, setHovered] = useState(null)
-  const chartH = 160
-  const max = Math.max(1, ...data.flatMap((d) => [d.pr, d.ris]))
-
+  const chartData = data.map((d) => ({ month: d.month, PR: d.pr, RIS: d.ris }))
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 16, marginBottom: 12 }}>
@@ -177,36 +142,18 @@ function MonthlyActivityChart({ data }) {
           <span style={{ width: 10, height: 10, borderRadius: 3, background: '#3a6fa8' }} />RIS
         </span>
       </div>
-      <div style={{ display: 'flex', alignItems: 'flex-end', gap: 14, height: chartH, borderBottom: '1px solid var(--border)' }}>
-        {data.map((d, i) => (
-          <div key={d.key} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, flex: 1, minWidth: 0 }}>
-            <div style={{ display: 'flex', alignItems: 'flex-end', gap: 4, height: chartH - 22 }}>
-              <div
-                onMouseEnter={() => setHovered(`${i}-pr`)}
-                onMouseLeave={() => setHovered(null)}
-                style={{
-                  width: 16, borderRadius: '4px 4px 0 0', background: 'var(--maroon)',
-                  height: Math.max((d.pr / max) * (chartH - 22), d.pr > 0 ? 3 : 0),
-                  opacity: hovered && hovered !== `${i}-pr` ? 0.5 : 1, transition: 'opacity .15s', cursor: 'pointer',
-                }}
-              >
-                <title>{`${d.month} · PR: ${d.pr}`}</title>
-              </div>
-              <div
-                onMouseEnter={() => setHovered(`${i}-ris`)}
-                onMouseLeave={() => setHovered(null)}
-                style={{
-                  width: 16, borderRadius: '4px 4px 0 0', background: '#3a6fa8',
-                  height: Math.max((d.ris / max) * (chartH - 22), d.ris > 0 ? 3 : 0),
-                  opacity: hovered && hovered !== `${i}-ris` ? 0.5 : 1, transition: 'opacity .15s', cursor: 'pointer',
-                }}
-              >
-                <title>{`${d.month} · RIS: ${d.ris}`}</title>
-              </div>
-            </div>
-            <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{d.month}</div>
-          </div>
-        ))}
+      <div style={{ height: 208, width: '100%' }}>
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={chartData} barGap={6}>
+            <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: 'var(--text-muted)' }} />
+            <Tooltip
+              cursor={{ fill: 'var(--bg)' }}
+              contentStyle={{ borderRadius: 12, border: '1px solid var(--border)', fontSize: 12 }}
+            />
+            <Bar dataKey="PR" fill="var(--maroon)" radius={[6, 6, 0, 0]} />
+            <Bar dataKey="RIS" fill="#3a6fa8" radius={[6, 6, 0, 0]} />
+          </BarChart>
+        </ResponsiveContainer>
       </div>
     </div>
   )
@@ -362,21 +309,21 @@ export default function Dashboard() {
               style={{ background: '#fff', color: 'var(--maroon)', border: 'none', fontWeight: 700 }}
               onClick={() => navigate('/admin/requests/new')}
             >
-              <FontAwesomeIcon icon={faPlus} style={{ marginRight: 7 }} />New Request
+              <Plus size={16} style={{ marginRight: 7 }} />New Request
             </button>
             <button
               className="btn"
               style={{ background: 'var(--gold)', color: 'var(--maroon-dark)', border: 'none', fontWeight: 700 }}
               onClick={() => navigate('/requisition-issue-slip')}
             >
-              <FontAwesomeIcon icon={faClipboardList} style={{ marginRight: 7 }} />New RIS
+              <ClipboardList size={16} style={{ marginRight: 7 }} />New RIS
             </button>
             <button
               className="btn"
               style={{ background: 'rgba(255,255,255,0.15)', color: '#fff', border: '1px solid rgba(255,255,255,0.3)', backdropFilter: 'blur(4px)' }}
               onClick={() => navigate('/admin/requests')}
             >
-              <FontAwesomeIcon icon={faEye} style={{ marginRight: 7 }} />View Requests
+              <FileText size={16} style={{ marginRight: 7 }} />View Requests
             </button>
           </div>
         </div>
@@ -424,7 +371,7 @@ export default function Dashboard() {
                     display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                     width: 36, height: 36, borderRadius: 10, background: accent.bg, color: accent.color, fontSize: 15,
                   }}>
-                    <FontAwesomeIcon icon={a.icon} />
+                    <a.icon size={16} />
                   </span>
                   <div style={{ fontWeight: 700, fontSize: 14 }}>{a.title}</div>
                   <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{a.sub}</div>
@@ -438,16 +385,16 @@ export default function Dashboard() {
             System Overview
           </div>
           <div className="stats-grid" style={{ marginBottom: 16 }}>
-            <StatCard navigate={navigate} accent="maroon" icon={faFileLines}      label="Purchase Requests" value={stats.prTotal}  to="/admin/requests" corner={`${stats.prThisMonth} this month`} />
-            <StatCard navigate={navigate} accent="blue"   icon={faClipboardList} label="RIS Transactions"  value={stats.risTotal} to="/admin/ris" corner={`${stats.risThisMonth} this month`} />
-            <StatCard navigate={navigate} accent="maroon" icon={faBoxOpen}       label="Inventory Items"   value={stats.invItems} to="/admin/inventory" corner="2 catalogs" />
-            <StatCard navigate={navigate} accent="blue"   icon={faFileInvoiceDollar} label="Purchase Orders" value={stats.poCount} to="/admin/purchase-orders" corner={`${stats.poThisMonth} this month`} />
+            <StatCard accent="maroon" icon={FileText}      label="Purchase Requests" value={stats.prTotal}  corner={`${stats.prThisMonth} this month`} />
+            <StatCard accent="blue"   icon={ClipboardList} label="RIS Transactions"  value={stats.risTotal} corner={`${stats.risThisMonth} this month`} />
+            <StatCard accent="maroon" icon={Boxes}         label="Inventory Items"   value={stats.invItems} corner="2 catalogs" />
+            <StatCard accent="blue"   icon={ShoppingCart}  label="Purchase Orders"   value={stats.poCount}  corner={`${stats.poThisMonth} this month`} />
           </div>
           <div className="stats-grid" style={{ marginBottom: 28 }}>
-            <StatCard navigate={navigate} accent="gold"  icon={faClock}               label="Pending Approvals" value={stats.prPending + stats.risPending} to="/admin/requests?status=Submitted" corner="Awaiting review" />
-            <StatCard navigate={navigate} accent="green" icon={faCheck}               label="Approved"          value={stats.prApproved + stats.risApproved} to="/admin/requests?status=Approved" corner={`${approvedPct}% of total`} />
-            <StatCard navigate={navigate} accent="red"   icon={faXmark}               label="Rejected"          value={stats.prRejected + stats.risRejected} to="/admin/requests?status=Rejected" corner={`${rejectedPct}% of total`} />
-            <StatCard navigate={navigate} accent="gold"  icon={faTriangleExclamation} label="Low Stock"         value={stats.lowStock} to="/admin/inventory?filter=lowstock" corner="Needs review" />
+            <StatCard accent="gold"  icon={Clock}        label="Pending Approvals" value={stats.prPending + stats.risPending} corner="Awaiting review" />
+            <StatCard accent="green" icon={CheckCircle2} label="Approved"          value={stats.prApproved + stats.risApproved} corner={`${approvedPct}% of total`} />
+            <StatCard accent="red"   icon={XCircle}      label="Rejected"          value={stats.prRejected + stats.risRejected} corner={`${rejectedPct}% of total`} />
+            <StatCard accent="gold"  icon={PackageX}      label="Low Stock"         value={stats.lowStock} corner="Needs review" />
           </div>
 
           {/* Activity + Low Stock + Audit Logs */}
@@ -484,7 +431,7 @@ export default function Dashboard() {
             </PanelCard>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-              <PanelCard title="Low Stock Alert">
+              <PanelCard title="Low Stock Alert" icon={AlertTriangle}>
                 {lowStockItems.length === 0 ? (
                   <div className="state-box" style={{ padding: '24px 0' }}>All stock levels healthy.</div>
                 ) : (
@@ -510,7 +457,7 @@ export default function Dashboard() {
                 )}
               </PanelCard>
 
-              <PanelCard title="Recent Audit Logs" action={<FontAwesomeIcon icon={faClockRotateLeft} style={{ color: 'var(--text-muted)' }} />}>
+              <PanelCard title="Recent Audit Logs" icon={ScrollText}>
                 {auditLogs.length === 0 ? (
                   <div className="state-box" style={{ padding: '24px 0' }}>No audit activity yet.</div>
                 ) : (
@@ -569,7 +516,7 @@ export default function Dashboard() {
                 className="btn btn-secondary btn-sm"
                 onClick={() => navigate(recentTab === 'pr' ? '/admin/requests' : '/admin/ris')}
               >
-                <FontAwesomeIcon icon={faEye} style={{ marginRight: 6 }} />View All
+                <Eye size={16} style={{ marginRight: 6 }} />View All
               </button>
             </div>
 
@@ -598,7 +545,7 @@ export default function Dashboard() {
                         <td><StatusBadge status={r.status} /></td>
                         <td>
                           <button className="btn btn-outline btn-sm" onClick={(e) => { e.stopPropagation(); navigate(`/admin/requests/${r.id}`) }}>
-                            <FontAwesomeIcon icon={faEye} style={{ marginRight: 5 }} />View
+                            <Eye size={14} style={{ marginRight: 5 }} />View
                           </button>
                         </td>
                       </tr>
@@ -629,7 +576,7 @@ export default function Dashboard() {
                         <td><StatusBadge status={r.status} /></td>
                         <td>
                           <button className="btn btn-outline btn-sm" onClick={(e) => { e.stopPropagation(); navigate(`/admin/ris/${r.id}`) }}>
-                            <FontAwesomeIcon icon={faEye} style={{ marginRight: 5 }} />View
+                            <Eye size={14} style={{ marginRight: 5 }} />View
                           </button>
                         </td>
                       </tr>

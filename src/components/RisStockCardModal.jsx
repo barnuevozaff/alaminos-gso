@@ -1,7 +1,6 @@
 import { fmtDate } from '../lib/dateUtils'
 import { useEffect, useMemo, useState } from 'react'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faXmark, faPrint } from '@fortawesome/free-solid-svg-icons'
+import { X, Printer } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import sealLogo from '../assets/alaminos-seal.png'
 
@@ -67,7 +66,7 @@ export default function RisStockCardModal({ item, onClose }) {
   return (
     <div className="modal-overlay">
       <div className="modal-box" style={{ maxWidth: 900 }}>
-        <button className="modal-close" aria-label="Close" onClick={onClose}><FontAwesomeIcon icon={faXmark} /></button>
+        <button className="modal-close" aria-label="Close" onClick={onClose}><X size={16} /></button>
         <h3 className="modal-title">Stock Card — {item.item_name}</h3>
 
         <div className="form-row">
@@ -134,7 +133,7 @@ export default function RisStockCardModal({ item, onClose }) {
 
         <div className="print-actions">
           <button className="btn btn-secondary" onClick={onClose}>Close</button>
-          <button className="btn btn-primary" onClick={handlePrint}><FontAwesomeIcon icon={faPrint} style={{ marginRight: 6 }} />Print</button>
+          <button className="btn btn-primary" onClick={handlePrint}><Printer size={16} style={{ marginRight: 6 }} />Print</button>
         </div>
       </div>
     </div>
