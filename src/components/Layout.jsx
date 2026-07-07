@@ -19,7 +19,7 @@ const NAV_ITEMS = [
   },
   {
     type: 'group',
-    label: 'Purchase Request',
+    label: 'Procurement',
     icon: ShoppingCart,
     children: [
       { to: '/admin/requests', label: 'Purchase Requests', icon: FileText },
