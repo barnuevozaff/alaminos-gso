@@ -28,6 +28,7 @@ const NAV_ITEMS = [
     children: [
       { to: '/admin/ris', label: 'Submitted Slips', icon: faFileLines },
       { to: '/admin/ris-inventory', label: 'RIS Inventory', icon: faBoxOpen },
+      { to: '/admin/ris-categories', label: 'RIS Categories', icon: faTags },
     ],
   },
   { divider: true },

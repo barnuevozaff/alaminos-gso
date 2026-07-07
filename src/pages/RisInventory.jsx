@@ -2,11 +2,12 @@ import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useToast } from '../context/ToastContext'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faTrash, faPenToSquare, faPlus, faXmark } from '@fortawesome/free-solid-svg-icons'
+import { faTrash, faPenToSquare, faPlus, faXmark, faFileArrowUp } from '@fortawesome/free-solid-svg-icons'
 import { supabase } from '../lib/supabase'
 import { UNITS } from '../lib/units'
 import Layout from '../components/Layout'
 import ConfirmDialog from '../components/ConfirmDialog'
+import RisInventoryImportModal from '../components/RisInventoryImportModal'
 
 export default function RisInventory() {
   const toast = useToast()
@@ -20,6 +21,7 @@ export default function RisInventory() {
     searchParams.get('filter') === 'lowstock' ? '__lowstock__' : 'all'
   )
   const [showModal, setShowModal] = useState(false)
+  const [showImport, setShowImport] = useState(false)
   const [editing, setEditing] = useState(null)
   const [deleteTarget, setDeleteTarget] = useState(null)
   const [deleteMode, setDeleteMode] = useState(false)
@@ -32,8 +34,8 @@ export default function RisInventory() {
   async function load() {
     setLoading(true)
     const [{ data: inv, error: invErr }, { data: cats }] = await Promise.all([
-      supabase.from('ris_inventory').select('*, categories(name)').order('item_name'),
-      supabase.from('categories').select('*').order('name'),
+      supabase.from('ris_inventory').select('*, ris_categories(name)').order('item_name'),
+      supabase.from('ris_categories').select('*').order('name'),
     ])
     if (invErr) setError(invErr.message)
     setItems(inv || [])
@@ -120,6 +122,7 @@ export default function RisInventory() {
         <div className="gap-8">
           {!deleteMode ? (
             <>
+              <button className="btn btn-secondary" onClick={() => setShowImport(true)}><FontAwesomeIcon icon={faFileArrowUp} style={{ marginRight: 6 }} />Scan / Upload</button>
               <button className="btn btn-danger btn-sm" onClick={() => setDeleteMode(true)}>
                 <FontAwesomeIcon icon={faTrash} style={{ marginRight: 6 }} />Delete
               </button>
@@ -181,7 +184,7 @@ export default function RisInventory() {
                   <td><strong>{item.item_name}</strong><div className="text-muted" style={{ fontSize: 12 }}>{item.item_code}</div></td>
                   <td>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                      <span>{item.categories?.name || '—'}</span>
+                      <span>{item.ris_categories?.name || '—'}</span>
                       {item.quantity <= (item.reorder_level ?? 10) && (
                         <span style={{
                           display: 'inline-flex', alignItems: 'center', gap: 4,
@@ -215,6 +218,15 @@ export default function RisInventory() {
           categories={categories}
           onClose={() => setShowModal(false)}
           onSaved={() => { setShowModal(false); toast.success(editing ? 'Item updated.' : 'Item added.'); load() }}
+        />
+      )}
+
+      {showImport && (
+        <RisInventoryImportModal
+          categories={categories}
+          existingItems={items}
+          onClose={() => setShowImport(false)}
+          onSaved={() => { setShowImport(false); load() }}
         />
       )}
 

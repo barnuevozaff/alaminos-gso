@@ -21,6 +21,7 @@ import PurchaseOrderDetail from './pages/PurchaseOrderDetail'
 import RisRequestsList from './pages/RisRequestsList'
 import RisRequestDetail from './pages/RisRequestDetail'
 import RisInventory from './pages/RisInventory'
+import RisCategories from './pages/RisCategories'
 import NotFound from './pages/NotFound'
 
 function PrivateRoute({ children }) {
@@ -62,6 +63,7 @@ export default function App() {
       <Route path="/admin/ris" element={<PrivateRoute><RisRequestsList /></PrivateRoute>} />
       <Route path="/admin/ris/:id" element={<PrivateRoute><RisRequestDetail /></PrivateRoute>} />
       <Route path="/admin/ris-inventory" element={<PrivateRoute><RisInventory /></PrivateRoute>} />
+      <Route path="/admin/ris-categories" element={<PrivateRoute><RisCategories /></PrivateRoute>} />
       <Route path="/admin/audit-logs" element={<PrivateRoute><AuditLogs /></PrivateRoute>} />
       <Route path="/admin/settings" element={<PrivateRoute><Settings /></PrivateRoute>} />
 
