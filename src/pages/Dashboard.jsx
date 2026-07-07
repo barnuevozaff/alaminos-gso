@@ -31,7 +31,7 @@ const ACCENT = {
 // the same thing everywhere on the page.
 const STATUS_COLORS = { Approved: 'var(--green)', Pending: 'var(--gold-dark)', Rejected: 'var(--red)', Processing: '#3a6fa8' }
 
-function StatCard({ accent, icon, label, value, sub, to, navigate }) {
+function StatCard({ accent, icon, label, value, corner, to, navigate }) {
   const a = ACCENT[accent]
   const clickable = !!to
   return (
@@ -40,43 +40,31 @@ function StatCard({ accent, icon, label, value, sub, to, navigate }) {
       style={{
         background: 'var(--card-bg)',
         border: '1px solid var(--border)',
-        borderLeft: `4px solid ${a.border}`,
-        borderRadius: 14,
-        padding: '20px 22px',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+        borderRadius: 18,
+        padding: '22px 22px 20px',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
         display: 'flex',
         flexDirection: 'column',
-        gap: 8,
-        position: 'relative',
-        overflow: 'hidden',
+        gap: 12,
         cursor: clickable ? 'pointer' : 'default',
         transition: 'box-shadow 0.15s, transform 0.15s',
       }}
-      onMouseEnter={clickable ? (e) => { e.currentTarget.style.boxShadow = '0 6px 20px rgba(0,0,0,0.12)'; e.currentTarget.style.transform = 'translateY(-2px)' } : undefined}
-      onMouseLeave={clickable ? (e) => { e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.05)'; e.currentTarget.style.transform = 'none' } : undefined}
+      onMouseEnter={clickable ? (e) => { e.currentTarget.style.boxShadow = '0 6px 20px rgba(0,0,0,0.1)'; e.currentTarget.style.transform = 'translateY(-2px)' } : undefined}
+      onMouseLeave={clickable ? (e) => { e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.04)'; e.currentTarget.style.transform = 'none' } : undefined}
     >
-      {/* faded watermark icon */}
-      <FontAwesomeIcon icon={icon} style={{
-        position: 'absolute', right: 18, top: 16,
-        fontSize: 48, color: a.color, opacity: 0.12, pointerEvents: 'none',
-      }} />
-      <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-        {label}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <span style={{
+          display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+          width: 44, height: 44, borderRadius: 12, background: a.bg, color: a.color, fontSize: 17,
+        }}>
+          <FontAwesomeIcon icon={icon} />
+        </span>
+        {corner && <span style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 600, whiteSpace: 'nowrap' }}>{corner}</span>}
       </div>
-      <div style={{ fontSize: 40, fontWeight: 800, color: a.color, lineHeight: 1 }}>
-        {value}
+      <div>
+        <div style={{ fontSize: 34, fontWeight: 800, color: 'var(--text)', lineHeight: 1 }}>{value.toLocaleString()}</div>
+        <div style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 6 }}>{label}</div>
       </div>
-      {sub && (
-        <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{sub}</div>
-      )}
-      {clickable && (
-        <div style={{ fontSize: 11, color: a.color, opacity: 0.7, marginTop: 2 }}>Click to view →</div>
-      )}
-      <div style={{
-        position: 'absolute', bottom: 0, left: 0, right: 0,
-        height: 3, background: `linear-gradient(to right, ${a.color}, transparent)`,
-        opacity: 0.35,
-      }} />
     </div>
   )
 }
@@ -267,6 +255,7 @@ export default function Dashboard() {
     const sixMonthsAgo = new Date()
     sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5)
     sixMonthsAgo.setDate(1)
+    const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1)
 
     const [
       { count: prTotal }, { count: prPending }, { count: prApproved }, { count: prRejected },
@@ -274,7 +263,7 @@ export default function Dashboard() {
       { count: risTotal }, { count: risPending }, { count: risApproved }, { count: risRejected },
       { data: recentRisRows },
       { data: invRows }, { data: risInvRows },
-      { count: poCount },
+      { count: poCount }, { count: poThisMonth },
       { data: auditRows },
       { data: prMonthlyRows }, { data: risMonthlyRows },
     ] = await Promise.all([
@@ -291,6 +280,7 @@ export default function Dashboard() {
       supabase.from('inventory').select('item_name, unit, quantity, reorder_level'),
       supabase.from('ris_inventory').select('item_name, unit, quantity, reorder_level'),
       supabase.from('purchase_orders').select('*', { count: 'exact', head: true }),
+      supabase.from('purchase_orders').select('*', { count: 'exact', head: true }).gte('created_at', startOfMonth.toISOString()),
       supabase.from('audit_logs').select('id, action, description, created_at').order('created_at', { ascending: false }).limit(5),
       supabase.from('purchase_requests').select('created_at').gte('created_at', sixMonthsAgo.toISOString()),
       supabase.from('requisition_issue_slips').select('created_at').gte('created_at', sixMonthsAgo.toISOString()),
@@ -301,18 +291,24 @@ export default function Dashboard() {
       ...(risInvRows || []).filter(LOW_STOCK_LEVEL).map((i) => ({ ...i, source: 'RIS' })),
     ].sort((a, b) => a.quantity - b.quantity)
 
+    const monthly = buildMonthlyActivity(prMonthlyRows || [], risMonthlyRows || [])
+    const currentMonthBucket = monthly[monthly.length - 1]
+
     setStats({
       prTotal: prTotal || 0, prPending: prPending || 0, prApproved: prApproved || 0, prRejected: prRejected || 0,
       risTotal: risTotal || 0, risPending: risPending || 0, risApproved: risApproved || 0, risRejected: risRejected || 0,
       invItems: (invRows?.length || 0) + (risInvRows?.length || 0),
       lowStock: lowStock.length,
       poCount: poCount || 0,
+      poThisMonth: poThisMonth || 0,
+      prThisMonth: currentMonthBucket?.pr || 0,
+      risThisMonth: currentMonthBucket?.ris || 0,
     })
     setRecentPRs(recentPrRows || [])
     setRecentRis(recentRisRows || [])
     setLowStockItems(lowStock.slice(0, 4))
     setAuditLogs(auditRows || [])
-    setMonthlyActivity(buildMonthlyActivity(prMonthlyRows || [], risMonthlyRows || []))
+    setMonthlyActivity(monthly)
     setLastUpdated(new Date().toISOString())
     setLoading(false)
   }
@@ -336,6 +332,10 @@ export default function Dashboard() {
     },
   ] : []
   const donutTotal = donutSegments.reduce((sum, s) => sum + s.value, 0)
+
+  const combinedTotal = stats ? stats.prTotal + stats.risTotal : 0
+  const approvedPct = stats && combinedTotal ? Math.round(((stats.prApproved + stats.risApproved) / combinedTotal) * 100) : 0
+  const rejectedPct = stats && combinedTotal ? Math.round(((stats.prRejected + stats.risRejected) / combinedTotal) * 100) : 0
 
   return (
     <Layout>
@@ -438,16 +438,16 @@ export default function Dashboard() {
             System Overview
           </div>
           <div className="stats-grid" style={{ marginBottom: 16 }}>
-            <StatCard navigate={navigate} accent="maroon" icon={faFileLines}      label="Purchase Requests" value={stats.prTotal}  to="/admin/requests" />
-            <StatCard navigate={navigate} accent="blue"   icon={faClipboardList} label="RIS Transactions"  value={stats.risTotal} to="/admin/ris" />
-            <StatCard navigate={navigate} accent="maroon" icon={faBoxOpen}       label="Inventory Items"   value={stats.invItems} to="/admin/inventory" sub="Across both catalogs" />
-            <StatCard navigate={navigate} accent="maroon" icon={faFileInvoiceDollar} label="Purchase Orders" value={stats.poCount} to="/admin/purchase-orders" />
+            <StatCard navigate={navigate} accent="maroon" icon={faFileLines}      label="Purchase Requests" value={stats.prTotal}  to="/admin/requests" corner={`${stats.prThisMonth} this month`} />
+            <StatCard navigate={navigate} accent="blue"   icon={faClipboardList} label="RIS Transactions"  value={stats.risTotal} to="/admin/ris" corner={`${stats.risThisMonth} this month`} />
+            <StatCard navigate={navigate} accent="maroon" icon={faBoxOpen}       label="Inventory Items"   value={stats.invItems} to="/admin/inventory" corner="2 catalogs" />
+            <StatCard navigate={navigate} accent="blue"   icon={faFileInvoiceDollar} label="Purchase Orders" value={stats.poCount} to="/admin/purchase-orders" corner={`${stats.poThisMonth} this month`} />
           </div>
           <div className="stats-grid" style={{ marginBottom: 28 }}>
-            <StatCard navigate={navigate} accent="gold"  icon={faClock}               label="Pending Approvals" value={stats.prPending + stats.risPending} to="/admin/requests?status=Submitted" sub="PR + RIS combined" />
-            <StatCard navigate={navigate} accent="green" icon={faCheck}               label="Approved"          value={stats.prApproved + stats.risApproved} to="/admin/requests?status=Approved" sub="PR + RIS combined" />
-            <StatCard navigate={navigate} accent="red"   icon={faXmark}               label="Rejected"          value={stats.prRejected + stats.risRejected} to="/admin/requests?status=Rejected" sub="PR + RIS combined" />
-            <StatCard navigate={navigate} accent="red"   icon={faTriangleExclamation} label="Low Stock"         value={stats.lowStock} to="/admin/inventory?filter=lowstock" sub="Needs review" />
+            <StatCard navigate={navigate} accent="gold"  icon={faClock}               label="Pending Approvals" value={stats.prPending + stats.risPending} to="/admin/requests?status=Submitted" corner="Awaiting review" />
+            <StatCard navigate={navigate} accent="green" icon={faCheck}               label="Approved"          value={stats.prApproved + stats.risApproved} to="/admin/requests?status=Approved" corner={`${approvedPct}% of total`} />
+            <StatCard navigate={navigate} accent="red"   icon={faXmark}               label="Rejected"          value={stats.prRejected + stats.risRejected} to="/admin/requests?status=Rejected" corner={`${rejectedPct}% of total`} />
+            <StatCard navigate={navigate} accent="gold"  icon={faTriangleExclamation} label="Low Stock"         value={stats.lowStock} to="/admin/inventory?filter=lowstock" corner="Needs review" />
           </div>
 
           {/* Activity + Low Stock + Audit Logs */}
