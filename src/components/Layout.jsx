@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react'
-import { NavLink, useNavigate } from 'react-router-dom'
+import { NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
   faGauge, faFileLines, faBoxOpen, faTags,
   faFileInvoiceDollar, faClockRotateLeft, faGear, faRightFromBracket,
-  faBars, faXmark,
+  faBars, faXmark, faCartShopping, faChevronDown,
 } from '@fortawesome/free-solid-svg-icons'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
@@ -12,10 +12,16 @@ import LOGO from '../assets/alaminos-seal.png'
 
 const NAV_ITEMS = [
   { to: '/admin/dashboard', label: 'Dashboard', icon: faGauge },
-  { to: '/admin/requests', label: 'Purchase Requests', icon: faFileLines },
-  { to: '/admin/inventory', label: 'Inventory', icon: faBoxOpen },
-  { to: '/admin/categories', label: 'Categories', icon: faTags },
-  { to: '/admin/purchase-orders', label: 'Purchase Orders', icon: faFileInvoiceDollar },
+  {
+    label: 'Procurement',
+    icon: faCartShopping,
+    children: [
+      { to: '/admin/requests', label: 'History', icon: faFileLines },
+      { to: '/admin/inventory', label: 'Inventory', icon: faBoxOpen },
+      { to: '/admin/categories', label: 'Categories', icon: faTags },
+      { to: '/admin/purchase-orders', label: 'Purchase Orders', icon: faFileInvoiceDollar },
+    ],
+  },
   { to: '/admin/audit-logs', label: 'Audit Logs', icon: faClockRotateLeft },
   { to: '/admin/settings', label: 'Settings', icon: faGear },
 ]
@@ -23,9 +29,33 @@ const NAV_ITEMS = [
 export default function Layout({ children }) {
   const { profile, signOut } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
   const toast = useToast()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [isOnline, setIsOnline] = useState(navigator.onLine)
+
+  const groupHasActiveChild = (item) =>
+    item.children?.some((child) => location.pathname.startsWith(child.to))
+
+  const [openGroups, setOpenGroups] = useState(() => {
+    const initial = {}
+    NAV_ITEMS.forEach((item) => {
+      if (item.children) initial[item.label] = groupHasActiveChild(item)
+    })
+    return initial
+  })
+
+  useEffect(() => {
+    NAV_ITEMS.forEach((item) => {
+      if (item.children && groupHasActiveChild(item)) {
+        setOpenGroups((prev) => (prev[item.label] ? prev : { ...prev, [item.label]: true }))
+      }
+    })
+  }, [location.pathname]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  function toggleGroup(label) {
+    setOpenGroups((prev) => ({ ...prev, [label]: !prev[label] }))
+  }
 
   useEffect(() => {
     function handleOffline() { setIsOnline(false) }
@@ -70,17 +100,54 @@ export default function Layout({ children }) {
         </div>
 
         <nav className="sidebar-nav">
-          {NAV_ITEMS.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              className={({ isActive }) => 'sidebar-link' + (isActive ? ' active' : '')}
-              onClick={closeSidebar}
-            >
-              <FontAwesomeIcon icon={item.icon} style={{ width: 16, flexShrink: 0 }} />
-              <span>{item.label}</span>
-            </NavLink>
-          ))}
+          {NAV_ITEMS.map((item) => {
+            if (item.children) {
+              const isOpen = !!openGroups[item.label]
+              return (
+                <div key={item.label} className="sidebar-group">
+                  <button
+                    type="button"
+                    className={'sidebar-link sidebar-group-toggle' + (groupHasActiveChild(item) ? ' active-group' : '')}
+                    onClick={() => toggleGroup(item.label)}
+                  >
+                    <FontAwesomeIcon icon={item.icon} style={{ width: 16, flexShrink: 0 }} />
+                    <span>{item.label}</span>
+                    <FontAwesomeIcon
+                      icon={faChevronDown}
+                      className="sidebar-group-chevron"
+                      style={{ marginLeft: 'auto', transform: isOpen ? 'rotate(180deg)' : 'none' }}
+                    />
+                  </button>
+                  {isOpen && (
+                    <div className="sidebar-submenu">
+                      {item.children.map((child) => (
+                        <NavLink
+                          key={child.to}
+                          to={child.to}
+                          className={({ isActive }) => 'sidebar-link sidebar-sublink' + (isActive ? ' active' : '')}
+                          onClick={closeSidebar}
+                        >
+                          <FontAwesomeIcon icon={child.icon} style={{ width: 14, flexShrink: 0 }} />
+                          <span>{child.label}</span>
+                        </NavLink>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )
+            }
+            return (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                className={({ isActive }) => 'sidebar-link' + (isActive ? ' active' : '')}
+                onClick={closeSidebar}
+              >
+                <FontAwesomeIcon icon={item.icon} style={{ width: 16, flexShrink: 0 }} />
+                <span>{item.label}</span>
+              </NavLink>
+            )
+          })}
         </nav>
 
         <div className="sidebar-footer">

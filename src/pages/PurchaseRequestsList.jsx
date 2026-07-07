@@ -106,7 +106,7 @@ export default function PurchaseRequestsList() {
     <Layout>
       <div className="flex-between">
         <div>
-          <h1 className="page-title">Purchase Requests</h1>
+          <h1 className="page-title">Purchase Request History</h1>
           <p className="page-subtitle">Submitted by departments. Review and approve or reject.</p>
         </div>
         <button className="btn btn-primary" onClick={() => navigate('/admin/requests/new')}><FontAwesomeIcon icon={faPlus} style={{ marginRight: 6 }} />New Request</button>
