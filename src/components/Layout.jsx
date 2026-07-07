@@ -114,7 +114,11 @@ export default function Layout({ children }) {
                 <div key={item.label} className="sidebar-group">
                   <button
                     type="button"
-                    className={'sidebar-link sidebar-group-toggle' + (groupHasActiveChild(item) ? ' active-group' : '')}
+                    className={
+                      'sidebar-link sidebar-group-toggle'
+                      + (groupHasActiveChild(item) ? ' active-group' : '')
+                      + (isOpen ? ' open' : '')
+                    }
                     onClick={() => toggleGroup(item.label)}
                   >
                     <FontAwesomeIcon icon={item.icon} style={{ width: 16, flexShrink: 0 }} />
@@ -125,7 +129,7 @@ export default function Layout({ children }) {
                       style={{ marginLeft: 'auto', transform: isOpen ? 'rotate(180deg)' : 'none' }}
                     />
                   </button>
-                  {isOpen && (
+                  <div className={'sidebar-submenu-wrapper' + (isOpen ? ' open' : '')}>
                     <div className="sidebar-submenu">
                       {item.children.map((child) => (
                         <NavLink
@@ -139,7 +143,7 @@ export default function Layout({ children }) {
                         </NavLink>
                       ))}
                     </div>
-                  )}
+                  </div>
                 </div>
               )
             }
