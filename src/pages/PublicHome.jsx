@@ -2,8 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
-  faFileLines, faMagnifyingGlass, faArrowRight, faClipboardList,
-  faXmark, faHourglassHalf,
+  faFileLines, faMagnifyingGlass, faArrowRight, faClipboardList, faXmark,
 } from '@fortawesome/free-solid-svg-icons'
 import LOGO from '../assets/alaminos-seal.png'
 
@@ -98,15 +97,20 @@ export default function PublicHome() {
 
       {openModal === 'ris' && (
         <ChoiceModal onClose={() => setOpenModal(null)} title="Requisition and Issue Slip">
-          <div style={{
-            display: 'flex', flexDirection: 'column', alignItems: 'center',
-            textAlign: 'center', gap: 12, padding: '20px 8px',
-          }}>
-            <FontAwesomeIcon icon={faHourglassHalf} style={{ fontSize: 28, color: '#a09090' }} />
-            <p style={{ margin: 0, fontSize: 14, color: '#6b6260', lineHeight: 1.6 }}>
-              This feature is coming soon. You won&apos;t be able to submit or track a Requisition and Issue Slip just yet.
-            </p>
-          </div>
+          <ChoiceOption
+            to="/requisition-issue-slip"
+            icon={faClipboardList}
+            title="Submit a Requisition and Issue Slip"
+            description="Request supplies already available in GSO inventory."
+            accentColor="#7a1e2a"
+          />
+          <ChoiceOption
+            to="/track-ris"
+            icon={faMagnifyingGlass}
+            title="Track a Requisition and Issue Slip"
+            description="Check the current status of your submitted request using its RIS number."
+            accentColor="#1a4a7a"
+          />
         </ChoiceModal>
       )}
     </div>

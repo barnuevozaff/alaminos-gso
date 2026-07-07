@@ -4,6 +4,8 @@ import { useAuth } from './context/AuthContext'
 import PublicHome from './pages/PublicHome'
 import PublicPurchaseRequestForm from './pages/PublicPurchaseRequestForm'
 import TrackRequest from './pages/TrackRequest'
+import PublicRequisitionIssueSlipForm from './pages/PublicRequisitionIssueSlipForm'
+import TrackRequisitionIssueSlip from './pages/TrackRequisitionIssueSlip'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import PurchaseRequestsList from './pages/PurchaseRequestsList'
@@ -16,6 +18,9 @@ import Settings from './pages/Settings'
 import PurchaseOrdersList from './pages/PurchaseOrdersList'
 import PurchaseOrderForm from './pages/PurchaseOrderForm'
 import PurchaseOrderDetail from './pages/PurchaseOrderDetail'
+import RisRequestsList from './pages/RisRequestsList'
+import RisRequestDetail from './pages/RisRequestDetail'
+import RisInventory from './pages/RisInventory'
 import NotFound from './pages/NotFound'
 
 function PrivateRoute({ children }) {
@@ -35,6 +40,8 @@ export default function App() {
       <Route path="/" element={<PublicHome />} />
       <Route path="/purchase-request" element={<PublicPurchaseRequestForm />} />
       <Route path="/track-request" element={<TrackRequest />} />
+      <Route path="/requisition-issue-slip" element={<PublicRequisitionIssueSlipForm />} />
+      <Route path="/track-ris" element={<TrackRequisitionIssueSlip />} />
 
       {/* ================= ADMIN PORTAL =================
           Everything lives under /admin. Login is never linked
@@ -52,6 +59,9 @@ export default function App() {
       <Route path="/admin/purchase-orders" element={<PrivateRoute><PurchaseOrdersList /></PrivateRoute>} />
       <Route path="/admin/purchase-orders/new" element={<PrivateRoute><PurchaseOrderForm /></PrivateRoute>} />
       <Route path="/admin/purchase-orders/:id" element={<PrivateRoute><PurchaseOrderDetail /></PrivateRoute>} />
+      <Route path="/admin/ris" element={<PrivateRoute><RisRequestsList /></PrivateRoute>} />
+      <Route path="/admin/ris/:id" element={<PrivateRoute><RisRequestDetail /></PrivateRoute>} />
+      <Route path="/admin/ris-inventory" element={<PrivateRoute><RisInventory /></PrivateRoute>} />
       <Route path="/admin/audit-logs" element={<PrivateRoute><AuditLogs /></PrivateRoute>} />
       <Route path="/admin/settings" element={<PrivateRoute><Settings /></PrivateRoute>} />
 
