@@ -19,7 +19,8 @@ const NAV_ITEMS = [
   },
   {
     type: 'group',
-    label: 'Procurement',
+    sectionLabel: 'Procurement',
+    label: 'Purchase Request',
     icon: ShoppingCart,
     children: [
       { to: '/admin/requests', label: 'Purchase Requests', icon: FileText },
@@ -29,6 +30,7 @@ const NAV_ITEMS = [
   },
   {
     type: 'group',
+    sectionLabel: 'Requisition',
     label: 'Requisition Slip',
     icon: ClipboardList,
     children: [
@@ -146,6 +148,7 @@ export default function Layout({ children }) {
             const isOpen = openGroup === item.label
             return (
               <div key={item.label} className="sidebar-section sidebar-group">
+                {item.sectionLabel && <div className="sidebar-section-label">{item.sectionLabel}</div>}
                 <button
                   type="button"
                   className={

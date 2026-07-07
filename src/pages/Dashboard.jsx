@@ -20,62 +20,56 @@ const QUICK_ACTIONS = [
 ]
 
 const ACCENT = {
-  maroon: { bg: 'rgba(122,30,42,0.08)', color: 'var(--maroon)', border: 'var(--maroon)' },
-  gold:   { bg: 'rgba(196,136,15,0.10)', color: 'var(--gold-dark)', border: 'var(--gold-dark)' },
-  green:  { bg: 'rgba(31,138,58,0.10)',  color: 'var(--green)',     border: 'var(--green)' },
-  red:    { bg: 'rgba(192,49,43,0.10)',  color: 'var(--red)',       border: 'var(--red)' },
-  blue:   { bg: 'rgba(58,111,168,0.10)', color: '#3a6fa8',          border: '#3a6fa8' },
+  maroon: { bg: 'rgba(73,20,22,0.08)',   color: 'var(--sidebar-bg)', border: 'var(--sidebar-bg)' },
+  gold:   { bg: 'rgba(196,136,15,0.10)', color: 'var(--gold-dark)',  border: 'var(--gold-dark)' },
+  green:  { bg: 'rgba(31,138,58,0.10)',  color: 'var(--green)',      border: 'var(--green)' },
+  red:    { bg: 'rgba(192,49,43,0.10)',  color: 'var(--red)',        border: 'var(--red)' },
+  blue:   { bg: 'rgba(58,111,168,0.10)', color: '#3a6fa8',           border: '#3a6fa8' },
 }
 
 // Reused across the donut and the recent-activity chips so status colors mean
 // the same thing everywhere on the page.
 const STATUS_COLORS = { Approved: 'var(--green)', Pending: 'var(--gold-dark)', Rejected: 'var(--red)', Processing: '#3a6fa8' }
 
-function StatCard({ accent, icon: Icon, label, value, corner }) {
+function StatCard({ accent, icon: Icon, label, value, corner, delay = 0 }) {
   const a = ACCENT[accent]
   return (
     <div
+      className="card dash-animate dash-card-hover"
       style={{
-        background: 'var(--card-bg)',
-        border: '1px solid var(--border)',
-        borderRadius: 18,
-        padding: '22px 22px 20px',
-        boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
         display: 'flex',
         flexDirection: 'column',
         gap: 12,
+        animationDelay: `${delay}s`,
       }}
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-        <span style={{
-          display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-          width: 44, height: 44, borderRadius: 12, background: a.bg, color: a.color, fontSize: 17,
-        }}>
-          <Icon size={20} />
+        <span className="icon-badge" style={{ background: a.bg, color: a.color }}>
+          <Icon size={19} />
         </span>
         {corner && <span style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 600, whiteSpace: 'nowrap' }}>{corner}</span>}
       </div>
       <div>
-        <div style={{ fontSize: 34, fontWeight: 800, color: 'var(--text)', lineHeight: 1 }}>{value.toLocaleString()}</div>
+        <div style={{ fontSize: 32, fontWeight: 800, color: 'var(--text)', lineHeight: 1 }}>{value.toLocaleString()}</div>
         <div style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 6 }}>{label}</div>
       </div>
     </div>
   )
 }
 
-function PanelCard({ title, icon: Icon, sub, action, children }) {
+function PanelCard({ title, icon: Icon, sub, action, children, delay = 0 }) {
   return (
-    <div className="card" style={{ padding: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+    <div className="card dash-animate" style={{ padding: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column', animationDelay: `${delay}s` }}>
       <div style={{
-        padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+        padding: '18px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
         borderBottom: '1px solid var(--border)', gap: 12,
       }}>
         <div>
           <div style={{ fontWeight: 700, fontSize: 15, display: 'flex', alignItems: 'center', gap: 8 }}>
-            {Icon && <Icon size={16} style={{ color: 'var(--maroon)' }} />}
+            {Icon && <Icon size={16} style={{ color: 'var(--sidebar-bg)' }} />}
             {title}
           </div>
-          {sub && <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>{sub}</div>}
+          {sub && <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 3 }}>{sub}</div>}
         </div>
         {action}
       </div>
@@ -87,11 +81,7 @@ function PanelCard({ title, icon: Icon, sub, action, children }) {
 function ActivityChip({ type }) {
   const a = type === 'RIS' ? ACCENT.blue : ACCENT.maroon
   return (
-    <span style={{
-      display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-      width: 40, height: 40, borderRadius: 10, flexShrink: 0,
-      background: a.bg, color: a.color, fontWeight: 800, fontSize: 12,
-    }}>
+    <span className="icon-badge" style={{ background: a.bg, color: a.color, fontWeight: 800, fontSize: 12 }}>
       {type}
     </span>
   )
@@ -287,26 +277,24 @@ export default function Dashboard() {
   return (
     <Layout>
       {/* Header */}
-      <div style={{
-        background: 'linear-gradient(135deg, var(--maroon) 0%, #a8293a 100%)',
-        borderRadius: 16, padding: '28px 28px', marginBottom: 24,
+      <div className="dash-animate" style={{
+        background: 'linear-gradient(135deg, var(--sidebar-bg) 0%, var(--sidebar-accent) 100%)',
+        borderRadius: 'var(--radius-lg)', padding: '22px 24px', marginBottom: 'var(--space-section)',
         color: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start',
-        flexWrap: 'wrap', gap: 24,
+        flexWrap: 'wrap', gap: 20,
       }}>
         <div style={{ flex: 1, minWidth: 280 }}>
-          <div style={{ fontSize: 12, color: 'var(--gold)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700 }}>
+          <div style={{ fontSize: 11, color: 'var(--gold)', marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700 }}>
             Administrator Overview
           </div>
-          <h1 style={{ margin: 0, fontSize: 28, fontWeight: 800 }}>Welcome back, {profile?.full_name || 'Administrator'}</h1>
-          <p style={{ margin: '6px 0 0', fontSize: 13, color: 'rgba(255,255,255,0.75)' }}>{today}</p>
-          <p style={{ margin: '12px 0 0', fontSize: 14, color: 'rgba(255,255,255,0.85)', maxWidth: 560, lineHeight: 1.5 }}>
-            Your central command for Purchase Requests, Requisition &amp; Issue Slips, and Inventory.
-            Everything is up to date as of {lastUpdated ? timeAgo(lastUpdated) : 'a few seconds ago'}.
+          <h1 style={{ margin: 0, fontSize: 22, fontWeight: 700 }}>Welcome back, {profile?.full_name || 'Administrator'}</h1>
+          <p style={{ margin: '5px 0 0', fontSize: 12.5, color: 'rgba(255,255,255,0.7)' }}>
+            {today} · Updated {lastUpdated ? timeAgo(lastUpdated) : 'just now'}
           </p>
-          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 18 }}>
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 16 }}>
             <button
               className="btn"
-              style={{ background: '#fff', color: 'var(--maroon)', border: 'none', fontWeight: 700 }}
+              style={{ background: '#fff', color: 'var(--sidebar-bg)', border: 'none', fontWeight: 700 }}
               onClick={() => navigate('/admin/requests/new')}
             >
               <Plus size={16} style={{ marginRight: 7 }} />New Request
@@ -335,10 +323,10 @@ export default function Dashboard() {
               ['Inventory', stats.invItems],
             ].map(([label, value]) => (
               <div key={label} style={{
-                background: 'rgba(255,255,255,0.12)', borderRadius: 12, padding: '14px 20px', minWidth: 110,
+                background: 'rgba(255,255,255,0.12)', borderRadius: 12, padding: '12px 18px', minWidth: 104,
               }}>
-                <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.7)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{label}</div>
-                <div style={{ fontSize: 26, fontWeight: 800, marginTop: 4 }}>{value.toLocaleString()}</div>
+                <div style={{ fontSize: 10.5, color: 'rgba(255,255,255,0.7)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{label}</div>
+                <div style={{ fontSize: 22, fontWeight: 800, marginTop: 3 }}>{value.toLocaleString()}</div>
               </div>
             ))}
           </div>
@@ -350,28 +338,23 @@ export default function Dashboard() {
       ) : (
         <>
           {/* Quick Actions */}
-          <div style={{ marginBottom: 14 }}>
+          <div className="dash-animate" style={{ marginBottom: 14, animationDelay: '0.05s' }}>
             <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--gold-dark)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Do It Fast</div>
             <h2 style={{ margin: '4px 0 4px', fontSize: 20, fontWeight: 800 }}>Quick Actions</h2>
             <p style={{ margin: 0, fontSize: 13, color: 'var(--text-muted)' }}>Start the most common tasks in a single click</p>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16, marginBottom: 28 }}>
-            {QUICK_ACTIONS.map((a) => {
+            {QUICK_ACTIONS.map((a, i) => {
               const accent = ACCENT[a.accent]
               return (
                 <div
                   key={a.title}
                   onClick={() => navigate(a.to)}
-                  className="card"
-                  style={{ padding: 18, cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 10, transition: 'box-shadow 0.15s, transform 0.15s' }}
-                  onMouseEnter={(e) => { e.currentTarget.style.boxShadow = '0 6px 20px rgba(0,0,0,0.12)'; e.currentTarget.style.transform = 'translateY(-2px)' }}
-                  onMouseLeave={(e) => { e.currentTarget.style.boxShadow = ''; e.currentTarget.style.transform = 'none' }}
+                  className="card dash-animate dash-card-hover"
+                  style={{ padding: 18, cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 10, animationDelay: `${0.08 + i * 0.04}s` }}
                 >
-                  <span style={{
-                    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                    width: 36, height: 36, borderRadius: 10, background: accent.bg, color: accent.color, fontSize: 15,
-                  }}>
-                    <a.icon size={16} />
+                  <span className="icon-badge" style={{ width: 38, height: 38, background: accent.bg, color: accent.color }}>
+                    <a.icon size={17} />
                   </span>
                   <div style={{ fontWeight: 700, fontSize: 14 }}>{a.title}</div>
                   <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{a.sub}</div>
@@ -381,25 +364,26 @@ export default function Dashboard() {
           </div>
 
           {/* System Overview — stat grid, 2 rows x 4 */}
-          <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>
+          <div className="dash-animate" style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10, animationDelay: '0.15s' }}>
             System Overview
           </div>
           <div className="stats-grid" style={{ marginBottom: 16 }}>
-            <StatCard accent="maroon" icon={FileText}      label="Purchase Requests" value={stats.prTotal}  corner={`${stats.prThisMonth} this month`} />
-            <StatCard accent="blue"   icon={ClipboardList} label="RIS Transactions"  value={stats.risTotal} corner={`${stats.risThisMonth} this month`} />
-            <StatCard accent="maroon" icon={Boxes}         label="Inventory Items"   value={stats.invItems} corner="2 catalogs" />
-            <StatCard accent="blue"   icon={ShoppingCart}  label="Purchase Orders"   value={stats.poCount}  corner={`${stats.poThisMonth} this month`} />
+            <StatCard delay={0.18} accent="maroon" icon={FileText}      label="Purchase Requests" value={stats.prTotal}  corner={`${stats.prThisMonth} this month`} />
+            <StatCard delay={0.21} accent="blue"   icon={ClipboardList} label="RIS Transactions"  value={stats.risTotal} corner={`${stats.risThisMonth} this month`} />
+            <StatCard delay={0.24} accent="maroon" icon={Boxes}         label="Inventory Items"   value={stats.invItems} corner="2 catalogs" />
+            <StatCard delay={0.27} accent="blue"   icon={ShoppingCart}  label="Purchase Orders"   value={stats.poCount}  corner={`${stats.poThisMonth} this month`} />
           </div>
           <div className="stats-grid" style={{ marginBottom: 28 }}>
-            <StatCard accent="gold"  icon={Clock}        label="Pending Approvals" value={stats.prPending + stats.risPending} corner="Awaiting review" />
-            <StatCard accent="green" icon={CheckCircle2} label="Approved"          value={stats.prApproved + stats.risApproved} corner={`${approvedPct}% of total`} />
-            <StatCard accent="red"   icon={XCircle}      label="Rejected"          value={stats.prRejected + stats.risRejected} corner={`${rejectedPct}% of total`} />
-            <StatCard accent="gold"  icon={PackageX}      label="Low Stock"         value={stats.lowStock} corner="Needs review" />
+            <StatCard delay={0.3}  accent="gold"  icon={Clock}        label="Pending Approvals" value={stats.prPending + stats.risPending} corner="Awaiting review" />
+            <StatCard delay={0.33} accent="green" icon={CheckCircle2} label="Approved"          value={stats.prApproved + stats.risApproved} corner={`${approvedPct}% of total`} />
+            <StatCard delay={0.36} accent="red"   icon={XCircle}      label="Rejected"          value={stats.prRejected + stats.risRejected} corner={`${rejectedPct}% of total`} />
+            <StatCard delay={0.39} accent="gold"  icon={PackageX}      label="Low Stock"         value={stats.lowStock} corner="Needs review" />
           </div>
 
           {/* Activity + Low Stock + Audit Logs */}
-          <div className="dashboard-two-col" style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: 20, marginBottom: 20, alignItems: 'start' }}>
+          <div className="dashboard-two-col" style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: 20, marginBottom: 'var(--space-section)', alignItems: 'start' }}>
             <PanelCard
+              delay={0.42}
               title="Recent System Activity"
               sub="Purchase Requests & Requisition Slips combined"
               action={<button className="btn btn-secondary btn-sm" onClick={() => navigate('/admin/requests')}>View all</button>}
@@ -431,7 +415,7 @@ export default function Dashboard() {
             </PanelCard>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-              <PanelCard title="Low Stock Alert" icon={AlertTriangle}>
+              <PanelCard title="Low Stock Alert" icon={AlertTriangle} delay={0.45}>
                 {lowStockItems.length === 0 ? (
                   <div className="state-box" style={{ padding: '24px 0' }}>All stock levels healthy.</div>
                 ) : (
@@ -457,17 +441,27 @@ export default function Dashboard() {
                 )}
               </PanelCard>
 
-              <PanelCard title="Recent Audit Logs" icon={ScrollText}>
+              <PanelCard title="Recent Audit Logs" icon={ScrollText} delay={0.48}>
                 {auditLogs.length === 0 ? (
                   <div className="state-box" style={{ padding: '24px 0' }}>No audit activity yet.</div>
                 ) : (
                   <div>
                     {auditLogs.map((log, idx) => (
-                      <div key={log.id} style={{
-                        padding: '12px 20px', borderBottom: idx < auditLogs.length - 1 ? '1px solid var(--border)' : 'none',
-                      }}>
-                        <div style={{ fontWeight: 600, fontSize: 13 }}>{log.description}</div>
-                        <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>{log.action} · {timeAgo(log.created_at)}</div>
+                      <div
+                        key={log.id}
+                        style={{
+                          display: 'flex', alignItems: 'center', gap: 14, padding: '14px 20px',
+                          borderBottom: idx < auditLogs.length - 1 ? '1px solid var(--border)' : 'none',
+                        }}
+                      >
+                        <span className="icon-badge" style={{ background: ACCENT.maroon.bg, color: ACCENT.maroon.color }}>
+                          <ScrollText size={17} />
+                        </span>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontWeight: 700, fontSize: 14 }}>{log.description}</div>
+                          <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{log.action}</div>
+                        </div>
+                        <div style={{ fontSize: 12, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>{timeAgo(log.created_at)}</div>
                       </div>
                     ))}
                   </div>
@@ -477,13 +471,13 @@ export default function Dashboard() {
           </div>
 
           {/* Charts */}
-          <div className="dashboard-two-col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 24, alignItems: 'stretch' }}>
-            <PanelCard title="Overall Transaction Status" sub="Across the entire system">
+          <div className="dashboard-two-col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 'var(--space-section)', alignItems: 'stretch' }}>
+            <PanelCard title="Overall Transaction Status" sub="Across the entire system" delay={0.51}>
               <div style={{ padding: 20 }}>
                 <DonutChart segments={donutSegments} total={donutTotal} />
               </div>
             </PanelCard>
-            <PanelCard title="Monthly System Activity" sub="Purchase Requests vs Requisition Slips">
+            <PanelCard title="Monthly System Activity" sub="Purchase Requests vs Requisition Slips" delay={0.54}>
               <div style={{ padding: 20 }}>
                 <MonthlyActivityChart data={monthlyActivity} />
               </div>
@@ -491,7 +485,7 @@ export default function Dashboard() {
           </div>
 
           {/* Recent requests table */}
-          <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+          <div className="card dash-animate" style={{ padding: 0, overflow: 'hidden', animationDelay: '0.57s' }}>
             <div style={{
               padding: '18px 22px', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
               borderBottom: '1px solid var(--border)', flexWrap: 'wrap', gap: 12,
@@ -499,7 +493,7 @@ export default function Dashboard() {
               <div style={{ display: 'flex', gap: 8 }}>
                 <button
                   className={`btn btn-sm ${recentTab === 'pr' ? '' : 'btn-secondary'}`}
-                  style={recentTab === 'pr' ? { background: 'var(--maroon)', color: '#fff' } : undefined}
+                  style={recentTab === 'pr' ? { background: 'var(--sidebar-bg)', color: '#fff' } : undefined}
                   onClick={() => setRecentTab('pr')}
                 >
                   Purchase Requests

@@ -19,7 +19,15 @@
   --border: #e8dfdc;
   --text: #1f1b1a;
   --text-muted: #6b6260;
-  --radius: 8px;
+  --radius: 10px;
+  --radius-lg: 16px;
+  --radius-btn: 10px;
+
+  --shadow-sm: 0 1px 2px rgba(30,15,12,0.05);
+  --shadow-md: 0 6px 20px rgba(30,15,12,0.08);
+  --shadow-lg: 0 14px 36px rgba(30,15,12,0.13);
+
+  --space-section: 28px;
 
   --sidebar-bg: #491416;
   --sidebar-accent: #612324;
@@ -230,25 +238,23 @@ p.page-subtitle { color: var(--text-muted); font-size: 14px; margin: 0 0 22px; }
 .card {
   background: var(--card-bg);
   border: 1px solid var(--border);
-  border-radius: var(--radius);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
   padding: 22px;
 }
 
-.stat-card {
-  border-radius: var(--radius);
-  padding: 16px 18px;
-  color: #fff;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  min-height: 90px;
+/* One icon-badge system, reused everywhere a colored icon circle appears
+   (stat cards, activity chips, quick actions, audit log rows) so they
+   can't drift apart into different sizes/radii over time. */
+.icon-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  flex-shrink: 0;
 }
-.stat-card .stat-head { display: flex; align-items: center; justify-content: space-between; font-size: 13px; font-weight: 600; }
-.stat-card .stat-value { font-size: 30px; font-weight: 700; }
-.stat-card.maroon { background: var(--maroon); }
-.stat-card.gold { background: var(--gold-dark); }
-.stat-card.green { background: var(--green); }
-.stat-card.red { background: var(--red); }
 
 .stats-grid {
   display: grid;
@@ -264,16 +270,17 @@ p.page-subtitle { color: var(--text-muted); font-size: 14px; margin: 0 0 22px; }
 /* ---------- Buttons ---------- */
 .btn {
   border: none;
-  border-radius: 6px;
+  border-radius: var(--radius-btn);
   padding: 10px 18px;
   font-size: 14px;
   font-weight: 600;
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  transition: opacity 0.15s;
+  transition: opacity 0.15s, transform 0.15s;
 }
 .btn:hover { opacity: 0.9; }
+.btn:active { transform: scale(0.97); }
 .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
 .btn-primary { background: var(--maroon); color: #fff; }
@@ -381,6 +388,12 @@ p.page-subtitle { color: var(--text-muted); font-size: 14px; margin: 0 0 22px; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .icon-spin { animation: spin 0.9s linear infinite; }
 @keyframes slideInRight { from { opacity: 0; transform: translateX(40px); } to { opacity: 1; transform: translateX(0); } }
+
+/* ---------- Dashboard entrance + hover motion ---------- */
+@keyframes fadeInUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+.dash-animate { animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.dash-card-hover { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+.dash-card-hover:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
 
 .alert {
   padding: 12px 16px;
