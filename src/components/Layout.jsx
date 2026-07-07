@@ -1,66 +1,60 @@
 import { useState, useEffect } from 'react'
-import { NavLink, useNavigate, useLocation } from 'react-router-dom'
+import { NavLink, useNavigate } from 'react-router-dom'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
   faGauge, faFileLines, faBoxOpen, faTags,
   faFileInvoiceDollar, faClockRotateLeft, faGear, faRightFromBracket,
-  faBars, faXmark, faCartShopping, faChevronDown, faClipboardList, faFileInvoice,
+  faBars, faXmark, faClipboardList, faFileInvoice,
 } from '@fortawesome/free-solid-svg-icons'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 import LOGO from '../assets/alaminos-seal.png'
 
-const NAV_ITEMS = [
-  { to: '/admin/dashboard', label: 'Dashboard', icon: faGauge },
+const NAV_SECTIONS = [
   {
-    label: 'Purchase Request',
-    icon: faCartShopping,
-    children: [
-      { to: '/admin/requests', label: 'Submitted Requests', icon: faFileLines },
-      { to: '/admin/inventory', label: 'Inventory', icon: faBoxOpen },
+    label: 'Overview',
+    items: [
+      { to: '/admin/dashboard', label: 'Dashboard', icon: faGauge },
+    ],
+  },
+  {
+    label: 'Procurement',
+    items: [
+      { to: '/admin/requests', label: 'Purchase Requests', icon: faFileLines },
       { to: '/admin/categories', label: 'Categories', icon: faTags },
       { to: '/admin/purchase-orders', label: 'Purchase Orders', icon: faFileInvoiceDollar },
     ],
   },
   {
-    label: 'Requisition & Issue Slip',
-    icon: faClipboardList,
-    children: [
-      { to: '/admin/ris', label: 'Submitted Slips', icon: faFileLines },
+    label: 'Requisition',
+    items: [
+      { to: '/admin/ris', label: 'Requisition Slips', icon: faClipboardList },
       { to: '/admin/ris-inventory', label: 'RIS Inventory', icon: faBoxOpen },
       { to: '/admin/ris-categories', label: 'RIS Categories', icon: faTags },
       { to: '/admin/rsmi-report', label: 'RSMI Report', icon: faFileInvoice },
     ],
   },
-  { divider: true },
-  { to: '/admin/audit-logs', label: 'Audit Logs', icon: faClockRotateLeft },
-  { to: '/admin/settings', label: 'Settings', icon: faGear },
+  {
+    label: 'Assets',
+    items: [
+      { to: '/admin/inventory', label: 'Inventory', icon: faBoxOpen },
+    ],
+  },
+  {
+    label: 'System',
+    items: [
+      { to: '/admin/audit-logs', label: 'Audit Logs', icon: faClockRotateLeft },
+      { to: '/admin/settings', label: 'Settings', icon: faGear },
+    ],
+  },
 ]
 
 export default function Layout({ children }) {
   const { profile, signOut } = useAuth()
   const navigate = useNavigate()
-  const location = useLocation()
   const toast = useToast()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [isOnline, setIsOnline] = useState(navigator.onLine)
-
-  const groupHasActiveChild = (item) =>
-    item.children?.some((child) => location.pathname.startsWith(child.to))
-
-  const [openGroup, setOpenGroup] = useState(() => {
-    const active = NAV_ITEMS.find((item) => item.children && groupHasActiveChild(item))
-    return active?.label ?? null
-  })
-
-  useEffect(() => {
-    const active = NAV_ITEMS.find((item) => item.children && groupHasActiveChild(item))
-    if (active) setOpenGroup(active.label)
-  }, [location.pathname]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  function toggleGroup(label) {
-    setOpenGroup((prev) => (prev === label ? null : label))
-  }
 
   useEffect(() => {
     function handleOffline() { setIsOnline(false) }
@@ -98,73 +92,33 @@ export default function Layout({ children }) {
         <div className="sidebar-header">
           <img src={LOGO} alt="Alaminos seal" className="sidebar-logo" onError={(e) => { e.target.style.visibility = 'hidden' }} />
           <div className="sidebar-header-text">
-            <div className="org">Municipality of Alaminos</div>
-            <div className="title">General Services Office (GSO)</div>
-            <div className="subtitle">Purchase Request &amp; Inventory Management System</div>
+            <div className="title">GSO System</div>
+            <div className="subtitle">Municipality of Alaminos</div>
           </div>
         </div>
 
         <nav className="sidebar-nav">
-          {NAV_ITEMS.map((item, index) => {
-            if (item.divider) {
-              return <div key={`divider-${index}`} className="sidebar-divider" />
-            }
-            if (item.children) {
-              const isOpen = openGroup === item.label
-              return (
-                <div key={item.label} className="sidebar-group">
-                  <button
-                    type="button"
-                    className={
-                      'sidebar-link sidebar-group-toggle'
-                      + (groupHasActiveChild(item) ? ' active-group' : '')
-                      + (isOpen ? ' open' : '')
-                    }
-                    onClick={() => toggleGroup(item.label)}
-                  >
-                    <FontAwesomeIcon icon={item.icon} style={{ width: 16, flexShrink: 0 }} />
-                    <span>{item.label}</span>
-                    <FontAwesomeIcon
-                      icon={faChevronDown}
-                      className="sidebar-group-chevron"
-                      style={{ marginLeft: 'auto', transform: isOpen ? 'rotate(180deg)' : 'none' }}
-                    />
-                  </button>
-                  <div className={'sidebar-submenu-wrapper' + (isOpen ? ' open' : '')}>
-                    <div className="sidebar-submenu">
-                      {item.children.map((child) => (
-                        <NavLink
-                          key={child.to}
-                          to={child.to}
-                          className={({ isActive }) => 'sidebar-link sidebar-sublink' + (isActive ? ' active' : '')}
-                          onClick={closeSidebar}
-                        >
-                          <FontAwesomeIcon icon={child.icon} style={{ width: 14, flexShrink: 0 }} />
-                          <span>{child.label}</span>
-                        </NavLink>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )
-            }
-            return (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                className={({ isActive }) => 'sidebar-link' + (isActive ? ' active' : '')}
-                onClick={closeSidebar}
-              >
-                <FontAwesomeIcon icon={item.icon} style={{ width: 16, flexShrink: 0 }} />
-                <span>{item.label}</span>
-              </NavLink>
-            )
-          })}
+          {NAV_SECTIONS.map((section) => (
+            <div key={section.label} className="sidebar-section">
+              <div className="sidebar-section-label">{section.label}</div>
+              {section.items.map((item) => (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  className={({ isActive }) => 'sidebar-link' + (isActive ? ' active' : '')}
+                  onClick={closeSidebar}
+                >
+                  <FontAwesomeIcon icon={item.icon} style={{ width: 16, flexShrink: 0 }} />
+                  <span>{item.label}</span>
+                </NavLink>
+              ))}
+            </div>
+          ))}
         </nav>
 
         <div className="sidebar-footer">
-          <div className="sidebar-user-name">{profile?.full_name || 'User'}</div>
-          <div className="sidebar-user-role">{profile?.role?.toUpperCase() || 'STAFF'}</div>
+          <div className="sidebar-user-name">{profile?.full_name || 'Administrator'}</div>
+          <div className="sidebar-user-role">{profile?.role?.toUpperCase() || 'GSO ADMIN'}</div>
           <button className="btn-signout" onClick={handleSignOut}>
             <FontAwesomeIcon icon={faRightFromBracket} style={{ marginRight: 6 }} />Sign out
           </button>

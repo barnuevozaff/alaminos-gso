@@ -13,3 +13,19 @@ export function fmtDate(dateStr) {
   if (!d || isNaN(d)) return '—'
   return d.toLocaleDateString('en-PH', { year: 'numeric', month: 'short', day: 'numeric' })
 }
+
+// Relative time for activity feeds (e.g. "8m ago", "3h ago"). Falls back to a
+// plain date once it's more than a week old.
+export function timeAgo(dateStr) {
+  const d = new Date(dateStr)
+  if (isNaN(d)) return ''
+  const diffMs = Date.now() - d.getTime()
+  const mins = Math.floor(diffMs / 60000)
+  if (mins < 1) return 'just now'
+  if (mins < 60) return `${mins}m ago`
+  const hours = Math.floor(mins / 60)
+  if (hours < 24) return `${hours}h ago`
+  const days = Math.floor(hours / 24)
+  if (days < 7) return `${days}d ago`
+  return fmtDate(dateStr)
+}
