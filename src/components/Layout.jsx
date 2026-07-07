@@ -4,7 +4,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
   faGauge, faFileLines, faBoxOpen, faTags,
   faFileInvoiceDollar, faClockRotateLeft, faGear, faRightFromBracket,
-  faBars, faXmark, faCartShopping, faChevronDown, faClipboardList,
+  faBars, faXmark, faCartShopping, faChevronDown, faClipboardList, faFileInvoice,
 } from '@fortawesome/free-solid-svg-icons'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
@@ -29,6 +29,7 @@ const NAV_ITEMS = [
       { to: '/admin/ris', label: 'Submitted Slips', icon: faFileLines },
       { to: '/admin/ris-inventory', label: 'RIS Inventory', icon: faBoxOpen },
       { to: '/admin/ris-categories', label: 'RIS Categories', icon: faTags },
+      { to: '/admin/rsmi-report', label: 'RSMI Report', icon: faFileInvoice },
     ],
   },
   { divider: true },
