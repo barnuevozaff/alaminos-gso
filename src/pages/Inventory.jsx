@@ -21,7 +21,7 @@ export default function Inventory() {
   const [categoryFilter, setCategoryFilter] = useState(
     searchParams.get('filter') === 'lowstock' ? '__lowstock__' : 'all'
   )
-  const [showModal, setShowModal] = useState(false)
+  const [showModal, setShowModal] = useState(searchParams.get('action') === 'new')
   const [showImport, setShowImport] = useState(false)
   const [editing, setEditing] = useState(null)
   const [deleteTarget, setDeleteTarget] = useState(null)

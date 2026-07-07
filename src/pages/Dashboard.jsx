@@ -10,6 +10,14 @@ import { supabase } from '../lib/supabase'
 import Layout from '../components/Layout'
 import StatusBadge from '../components/StatusBadge'
 import { timeAgo } from '../lib/dateUtils'
+import { useAuth } from '../context/AuthContext'
+
+const QUICK_ACTIONS = [
+  { title: 'New Purchase Request', sub: 'Draft a new PR form', icon: faFileLines, to: '/admin/requests/new', accent: 'maroon' },
+  { title: 'New Requisition Slip', sub: 'Issue a RIS document', icon: faClipboardList, to: '/requisition-issue-slip', accent: 'gold' },
+  { title: 'Add Inventory Item', sub: 'Register a new item', icon: faBoxOpen, to: '/admin/inventory?action=new', accent: 'maroon' },
+  { title: 'Create Purchase Order', sub: 'Generate a PO', icon: faFileInvoiceDollar, to: '/admin/purchase-orders/new', accent: 'gold' },
+]
 
 const ACCENT = {
   maroon: { bg: 'rgba(122,30,42,0.08)', color: 'var(--maroon)', border: 'var(--maroon)' },
@@ -246,7 +254,9 @@ export default function Dashboard() {
   const [monthlyActivity, setMonthlyActivity] = useState([])
   const [recentTab, setRecentTab] = useState('pr')
   const [loading, setLoading] = useState(true)
+  const [lastUpdated, setLastUpdated] = useState(null)
   const navigate = useNavigate()
+  const { profile } = useAuth()
 
   const today = new Date().toLocaleDateString('en-PH', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
 
@@ -303,6 +313,7 @@ export default function Dashboard() {
     setLowStockItems(lowStock.slice(0, 4))
     setAuditLogs(auditRows || [])
     setMonthlyActivity(buildMonthlyActivity(prMonthlyRows || [], risMonthlyRows || []))
+    setLastUpdated(new Date().toISOString())
     setLoading(false)
   }
 
@@ -331,39 +342,97 @@ export default function Dashboard() {
       {/* Header */}
       <div style={{
         background: 'linear-gradient(135deg, var(--maroon) 0%, #a8293a 100%)',
-        borderRadius: 16, padding: '24px 28px', marginBottom: 24,
-        color: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-        flexWrap: 'wrap', gap: 16,
+        borderRadius: 16, padding: '28px 28px', marginBottom: 24,
+        color: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start',
+        flexWrap: 'wrap', gap: 24,
       }}>
-        <div>
-          <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+        <div style={{ flex: 1, minWidth: 280 }}>
+          <div style={{ fontSize: 12, color: 'var(--gold)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700 }}>
             Administrator Overview
           </div>
-          <h1 style={{ margin: 0, fontSize: 26, fontWeight: 800 }}>Welcome back!</h1>
+          <h1 style={{ margin: 0, fontSize: 28, fontWeight: 800 }}>Welcome back, {profile?.full_name || 'Administrator'}</h1>
           <p style={{ margin: '6px 0 0', fontSize: 13, color: 'rgba(255,255,255,0.75)' }}>{today}</p>
+          <p style={{ margin: '12px 0 0', fontSize: 14, color: 'rgba(255,255,255,0.85)', maxWidth: 560, lineHeight: 1.5 }}>
+            Your central command for Purchase Requests, Requisition &amp; Issue Slips, and Inventory.
+            Everything is up to date as of {lastUpdated ? timeAgo(lastUpdated) : 'a few seconds ago'}.
+          </p>
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 18 }}>
+            <button
+              className="btn"
+              style={{ background: '#fff', color: 'var(--maroon)', border: 'none', fontWeight: 700 }}
+              onClick={() => navigate('/admin/requests/new')}
+            >
+              <FontAwesomeIcon icon={faPlus} style={{ marginRight: 7 }} />New Request
+            </button>
+            <button
+              className="btn"
+              style={{ background: 'var(--gold)', color: 'var(--maroon-dark)', border: 'none', fontWeight: 700 }}
+              onClick={() => navigate('/requisition-issue-slip')}
+            >
+              <FontAwesomeIcon icon={faClipboardList} style={{ marginRight: 7 }} />New RIS
+            </button>
+            <button
+              className="btn"
+              style={{ background: 'rgba(255,255,255,0.15)', color: '#fff', border: '1px solid rgba(255,255,255,0.3)', backdropFilter: 'blur(4px)' }}
+              onClick={() => navigate('/admin/requests')}
+            >
+              <FontAwesomeIcon icon={faEye} style={{ marginRight: 7 }} />View Requests
+            </button>
+          </div>
         </div>
-        <div style={{ display: 'flex', gap: 10 }}>
-          <button
-            className="btn"
-            style={{ background: 'rgba(255,255,255,0.15)', color: '#fff', border: '1px solid rgba(255,255,255,0.3)', backdropFilter: 'blur(4px)' }}
-            onClick={() => navigate('/admin/requests')}
-          >
-            <FontAwesomeIcon icon={faEye} style={{ marginRight: 7 }} />View Requests
-          </button>
-          <button
-            className="btn"
-            style={{ background: '#fff', color: 'var(--maroon)', border: 'none', fontWeight: 700 }}
-            onClick={() => navigate('/admin/requests/new')}
-          >
-            <FontAwesomeIcon icon={faPlus} style={{ marginRight: 7 }} />New Request
-          </button>
-        </div>
+        {stats && (
+          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+            {[
+              ['Total PR', stats.prTotal],
+              ['Total RIS', stats.risTotal],
+              ['Inventory', stats.invItems],
+            ].map(([label, value]) => (
+              <div key={label} style={{
+                background: 'rgba(255,255,255,0.12)', borderRadius: 12, padding: '14px 20px', minWidth: 110,
+              }}>
+                <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.7)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{label}</div>
+                <div style={{ fontSize: 26, fontWeight: 800, marginTop: 4 }}>{value.toLocaleString()}</div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {loading ? (
         <div className="state-box"><div className="spinner"></div>Loading dashboard…</div>
       ) : (
         <>
+          {/* Quick Actions */}
+          <div style={{ marginBottom: 14 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--gold-dark)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Do It Fast</div>
+            <h2 style={{ margin: '4px 0 4px', fontSize: 20, fontWeight: 800 }}>Quick Actions</h2>
+            <p style={{ margin: 0, fontSize: 13, color: 'var(--text-muted)' }}>Start the most common tasks in a single click</p>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16, marginBottom: 28 }}>
+            {QUICK_ACTIONS.map((a) => {
+              const accent = ACCENT[a.accent]
+              return (
+                <div
+                  key={a.title}
+                  onClick={() => navigate(a.to)}
+                  className="card"
+                  style={{ padding: 18, cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 10, transition: 'box-shadow 0.15s, transform 0.15s' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.boxShadow = '0 6px 20px rgba(0,0,0,0.12)'; e.currentTarget.style.transform = 'translateY(-2px)' }}
+                  onMouseLeave={(e) => { e.currentTarget.style.boxShadow = ''; e.currentTarget.style.transform = 'none' }}
+                >
+                  <span style={{
+                    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                    width: 36, height: 36, borderRadius: 10, background: accent.bg, color: accent.color, fontSize: 15,
+                  }}>
+                    <FontAwesomeIcon icon={a.icon} />
+                  </span>
+                  <div style={{ fontWeight: 700, fontSize: 14 }}>{a.title}</div>
+                  <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{a.sub}</div>
+                </div>
+              )
+            })}
+          </div>
+
           {/* System Overview — stat grid, 2 rows x 4 */}
           <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>
             System Overview
