@@ -2,6 +2,7 @@ import { useState, useRef } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCamera, faFileArrowUp, faXmark, faPlus, faSpinner, faCircleCheck } from '@fortawesome/free-solid-svg-icons'
 import { supabase } from '../lib/supabase'
+import { useAuth } from '../context/AuthContext'
 import { UNITS } from '../lib/units'
 
 // ── Known unit keywords ───────────────────────────────────
@@ -211,6 +212,7 @@ function findDuplicate(name, existingItems) {
 
 // ── Component ──────────────────────────────────────────────
 export default function RisInventoryImportModal({ categories, existingItems = [], onClose, onSaved }) {
+  const { user } = useAuth()
   const [step, setStep] = useState('upload')   // 'upload' | 'processing' | 'confirm'
   const [rows, setRows] = useState([])
   const [progress, setProgress] = useState(0)
@@ -343,6 +345,15 @@ export default function RisInventoryImportModal({ categories, existingItems = []
     for (const r of toUpdate) {
       const newQty = Number(r.existingQty) + Number(r.quantity)
       await supabase.from('ris_inventory').update({ quantity: newQty }).eq('id', r.existingId)
+      if (Number(r.quantity) > 0) {
+        await supabase.from('ris_stock_movements').insert({
+          ris_inventory_id: r.existingId,
+          movement_type: 'In',
+          quantity: Number(r.quantity),
+          reference: 'Stock replenishment (import)',
+          performed_by: user.id,
+        })
+      }
     }
 
     // Build final rows with resolved category IDs (fallback to Others if blank)
@@ -358,8 +369,15 @@ export default function RisInventoryImportModal({ categories, existingItems = []
     })
 
     if (itemsToInsert.length > 0) {
-      const { error: insErr } = await supabase.from('ris_inventory').insert(itemsToInsert)
+      const { data: inserted, error: insErr } = await supabase.from('ris_inventory').insert(itemsToInsert).select('id, quantity')
       if (insErr) { setSaving(false); setError(insErr.message); return }
+      const movements = (inserted || [])
+        .filter((r) => Number(r.quantity) > 0)
+        .map((r) => ({
+          ris_inventory_id: r.id, movement_type: 'In', quantity: Number(r.quantity),
+          reference: 'Initial stock (import)', performed_by: user.id,
+        }))
+      if (movements.length > 0) await supabase.from('ris_stock_movements').insert(movements)
     }
     setSaving(false)
     onSaved()

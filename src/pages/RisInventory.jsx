@@ -2,13 +2,15 @@ import { fmt } from '../lib/fmt.js'
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useToast } from '../context/ToastContext'
+import { useAuth } from '../context/AuthContext'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faTrash, faPenToSquare, faPlus, faXmark, faFileArrowUp } from '@fortawesome/free-solid-svg-icons'
+import { faTrash, faPenToSquare, faPlus, faXmark, faFileArrowUp, faReceipt } from '@fortawesome/free-solid-svg-icons'
 import { supabase } from '../lib/supabase'
 import { UNITS } from '../lib/units'
 import Layout from '../components/Layout'
 import ConfirmDialog from '../components/ConfirmDialog'
 import RisInventoryImportModal from '../components/RisInventoryImportModal'
+import RisStockCardModal from '../components/RisStockCardModal'
 
 export default function RisInventory() {
   const toast = useToast()
@@ -24,6 +26,7 @@ export default function RisInventory() {
   const [showModal, setShowModal] = useState(false)
   const [showImport, setShowImport] = useState(false)
   const [editing, setEditing] = useState(null)
+  const [stockCardTarget, setStockCardTarget] = useState(null)
   const [deleteTarget, setDeleteTarget] = useState(null)
   const [deleteMode, setDeleteMode] = useState(false)
   const [selectedIds, setSelectedIds] = useState([])
@@ -205,6 +208,7 @@ export default function RisInventory() {
                   {!deleteMode && (
                     <td style={{ display: 'flex', gap: 8 }}>
                       <button className="btn btn-outline btn-sm" onClick={() => { setEditing(item); setShowModal(true) }}><FontAwesomeIcon icon={faPenToSquare} style={{ marginRight: 6 }} />Edit</button>
+                      <button className="btn btn-outline btn-sm" onClick={() => setStockCardTarget(item)}><FontAwesomeIcon icon={faReceipt} style={{ marginRight: 6 }} />Stock Card</button>
                       <button className="btn btn-danger btn-sm" onClick={() => setDeleteTarget(item)}><FontAwesomeIcon icon={faTrash} style={{ marginRight: 6 }} />Delete</button>
                     </td>
                   )}
@@ -230,6 +234,13 @@ export default function RisInventory() {
           existingItems={items}
           onClose={() => setShowImport(false)}
           onSaved={() => { setShowImport(false); load() }}
+        />
+      )}
+
+      {stockCardTarget && (
+        <RisStockCardModal
+          item={stockCardTarget}
+          onClose={() => setStockCardTarget(null)}
         />
       )}
 
@@ -260,6 +271,7 @@ export default function RisInventory() {
 }
 
 function RisItemModal({ item, categories, onClose, onSaved }) {
+  const { user } = useAuth()
   const [name, setName] = useState(item?.item_name || '')
   const [categoryId, setCategoryId] = useState(item?.category_id || categories[0]?.id || '')
   const [unit, setUnit] = useState(item?.unit || 'piece')
@@ -280,11 +292,35 @@ function RisItemModal({ item, categories, onClose, onSaved }) {
       item_name: name, category_id: categoryId || null, unit,
       quantity: Number(quantity), unit_cost: Number(unitCost),
     }
-    const { error } = item
-      ? await supabase.from('ris_inventory').update(payload).eq('id', item.id)
-      : await supabase.from('ris_inventory').insert(payload)
+
+    if (item) {
+      const { error } = await supabase.from('ris_inventory').update(payload).eq('id', item.id)
+      if (error) { setSaving(false); setError(error.message); return }
+      const delta = Number(quantity) - Number(item.quantity)
+      if (delta !== 0) {
+        await supabase.from('ris_stock_movements').insert({
+          ris_inventory_id: item.id,
+          movement_type: delta > 0 ? 'In' : 'Out',
+          quantity: Math.abs(delta),
+          reference: delta > 0 ? 'Stock replenishment' : 'Manual adjustment',
+          performed_by: user.id,
+        })
+      }
+    } else {
+      const { data, error } = await supabase.from('ris_inventory').insert(payload).select('id').single()
+      if (error) { setSaving(false); setError(error.message); return }
+      if (Number(quantity) > 0) {
+        await supabase.from('ris_stock_movements').insert({
+          ris_inventory_id: data.id,
+          movement_type: 'In',
+          quantity: Number(quantity),
+          reference: 'Initial stock',
+          performed_by: user.id,
+        })
+      }
+    }
+
     setSaving(false)
-    if (error) { setError(error.message); return }
     onSaved()
   }
 
