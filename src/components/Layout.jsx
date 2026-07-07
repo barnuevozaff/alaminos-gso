@@ -34,7 +34,6 @@ const NAV_ITEMS = [
     icon: faClipboardList,
     children: [
       { to: '/admin/ris', label: 'Requisition Slips', icon: faFileLines },
-      { to: '/admin/ris-inventory', label: 'RIS Inventory', icon: faBoxOpen },
       { to: '/admin/ris-categories', label: 'RIS Categories', icon: faTags },
       { to: '/admin/rsmi-report', label: 'RSMI Report', icon: faFileInvoice },
     ],
@@ -43,7 +42,8 @@ const NAV_ITEMS = [
     type: 'section',
     label: 'Assets',
     items: [
-      { to: '/admin/inventory', label: 'Inventory', icon: faBoxOpen },
+      { to: '/admin/inventory', label: 'PR Inventory', icon: faBoxOpen },
+      { to: '/admin/ris-inventory', label: 'RIS Inventory', icon: faBoxOpen },
     ],
   },
   {
