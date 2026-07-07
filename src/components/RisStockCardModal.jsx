@@ -57,6 +57,9 @@ export default function RisStockCardModal({ item, onClose }) {
     })
   }, [movements, officeByRef])
 
+  const paddedRows = [...rows]
+  while (paddedRows.length < 30) paddedRows.push(null)
+
   function handlePrint() {
     window.print()
   }
@@ -110,17 +113,15 @@ export default function RisStockCardModal({ item, onClose }) {
             <tbody>
               {loading ? (
                 <tr><td colSpan={7} style={{ textAlign: 'center' }}>Loading…</td></tr>
-              ) : rows.length === 0 ? (
-                <tr><td colSpan={7} style={{ textAlign: 'center' }}>No stock movements recorded yet.</td></tr>
               ) : (
-                rows.map((r, idx) => (
+                paddedRows.map((r, idx) => (
                   <tr key={idx} style={{ height: 26 }}>
-                    <td>{fmtDate(r.date)}</td>
-                    <td>{r.reference}</td>
-                    <td style={{ textAlign: 'right' }}>{r.receiptQty ?? ''}</td>
-                    <td style={{ textAlign: 'right' }}>{r.issueQty ?? ''}</td>
-                    <td>{r.office}</td>
-                    <td style={{ textAlign: 'right', fontWeight: 700 }}>{r.balance}</td>
+                    <td>{r ? fmtDate(r.date) : ''}</td>
+                    <td>{r?.reference || ''}</td>
+                    <td style={{ textAlign: 'right' }}>{r?.receiptQty ?? ''}</td>
+                    <td style={{ textAlign: 'right' }}>{r?.issueQty ?? ''}</td>
+                    <td>{r?.office || ''}</td>
+                    <td style={{ textAlign: 'right', fontWeight: 700 }}>{r?.balance ?? ''}</td>
                     <td></td>
                   </tr>
                 ))
