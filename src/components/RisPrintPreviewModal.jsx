@@ -29,9 +29,9 @@ export default function RisPrintPreviewModal({ ris, items, onClose }) {
 
           <div className="print-meta-grid">
             <div><strong>LGU:</strong> Municipality of Alaminos</div>
-            <div><strong>Fund:</strong> {ris.fund || '—'}</div>
-            <div><strong>Division:</strong> {ris.division || '—'}</div>
-            <div><strong>FPP Code:</strong> {ris.fpp_code || '—'}</div>
+            <div><strong>Fund:</strong> {ris.fund || ''}</div>
+            <div><strong>Division:</strong> {ris.division || ''}</div>
+            <div><strong>FPP Code:</strong> {ris.fpp_code || ''}</div>
             <div><strong>Office:</strong> {ris.office}</div>
             <div><strong>RIS No.:</strong> {ris.ris_number}</div>
             <div></div>
@@ -62,7 +62,7 @@ export default function RisPrintPreviewModal({ ris, items, onClose }) {
             </tbody>
           </table>
 
-          <p style={{ marginTop: 14, fontSize: 13 }}><strong>Purpose:</strong> {ris.purpose || '—'}</p>
+          <p style={{ marginTop: 14, fontSize: 13 }}><strong>Purpose:</strong> {ris.purpose || ''}</p>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 16, marginTop: 30 }}>
             <div className="signature-blank">Requested by</div>
