@@ -126,6 +126,12 @@ a { color: inherit; }
 
 .sidebar-sublink { padding-top: 9px; padding-bottom: 9px; font-size: 13.5px; }
 
+.sidebar-divider {
+  height: 1px;
+  background: rgba(255,255,255,0.15);
+  margin: 10px 2px;
+}
+
 .sidebar-footer {
   padding: 16px 20px 0;
   border-top: 1px solid rgba(255,255,255,0.15);

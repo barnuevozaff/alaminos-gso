@@ -22,6 +22,7 @@ const NAV_ITEMS = [
       { to: '/admin/purchase-orders', label: 'Purchase Orders', icon: faFileInvoiceDollar },
     ],
   },
+  { divider: true },
   { to: '/admin/audit-logs', label: 'Audit Logs', icon: faClockRotateLeft },
   { to: '/admin/settings', label: 'Settings', icon: faGear },
 ]
@@ -100,7 +101,10 @@ export default function Layout({ children }) {
         </div>
 
         <nav className="sidebar-nav">
-          {NAV_ITEMS.map((item) => {
+          {NAV_ITEMS.map((item, index) => {
+            if (item.divider) {
+              return <div key={`divider-${index}`} className="sidebar-divider" />
+            }
             if (item.children) {
               const isOpen = !!openGroups[item.label]
               return (
