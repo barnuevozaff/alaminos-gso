@@ -4,7 +4,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faXmark, faPrint } from '@fortawesome/free-solid-svg-icons'
 import sealLogo from '../assets/alaminos-seal.png'
 
-export default function RsmiPrintPreviewModal({ dateFrom, dateTo, items, recap, grandTotal, onClose }) {
+export default function RsmiPrintPreviewModal({ dateFrom, dateTo, fund, serialNumber, printDate, items, recap, grandTotal, onClose }) {
   function handlePrint() {
     window.print()
   }
@@ -14,7 +14,7 @@ export default function RsmiPrintPreviewModal({ dateFrom, dateTo, items, recap, 
       <div className="modal-box">
         <button className="modal-close" aria-label="Close" onClick={onClose}><FontAwesomeIcon icon={faXmark} /></button>
         <h3 className="modal-title">Print Preview — Report of Supplies and Materials Issued</h3>
-        <p className="text-muted" style={{ marginTop: -8, marginBottom: 16 }}>Serial No., Fund, and signature blocks are left blank for manual completion on the printed copy.</p>
+        <p className="text-muted" style={{ marginTop: -8, marginBottom: 16 }}>Signature blocks are left blank for manual completion on the printed copy.</p>
 
         <div className="print-sheet">
           <div className="print-header-center">
@@ -29,9 +29,9 @@ export default function RsmiPrintPreviewModal({ dateFrom, dateTo, items, recap, 
 
           <div className="print-meta-grid">
             <div><strong>LGU:</strong> Municipality of Alaminos</div>
-            <div><strong>Serial No.:</strong></div>
-            <div><strong>Fund:</strong></div>
-            <div><strong>Date:</strong></div>
+            <div><strong>Serial No.:</strong> {serialNumber}</div>
+            <div><strong>Fund:</strong> {fund || ''}</div>
+            <div><strong>Date:</strong> {fmtDate(printDate)}</div>
           </div>
 
           <table>

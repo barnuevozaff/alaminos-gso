@@ -1,5 +1,4 @@
 import { fmt } from '../lib/fmt.js'
-import { fmtDate } from '../lib/dateUtils'
 import { useEffect, useMemo, useState } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPrint } from '@fortawesome/free-solid-svg-icons'
@@ -20,10 +19,14 @@ function today() {
 export default function RsmiReport() {
   const [dateFrom, setDateFrom] = useState(firstDayOfMonth())
   const [dateTo, setDateTo] = useState(today())
+  const [fund, setFund] = useState('')
   const [rows, setRows] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [showPrint, setShowPrint] = useState(false)
+  const [preparingPrint, setPreparingPrint] = useState(false)
+  const [serialNumber, setSerialNumber] = useState('')
+  const [printDate, setPrintDate] = useState(null)
 
   useEffect(() => { load() }, [dateFrom, dateTo]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -76,6 +79,17 @@ export default function RsmiReport() {
 
   const grandTotal = items.reduce((sum, it) => sum + it.amount, 0)
 
+  async function handlePrintClick() {
+    setPreparingPrint(true)
+    setError('')
+    const { data, error } = await supabase.rpc('next_rsmi_serial')
+    setPreparingPrint(false)
+    if (error) { setError(error.message); return }
+    setSerialNumber(data)
+    setPrintDate(new Date().toISOString())
+    setShowPrint(true)
+  }
+
   return (
     <Layout>
       <div className="flex-between">
@@ -83,8 +97,8 @@ export default function RsmiReport() {
           <h1 className="page-title">Report of Supplies and Materials Issued</h1>
           <p className="page-subtitle" style={{ marginBottom: 12 }}>Items deducted from RIS inventory for a given period (Appendix 40).</p>
         </div>
-        <button className="btn btn-primary" disabled={loading || items.length === 0} onClick={() => setShowPrint(true)}>
-          <FontAwesomeIcon icon={faPrint} style={{ marginRight: 6 }} />Print
+        <button className="btn btn-primary" disabled={loading || preparingPrint || items.length === 0} onClick={handlePrintClick}>
+          <FontAwesomeIcon icon={faPrint} style={{ marginRight: 6 }} />{preparingPrint ? 'Preparing…' : 'Print'}
         </button>
       </div>
 
@@ -96,6 +110,10 @@ export default function RsmiReport() {
         <div className="form-group">
           <label className="form-label">To</label>
           <input type="date" className="form-input" value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
+        </div>
+        <div className="form-group">
+          <label className="form-label">Fund (optional)</label>
+          <input className="form-input" placeholder="e.g. General Fund" value={fund} onChange={(e) => setFund(e.target.value)} />
         </div>
       </div>
 
@@ -165,6 +183,9 @@ export default function RsmiReport() {
         <RsmiPrintPreviewModal
           dateFrom={dateFrom}
           dateTo={dateTo}
+          fund={fund}
+          serialNumber={serialNumber}
+          printDate={printDate}
           items={items}
           recap={recap}
           grandTotal={grandTotal}
