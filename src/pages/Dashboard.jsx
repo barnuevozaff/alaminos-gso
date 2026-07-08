@@ -135,26 +135,43 @@ function StatusPill({ label }) {
 
 function RequestsOverviewChart({ data }) {
   return (
-    <div style={{ height: 190, width: '100%' }}>
-      <ResponsiveContainer width="100%" height="100%">
-        <AreaChart data={data} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
-          <defs>
-            <linearGradient id="reqOverviewGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="var(--maroon)" stopOpacity={0.25} />
-              <stop offset="100%" stopColor="var(--maroon)" stopOpacity={0} />
-            </linearGradient>
-          </defs>
-          <XAxis
-            dataKey="label"
-            axisLine={false}
-            tickLine={false}
-            interval={Math.max(Math.floor(data.length / 6), 3)}
-            tick={{ fontSize: 11, fill: 'var(--text-muted)' }}
-          />
-          <Tooltip contentStyle={{ borderRadius: 12, border: '1px solid var(--border)', fontSize: 12 }} />
-          <Area type="monotone" dataKey="count" stroke="var(--maroon)" strokeWidth={2.5} fill="url(#reqOverviewGradient)" />
-        </AreaChart>
-      </ResponsiveContainer>
+    <div>
+      <div style={{ display: 'flex', gap: 16, marginBottom: 4 }}>
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--text-muted)' }}>
+          <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--maroon)', display: 'inline-block' }} />
+          Purchase Requests
+        </span>
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--text-muted)' }}>
+          <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#3a6fa8', display: 'inline-block' }} />
+          RIS
+        </span>
+      </div>
+      <div style={{ height: 220, width: '100%' }}>
+        <ResponsiveContainer width="100%" height="100%">
+          <AreaChart data={data} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
+            <defs>
+              <linearGradient id="reqOverviewGradientPR" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="var(--maroon)" stopOpacity={0.25} />
+                <stop offset="100%" stopColor="var(--maroon)" stopOpacity={0} />
+              </linearGradient>
+              <linearGradient id="reqOverviewGradientRIS" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#3a6fa8" stopOpacity={0.25} />
+                <stop offset="100%" stopColor="#3a6fa8" stopOpacity={0} />
+              </linearGradient>
+            </defs>
+            <XAxis
+              dataKey="label"
+              axisLine={false}
+              tickLine={false}
+              interval={Math.max(Math.floor(data.length / 6), 3)}
+              tick={{ fontSize: 11, fill: 'var(--text-muted)' }}
+            />
+            <Tooltip contentStyle={{ borderRadius: 12, border: '1px solid var(--border)', fontSize: 12 }} />
+            <Area type="monotone" dataKey="pr" name="Purchase Requests" stroke="var(--maroon)" strokeWidth={2.5} fill="url(#reqOverviewGradientPR)" />
+            <Area type="monotone" dataKey="ris" name="RIS" stroke="#3a6fa8" strokeWidth={2.5} fill="url(#reqOverviewGradientRIS)" />
+          </AreaChart>
+        </ResponsiveContainer>
+      </div>
     </div>
   )
 }
@@ -173,16 +190,23 @@ function buildLast30DaysSeries(rows) {
   return days.map((d) => d.count)
 }
 
-function buildDailySeries(rows) {
+function buildDailySeries(prRows, risRows) {
   const now = new Date()
   const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate()
   const monthAbbr = now.toLocaleDateString('en-US', { month: 'short' })
-  const days = Array.from({ length: daysInMonth }, (_, i) => ({ day: i + 1, label: `${monthAbbr} ${i + 1}`, count: 0 }))
-  rows.forEach((row) => {
+  const days = Array.from({ length: daysInMonth }, (_, i) => ({ day: i + 1, label: `${monthAbbr} ${i + 1}`, pr: 0, ris: 0 }))
+  prRows.forEach((row) => {
     const d = new Date(row.created_at)
     if (d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()) {
       const bucket = days[d.getDate() - 1]
-      if (bucket) bucket.count += 1
+      if (bucket) bucket.pr += 1
+    }
+  })
+  risRows.forEach((row) => {
+    const d = new Date(row.created_at)
+    if (d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()) {
+      const bucket = days[d.getDate() - 1]
+      if (bucket) bucket.ris += 1
     }
   })
   return days
@@ -224,7 +248,7 @@ export default function Dashboard() {
       { data: invRows }, { data: risInvRows },
       { count: poCount },
       { data: prLast30Rows }, { data: risLast30Rows }, { data: poLast30Rows },
-      { data: prDailyRows },
+      { data: prDailyRows }, { data: risDailyRows },
     ] = await Promise.all([
       supabase.from('purchase_requests').select('*', { count: 'exact', head: true }),
       supabase.from('purchase_requests').select('*', { count: 'exact', head: true }).eq('status', 'Submitted'),
@@ -243,6 +267,7 @@ export default function Dashboard() {
       supabase.from('requisition_issue_slips').select('created_at').gte('created_at', thirtyDaysAgo.toISOString()),
       supabase.from('purchase_orders').select('created_at').gte('created_at', thirtyDaysAgo.toISOString()),
       supabase.from('purchase_requests').select('created_at').gte('created_at', startOfMonth.toISOString()),
+      supabase.from('requisition_issue_slips').select('created_at').gte('created_at', startOfMonth.toISOString()),
     ])
 
     const lowStock = [
@@ -256,6 +281,12 @@ export default function Dashboard() {
       invItems: (invRows?.length || 0) + (risInvRows?.length || 0),
       lowStock: lowStock.length,
       poCount: poCount || 0,
+      // Last-30-days totals for the System Overview cards — derived from the
+      // exact same row sets used to build each sparkline below, so the big
+      // number and the chart can never drift out of sync with each other.
+      prLast30: (prLast30Rows || []).length,
+      risLast30: (risLast30Rows || []).length,
+      poLast30: (poLast30Rows || []).length,
     })
     setRecentPRs(recentPrRows || [])
     setRecentRis(recentRisRows || [])
@@ -263,7 +294,7 @@ export default function Dashboard() {
     setSparkPR(buildLast30DaysSeries(prLast30Rows || []))
     setSparkRIS(buildLast30DaysSeries(risLast30Rows || []))
     setSparkPO(buildLast30DaysSeries(poLast30Rows || []))
-    setRequestsDaily(buildDailySeries(prDailyRows || []))
+    setRequestsDaily(buildDailySeries(prDailyRows || [], risDailyRows || []))
     setLoading(false)
   }
 
@@ -292,7 +323,7 @@ export default function Dashboard() {
   const combinedTotal = stats ? stats.prTotal + stats.risTotal : 0
   const approvedPct = stats && combinedTotal ? Math.round(((stats.prApproved + stats.risApproved) / combinedTotal) * 100) : 0
   const rejectedPct = stats && combinedTotal ? Math.round(((stats.prRejected + stats.risRejected) / combinedTotal) * 100) : 0
-  const requestsTotalThisMonth = requestsDaily.reduce((sum, d) => sum + d.count, 0)
+  const requestsTotalThisMonth = requestsDaily.reduce((sum, d) => sum + d.pr + d.ris, 0)
 
   return (
     <Layout>
@@ -363,15 +394,15 @@ export default function Dashboard() {
             System Overview
           </div>
           <div className="stats-grid" style={{ marginBottom: 16 }}>
-            <StatCard delay={0.08} accent="maroon" icon={FileText}      label="Purchase Requests" value={stats.prTotal}  sub="This month" sparkline={sparkPR} />
-            <StatCard delay={0.11} accent="blue"   icon={ClipboardList} label="RIS Transactions"  value={stats.risTotal} sub="This month" sparkline={sparkRIS} />
+            <StatCard delay={0.08} accent="maroon" icon={FileText}      label="Purchase Requests" value={stats.prLast30}  sub="Last 30 days" sparkline={sparkPR} />
+            <StatCard delay={0.11} accent="blue"   icon={ClipboardList} label="RIS Transactions"  value={stats.risLast30} sub="Last 30 days" sparkline={sparkRIS} />
             <StatCard delay={0.14} accent="maroon" icon={Boxes}         label="Inventory Items"   value={stats.invItems} sub="Total items"
               summary={{
                 text: stats.lowStock > 0 ? `${stats.lowStock} low stock` : 'All stocked',
                 tone: stats.lowStock > 0 ? 'warning' : 'green',
               }}
             />
-            <StatCard delay={0.17} accent="blue"   icon={ShoppingCart}  label="Purchase Orders"   value={stats.poCount}  sub="This month" sparkline={sparkPO} />
+            <StatCard delay={0.17} accent="blue"   icon={ShoppingCart}  label="Purchase Orders"   value={stats.poLast30}  sub="Last 30 days" sparkline={sparkPO} />
           </div>
           <div className="stats-grid" style={{ marginBottom: 'var(--space-section)' }}>
             <StatCard navigate={navigate} delay={0.2}  accent="gold"  icon={Clock}        label="Pending Approvals" value={stats.prPending + stats.risPending} sub="Awaiting review" to="/admin/requests?status=Submitted" />
