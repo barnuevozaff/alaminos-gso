@@ -294,8 +294,7 @@ export default function Dashboard() {
   return (
     <Layout>
       {/* Header */}
-      <div className="dash-animate bg-pattern-burgundy" style={{
-        background: 'linear-gradient(135deg, var(--sidebar-bg) 0%, var(--sidebar-accent) 100%)',
+      <div className="dash-animate hero-banner-bg" style={{
         borderRadius: 'var(--radius-lg)', padding: '24px 26px', marginBottom: 'var(--space-section)',
         color: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start',
         flexWrap: 'wrap', gap: 20,
