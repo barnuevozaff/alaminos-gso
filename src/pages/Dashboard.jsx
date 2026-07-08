@@ -435,7 +435,7 @@ export default function Dashboard() {
                 position: 'relative',
               }}>
                 <Icon size={14} style={{ position: 'absolute', top: 12, right: 12, opacity: 0.55 }} />
-                <div style={{ fontSize: 10.5, color: 'rgba(255,255,255,0.7)', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 500 }}>{label}</div>
+                <div style={{ fontSize: 10.5, color: 'rgba(255,255,255,0.7)', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 500, paddingRight: 18, whiteSpace: 'nowrap' }}>{label}</div>
                 <div style={{ fontSize: 22, fontWeight: 600, marginTop: 4 }}>{value.toLocaleString()}</div>
                 <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.6)', marginTop: 2 }}>{sub}</div>
               </div>
