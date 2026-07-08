@@ -6,22 +6,11 @@ import Layout from '../components/Layout'
 
 function Modal({ onClose, children }) {
   return (
-    <div
-      onClick={onClose}
-      style={{
-        position: 'fixed', inset: 0, zIndex: 1000,
-        background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(3px)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        padding: 24,
-      }}
-    >
+    <div className="modal-overlay" onClick={onClose}>
       <div
+        className="modal-box"
         onClick={(e) => e.stopPropagation()}
-        style={{
-          background: 'var(--card-bg)', borderRadius: 20, width: '100%', maxWidth: 480,
-          boxShadow: '0 24px 60px rgba(0,0,0,0.3)',
-          overflow: 'hidden', animation: 'modalPop 0.18s ease',
-        }}
+        style={{ maxWidth: 480, padding: 0, overflow: 'hidden' }}
       >
         {children}
       </div>
@@ -31,22 +20,9 @@ function Modal({ onClose, children }) {
 
 function SettingTile({ icon: Icon, title, description, color, iconColor, onClick }) {
   return (
-    <button
-      onClick={onClick}
-      style={{
-        background: 'var(--card-bg)', border: '1px solid var(--border)',
-        borderRadius: 20, padding: '52px 32px', cursor: 'pointer',
-        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-        gap: 20, textAlign: 'center', width: '100%',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-        transition: 'transform 0.15s, box-shadow 0.15s',
-        minHeight: 280,
-      }}
-      onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 12px 32px rgba(0,0,0,0.13)' }}
-      onMouseLeave={(e) => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)' }}
-    >
+    <button className="tile-card" onClick={onClick}>
       <div style={{
-        width: 88, height: 88, borderRadius: 24,
+        width: 88, height: 88, borderRadius: 'var(--radius-lg)',
         background: color, display: 'flex', alignItems: 'center', justifyContent: 'center',
       }}>
         <Icon size={38} style={{ color: iconColor }} />
@@ -143,13 +119,6 @@ export default function Settings() {
 
   return (
     <Layout>
-      <style>{`
-        @keyframes modalPop {
-          from { opacity: 0; transform: scale(0.94) translateY(12px); }
-          to   { opacity: 1; transform: scale(1) translateY(0); }
-        }
-      `}</style>
-
       <h1 className="page-title">Settings</h1>
       <p className="page-subtitle">Select a section to configure.</p>
 
@@ -167,7 +136,7 @@ export default function Settings() {
           title="Account Settings"
           description="Change your display name or login password"
           color="rgba(26,74,122,0.12)"
-          iconColor="#1a4a7a"
+          iconColor="var(--accent-blue)"
           onClick={() => setModal('account')}
         />
       </div>
@@ -181,7 +150,7 @@ export default function Settings() {
               <div style={{ fontWeight: 700, fontSize: 15, color: '#fff' }}>PDF Signatories</div>
               <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.75)', marginTop: 2 }}>Names on generated Purchase Request PDFs</div>
             </div>
-            <button onClick={() => setModal(null)} style={{ background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: 8, color: '#fff', width: 30, height: 30, cursor: 'pointer', fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><X size={16} /></button>
+            <button onClick={() => setModal(null)} style={{ background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: 'var(--radius-sm)', color: '#fff', width: 30, height: 30, cursor: 'pointer', fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><X size={16} /></button>
           </div>
           <div style={{ padding: 28 }}>
             <p style={{ margin: '0 0 18px', fontSize: 13, color: 'var(--text-muted)' }}>Leave a field blank to omit that signature line from the PDF.</p>
@@ -209,19 +178,19 @@ export default function Settings() {
       {/* ── Modal: Account Settings ── */}
       {modal === 'account' && (
         <Modal onClose={() => setModal(null)}>
-          <div style={{ background: '#1a4a7a', padding: '22px 28px', display: 'flex', alignItems: 'center', gap: 14 }}>
+          <div style={{ background: 'var(--accent-blue)', padding: '22px 28px', display: 'flex', alignItems: 'center', gap: 14 }}>
             <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(255,255,255,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, flexShrink: 0 }}>👤</div>
             <div style={{ flex: 1 }}>
               <div style={{ fontWeight: 700, fontSize: 15, color: '#fff' }}>Account Settings</div>
               <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.75)', marginTop: 2 }}>Display name and password</div>
             </div>
-            <button onClick={() => setModal(null)} style={{ background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: 8, color: '#fff', width: 30, height: 30, cursor: 'pointer', fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><X size={16} /></button>
+            <button onClick={() => setModal(null)} style={{ background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: 'var(--radius-sm)', color: '#fff', width: 30, height: 30, cursor: 'pointer', fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><X size={16} /></button>
           </div>
           <div style={{ padding: 28 }}>
             {/* Display Name */}
             <div style={{ marginBottom: 26 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 12 }}>
-                <IdCard size={16} style={{ color: '#1a4a7a' }} />
+                <IdCard size={16} style={{ color: 'var(--accent-blue)' }} />
                 <span style={{ fontWeight: 600, fontSize: 14 }}>Display Name</span>
               </div>
               {nameError && <div className="alert alert-error" style={{ marginBottom: 10 }}>{nameError}</div>}
@@ -240,7 +209,7 @@ export default function Settings() {
             {/* Change Password */}
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 12 }}>
-                <Lock size={16} style={{ color: '#1a4a7a' }} />
+                <Lock size={16} style={{ color: 'var(--accent-blue)' }} />
                 <span style={{ fontWeight: 600, fontSize: 14 }}>Change Password</span>
               </div>
               {pwError && <div className="alert alert-error" style={{ marginBottom: 10 }}>{pwError}</div>}
