@@ -45,9 +45,7 @@ body {
   font-weight: 400;
 }
 
-/* Solid gradient base for the hero banner — the decorative mesh/line
-   artwork is a real SVG component (HeroBackground.jsx) layered on top
-   in JSX, not baked into this background. */
+/* Gradient background for the dashboard hero banner. */
 .hero-banner-bg {
   background-image: linear-gradient(135deg, var(--sidebar-bg) 0%, var(--sidebar-accent) 100%);
 }
@@ -224,7 +222,6 @@ a { color: inherit; }
 
 .topbar-title { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 16px; }
 .topbar-title img { width: 38px; height: 38px; border-radius: 50%; object-fit: cover; border: 2px solid var(--border); background: #fff; }
-.topbar-date { color: var(--text-muted); font-size: 13px; }
 
 .topbar-bell {
   position: relative;
@@ -381,8 +378,6 @@ p.page-subtitle { color: var(--text-muted); font-size: 14px; margin: 0 0 22px; }
   box-shadow: 0 0 0 3px rgba(122,30,42,0.08);
 }
 .form-textarea { resize: vertical; min-height: 70px; }
-.form-error { border-color: var(--red) !important; }
-.form-error-text { color: var(--red); font-size: 12px; margin-top: 4px; }
 .form-hint { color: var(--text-muted); font-size: 12px; margin-top: 4px; }
 
 /* ---------- Toolbar / filters ---------- */
@@ -570,7 +565,6 @@ p.page-subtitle { color: var(--text-muted); font-size: 14px; margin: 0 0 22px; }
 /* ---------- Misc ---------- */
 .flex-between { display: flex; align-items: center; justify-content: space-between; }
 .text-muted { color: var(--text-muted); }
-.mt-0 { margin-top: 0; }
 .gap-8 { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .line-items-table input { width: 100%; border: none; background: transparent; padding: 4px; font-size: 13px; }
 .line-items-table input:focus { outline: 1px solid var(--maroon); border-radius: 3px; }
@@ -635,7 +629,6 @@ p.page-subtitle { color: var(--text-muted); font-size: 14px; margin: 0 0 22px; }
 
   /* Topbar */
   .topbar { padding: 12px 16px; }
-  .topbar-date { display: none; }
   .topbar-title span { font-size: 14px; }
 
   /* Page content */

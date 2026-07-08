@@ -4,19 +4,12 @@ import { AreaChart, Area, LineChart, Line, XAxis, ResponsiveContainer, Tooltip }
 import {
   FileText, Clock, CheckCircle2, XCircle,
   Boxes, PackageX, ShoppingCart, ChevronRight, Calendar,
-  Plus, ClipboardList, FilePlus2, ClipboardPlus,
+  Plus, ClipboardList,
 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import Layout from '../components/Layout'
 import { timeAgo } from '../lib/dateUtils'
 import { useAuth } from '../context/AuthContext'
-
-const QUICK_ACTIONS = [
-  { title: 'New Purchase Request', sub: 'Draft a new PR form', icon: FilePlus2, to: '/admin/requests/new', accent: 'maroon' },
-  { title: 'New Requisition Slip', sub: 'Issue a RIS document', icon: ClipboardPlus, to: '/requisition-issue-slip', accent: 'gold' },
-  { title: 'Add Inventory Item', sub: 'Register a new item', icon: Boxes, to: '/admin/inventory?action=new', accent: 'maroon' },
-  { title: 'Create Purchase Order', sub: 'Generate a PO', icon: ShoppingCart, to: '/admin/purchase-orders/new', accent: 'gold' },
-]
 
 const ACCENT = {
   maroon: { bg: 'rgba(122,31,43,0.08)',   color: 'var(--maroon)',    border: 'var(--maroon)' },
@@ -355,54 +348,28 @@ export default function Dashboard() {
         <div className="state-box"><div className="spinner"></div>Loading dashboard…</div>
       ) : (
         <>
-          {/* Quick Actions */}
-          <div className="dash-animate" style={{ marginBottom: 14, animationDelay: '0.05s' }}>
-            <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--gold-dark)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Do It Fast</div>
-            <h2 style={{ margin: '4px 0 4px', fontSize: 18, fontWeight: 600 }}>Quick Actions</h2>
-            <p style={{ margin: 0, fontSize: 13, color: 'var(--text-muted)' }}>Start the most common tasks in a single click</p>
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16, marginBottom: 'var(--space-section)' }}>
-            {QUICK_ACTIONS.map((a, i) => {
-              const accent = ACCENT[a.accent]
-              return (
-                <div
-                  key={a.title}
-                  onClick={() => navigate(a.to)}
-                  className="card dash-animate dash-card-hover"
-                  style={{ padding: 18, cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 10, animationDelay: `${0.08 + i * 0.04}s` }}
-                >
-                  <span className="icon-badge" style={{ width: 38, height: 38, background: accent.bg, color: accent.color }}>
-                    <a.icon size={17} />
-                  </span>
-                  <div style={{ fontWeight: 600, fontSize: 14 }}>{a.title}</div>
-                  <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{a.sub}</div>
-                </div>
-              )
-            })}
-          </div>
-
           {/* System Overview — stat grid, 2 rows x 4 */}
-          <div className="dash-animate" style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10, animationDelay: '0.15s' }}>
+          <div className="dash-animate" style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10, animationDelay: '0.05s' }}>
             System Overview
           </div>
           <div className="stats-grid" style={{ marginBottom: 16 }}>
-            <StatCard delay={0.18} accent="maroon" icon={FileText}      label="Purchase Requests" value={stats.prTotal}  sub="This month" sparkline={sparkPR} />
-            <StatCard delay={0.21} accent="blue"   icon={ClipboardList} label="RIS Transactions"  value={stats.risTotal} sub="This month" sparkline={sparkRIS} />
-            <StatCard delay={0.24} accent="maroon" icon={Boxes}         label="Inventory Items"   value={stats.invItems} sub="Total items" sparkline={sparkInv} />
-            <StatCard delay={0.27} accent="blue"   icon={ShoppingCart}  label="Purchase Orders"   value={stats.poCount}  sub="This month" sparkline={sparkPO} />
+            <StatCard delay={0.08} accent="maroon" icon={FileText}      label="Purchase Requests" value={stats.prTotal}  sub="This month" sparkline={sparkPR} />
+            <StatCard delay={0.11} accent="blue"   icon={ClipboardList} label="RIS Transactions"  value={stats.risTotal} sub="This month" sparkline={sparkRIS} />
+            <StatCard delay={0.14} accent="maroon" icon={Boxes}         label="Inventory Items"   value={stats.invItems} sub="Total items" sparkline={sparkInv} />
+            <StatCard delay={0.17} accent="blue"   icon={ShoppingCart}  label="Purchase Orders"   value={stats.poCount}  sub="This month" sparkline={sparkPO} />
           </div>
           <div className="stats-grid" style={{ marginBottom: 'var(--space-section)' }}>
-            <StatCard navigate={navigate} delay={0.3}  accent="gold"  icon={Clock}        label="Pending Approvals" value={stats.prPending + stats.risPending} sub="Awaiting review" to="/admin/requests?status=Submitted" />
-            <StatCard navigate={navigate} delay={0.33} accent="green" icon={CheckCircle2} label="Approved"          value={stats.prApproved + stats.risApproved} sub={`${approvedPct}% of total`} to="/admin/requests?status=Approved" />
-            <StatCard navigate={navigate} delay={0.36} accent="red"   icon={XCircle}      label="Rejected"          value={stats.prRejected + stats.risRejected} sub={`${rejectedPct}% of total`} to="/admin/requests?status=Rejected" />
-            <StatCard navigate={navigate} delay={0.39} accent="gold"  icon={PackageX}     label="Low Stock"         value={stats.lowStock} sub="Needs review" to="/admin/inventory?filter=lowstock" />
+            <StatCard navigate={navigate} delay={0.2}  accent="gold"  icon={Clock}        label="Pending Approvals" value={stats.prPending + stats.risPending} sub="Awaiting review" to="/admin/requests?status=Submitted" />
+            <StatCard navigate={navigate} delay={0.23} accent="green" icon={CheckCircle2} label="Approved"          value={stats.prApproved + stats.risApproved} sub={`${approvedPct}% of total`} to="/admin/requests?status=Approved" />
+            <StatCard navigate={navigate} delay={0.26} accent="red"   icon={XCircle}      label="Rejected"          value={stats.prRejected + stats.risRejected} sub={`${rejectedPct}% of total`} to="/admin/requests?status=Rejected" />
+            <StatCard navigate={navigate} delay={0.29} accent="gold"  icon={PackageX}     label="Low Stock"         value={stats.lowStock} sub="Needs review" to="/admin/inventory?filter=lowstock" />
           </div>
 
           {/* Requests Overview + Recent Activity */}
           <div className="dashboard-two-col" style={{ display: 'grid', gridTemplateColumns: '1.6fr 1fr', gap: 20, marginBottom: 'var(--space-section)', alignItems: 'start' }}>
             <PanelCard
               title="Requests Overview"
-              delay={0.42}
+              delay={0.32}
               action={
                 <span style={{
                   fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', border: '1px solid var(--border)',
@@ -423,7 +390,7 @@ export default function Dashboard() {
 
             <PanelCard
               title="Recent Activity"
-              delay={0.45}
+              delay={0.35}
               action={<button className="btn btn-secondary btn-sm" onClick={() => navigate('/admin/requests')}>View All</button>}
             >
               {feed.length === 0 ? (
@@ -456,7 +423,7 @@ export default function Dashboard() {
           {/* Footer */}
           <div className="dash-animate" style={{
             display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-            padding: '4px 4px 8px', fontSize: 12, color: 'var(--text-muted)', animationDelay: '0.5s',
+            padding: '4px 4px 8px', fontSize: 12, color: 'var(--text-muted)', animationDelay: '0.4s',
           }}>
             <span>© {now.getFullYear()} Municipality of Alaminos - General Services Office. All rights reserved.</span>
             <span>v1.0.0</span>
