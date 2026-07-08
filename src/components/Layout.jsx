@@ -201,7 +201,6 @@ export default function Layout({ children }) {
               {sidebarOpen ? <X size={18} /> : <Menu size={18} />}
             </button>
             <div className="topbar-title">
-              <img src={LOGO} alt="" onError={(e) => { e.target.style.visibility = 'hidden' }} />
               <span>Purchase Request &amp; Inventory Management System</span>
             </div>
           </div>
