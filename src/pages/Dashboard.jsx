@@ -26,7 +26,7 @@ const STATUS_PILL = {
   'Low Stock': { bg: 'rgba(199,154,43,0.14)', color: 'var(--gold-dark)', label: 'Low Stock' },
 }
 
-function StatCard({ accent, icon: Icon, label, value, sub, sparkline, to, navigate, delay = 0 }) {
+function StatCard({ accent, icon: Icon, label, value, sub, sparkline, summary, to, navigate, delay = 0 }) {
   const a = ACCENT[accent]
   const clickable = !!to
   const gradId = `sparkGrad-${label.replace(/[^a-zA-Z0-9]/g, '')}`
@@ -72,6 +72,15 @@ function StatCard({ accent, icon: Icon, label, value, sub, sparkline, to, naviga
               </AreaChart>
             </ResponsiveContainer>
           </div>
+        )}
+        {!sparklineData && summary && (
+          <span style={{
+            fontSize: 11.5, fontWeight: 600, padding: '4px 10px', borderRadius: 999, whiteSpace: 'nowrap', flexShrink: 0,
+            background: summary.tone === 'warning' ? 'var(--warning-tint)' : 'rgba(46,125,50,0.10)',
+            color: summary.tone === 'warning' ? 'var(--warning)' : 'var(--green)',
+          }}>
+            {summary.text}
+          </span>
         )}
         {clickable && (
           <span className="icon-badge stat-arrow" style={{ width: 30, height: 30, borderRadius: '50%', background: a.bg, color: a.color, flexShrink: 0, transition: 'transform 0.15s ease' }}>
@@ -126,7 +135,7 @@ function StatusPill({ label }) {
 
 function RequestsOverviewChart({ data }) {
   return (
-    <div style={{ height: 250, width: '100%' }}>
+    <div style={{ height: 190, width: '100%' }}>
       <ResponsiveContainer width="100%" height="100%">
         <AreaChart data={data} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
           <defs>
@@ -150,19 +159,18 @@ function RequestsOverviewChart({ data }) {
   )
 }
 
-function buildMonthlySeries(rows) {
+function buildLast30DaysSeries(rows) {
   const now = new Date()
-  const months = Array.from({ length: 6 }, (_, idx) => {
-    const d = new Date(now.getFullYear(), now.getMonth() - (5 - idx), 1)
-    return { key: `${d.getFullYear()}-${d.getMonth()}`, count: 0 }
+  const days = Array.from({ length: 30 }, (_, idx) => {
+    const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - (29 - idx))
+    return { key: d.toDateString(), count: 0 }
   })
   rows.forEach((row) => {
-    const d = new Date(row.created_at)
-    const key = `${d.getFullYear()}-${d.getMonth()}`
-    const bucket = months.find((m) => m.key === key)
+    const key = new Date(row.created_at).toDateString()
+    const bucket = days.find((d) => d.key === key)
     if (bucket) bucket.count += 1
   })
-  return months.map((m) => m.count)
+  return days.map((d) => d.count)
 }
 
 function buildDailySeries(rows) {
@@ -190,7 +198,6 @@ export default function Dashboard() {
   const [lowStockItems, setLowStockItems] = useState([])
   const [sparkPR, setSparkPR] = useState([])
   const [sparkRIS, setSparkRIS] = useState([])
-  const [sparkInv, setSparkInv] = useState([])
   const [sparkPO, setSparkPO] = useState([])
   const [requestsDaily, setRequestsDaily] = useState([])
   const [loading, setLoading] = useState(true)
@@ -205,9 +212,8 @@ export default function Dashboard() {
 
   async function loadAll() {
     setLoading(true)
-    const sixMonthsAgo = new Date()
-    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5)
-    sixMonthsAgo.setDate(1)
+    const thirtyDaysAgo = new Date()
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 29)
     const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1)
 
     const [
@@ -217,8 +223,7 @@ export default function Dashboard() {
       { data: recentRisRows },
       { data: invRows }, { data: risInvRows },
       { count: poCount },
-      { data: prMonthlyRows }, { data: risMonthlyRows },
-      { data: invMonthlyRows }, { data: risInvMonthlyRows }, { data: poMonthlyRows },
+      { data: prLast30Rows }, { data: risLast30Rows }, { data: poLast30Rows },
       { data: prDailyRows },
     ] = await Promise.all([
       supabase.from('purchase_requests').select('*', { count: 'exact', head: true }),
@@ -234,11 +239,9 @@ export default function Dashboard() {
       supabase.from('inventory').select('item_name, unit, quantity, reorder_level, updated_at'),
       supabase.from('ris_inventory').select('item_name, unit, quantity, reorder_level, updated_at'),
       supabase.from('purchase_orders').select('*', { count: 'exact', head: true }),
-      supabase.from('purchase_requests').select('created_at').gte('created_at', sixMonthsAgo.toISOString()),
-      supabase.from('requisition_issue_slips').select('created_at').gte('created_at', sixMonthsAgo.toISOString()),
-      supabase.from('inventory').select('created_at').gte('created_at', sixMonthsAgo.toISOString()),
-      supabase.from('ris_inventory').select('created_at').gte('created_at', sixMonthsAgo.toISOString()),
-      supabase.from('purchase_orders').select('created_at').gte('created_at', sixMonthsAgo.toISOString()),
+      supabase.from('purchase_requests').select('created_at').gte('created_at', thirtyDaysAgo.toISOString()),
+      supabase.from('requisition_issue_slips').select('created_at').gte('created_at', thirtyDaysAgo.toISOString()),
+      supabase.from('purchase_orders').select('created_at').gte('created_at', thirtyDaysAgo.toISOString()),
       supabase.from('purchase_requests').select('created_at').gte('created_at', startOfMonth.toISOString()),
     ])
 
@@ -247,30 +250,19 @@ export default function Dashboard() {
       ...(risInvRows || []).filter(LOW_STOCK_LEVEL).map((i) => ({ ...i, source: 'RIS' })),
     ].sort((a, b) => a.quantity - b.quantity)
 
-    const prMonthly = buildMonthlySeries(prMonthlyRows || [])
-    const risMonthly = buildMonthlySeries(risMonthlyRows || [])
-    const invMonthly = buildMonthlySeries(invMonthlyRows || [])
-    const risInvMonthly = buildMonthlySeries(risInvMonthlyRows || [])
-    const poMonthly = buildMonthlySeries(poMonthlyRows || [])
-    const combinedInvMonthly = invMonthly.map((v, i) => v + risInvMonthly[i])
-
     setStats({
       prTotal: prTotal || 0, prPending: prPending || 0, prApproved: prApproved || 0, prRejected: prRejected || 0,
       risTotal: risTotal || 0, risPending: risPending || 0, risApproved: risApproved || 0, risRejected: risRejected || 0,
       invItems: (invRows?.length || 0) + (risInvRows?.length || 0),
       lowStock: lowStock.length,
       poCount: poCount || 0,
-      poThisMonth: poMonthly[poMonthly.length - 1] || 0,
-      prThisMonth: prMonthly[prMonthly.length - 1] || 0,
-      risThisMonth: risMonthly[risMonthly.length - 1] || 0,
     })
     setRecentPRs(recentPrRows || [])
     setRecentRis(recentRisRows || [])
     setLowStockItems(lowStock.slice(0, 3))
-    setSparkPR(prMonthly)
-    setSparkRIS(risMonthly)
-    setSparkInv(combinedInvMonthly)
-    setSparkPO(poMonthly)
+    setSparkPR(buildLast30DaysSeries(prLast30Rows || []))
+    setSparkRIS(buildLast30DaysSeries(risLast30Rows || []))
+    setSparkPO(buildLast30DaysSeries(poLast30Rows || []))
     setRequestsDaily(buildDailySeries(prDailyRows || []))
     setLoading(false)
   }
@@ -373,7 +365,12 @@ export default function Dashboard() {
           <div className="stats-grid" style={{ marginBottom: 16 }}>
             <StatCard delay={0.08} accent="maroon" icon={FileText}      label="Purchase Requests" value={stats.prTotal}  sub="This month" sparkline={sparkPR} />
             <StatCard delay={0.11} accent="blue"   icon={ClipboardList} label="RIS Transactions"  value={stats.risTotal} sub="This month" sparkline={sparkRIS} />
-            <StatCard delay={0.14} accent="maroon" icon={Boxes}         label="Inventory Items"   value={stats.invItems} sub="Total items" sparkline={sparkInv} />
+            <StatCard delay={0.14} accent="maroon" icon={Boxes}         label="Inventory Items"   value={stats.invItems} sub="Total items"
+              summary={{
+                text: stats.lowStock > 0 ? `${stats.lowStock} low stock` : 'All stocked',
+                tone: stats.lowStock > 0 ? 'warning' : 'green',
+              }}
+            />
             <StatCard delay={0.17} accent="blue"   icon={ShoppingCart}  label="Purchase Orders"   value={stats.poCount}  sub="This month" sparkline={sparkPO} />
           </div>
           <div className="stats-grid" style={{ marginBottom: 'var(--space-section)' }}>
