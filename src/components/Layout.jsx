@@ -3,7 +3,7 @@ import { NavLink, useNavigate, useLocation } from 'react-router-dom'
 import {
   LayoutDashboard, FileText, Boxes, Tags,
   FileSpreadsheet, ScrollText, Settings, LogOut,
-  Menu, X, ShoppingCart, ChevronDown, ClipboardList, ReceiptText, Warehouse, Bell,
+  Menu, X, ShoppingCart, ChevronDown, ClipboardList, ReceiptText, Warehouse,
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
@@ -103,9 +103,6 @@ export default function Layout({ children }) {
 
   function closeSidebar() { setSidebarOpen(false) }
 
-  const initials = (profile?.full_name || 'Administrator')
-    .split(' ').filter(Boolean).slice(0, 2).map((w) => w[0]).join('').toUpperCase()
-
   return (
     <div className="app-shell">
       {/* Overlay — click to close sidebar on mobile */}
@@ -202,20 +199,6 @@ export default function Layout({ children }) {
             </button>
             <div className="topbar-title">
               <span>Purchase Request &amp; Inventory Management System</span>
-            </div>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
-            <button className="topbar-bell" aria-label="Notifications">
-              <Bell size={19} />
-              <span className="topbar-bell-dot" />
-            </button>
-            <div className="topbar-user">
-              <div className="topbar-avatar">{initials}</div>
-              <div className="topbar-user-text">
-                <div className="name">{profile?.full_name || 'Administrator'}</div>
-                <div className="role">{profile?.role?.toUpperCase() || 'ADMIN'}</div>
-              </div>
-              <ChevronDown size={14} style={{ opacity: 0.5 }} />
             </div>
           </div>
         </div>

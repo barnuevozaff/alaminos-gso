@@ -225,6 +225,7 @@ export default function Dashboard() {
   const [sparkPO, setSparkPO] = useState([])
   const [requestsDaily, setRequestsDaily] = useState([])
   const [loading, setLoading] = useState(true)
+  const [lastUpdated, setLastUpdated] = useState(null)
   const navigate = useNavigate()
   const { profile } = useAuth()
 
@@ -234,8 +235,17 @@ export default function Dashboard() {
 
   useEffect(() => { loadAll() }, [])
 
-  async function loadAll() {
-    setLoading(true)
+  // Silently re-fetch every 60s so the numbers/charts stay current without a
+  // full page reload. Skips the loading-spinner gate (silent=true) so open
+  // cards/scroll position aren't disturbed, and is cleared on unmount so it
+  // doesn't keep polling after navigating away from the dashboard.
+  useEffect(() => {
+    const interval = setInterval(() => loadAll(true), 60000)
+    return () => clearInterval(interval)
+  }, [])
+
+  async function loadAll(silent = false) {
+    if (!silent) setLoading(true)
     const thirtyDaysAgo = new Date()
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 29)
     const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1)
@@ -296,6 +306,7 @@ export default function Dashboard() {
     setSparkPO(buildLast30DaysSeries(poLast30Rows || []))
     setRequestsDaily(buildDailySeries(prDailyRows || [], risDailyRows || []))
     setLoading(false)
+    setLastUpdated(new Date())
   }
 
   const feed = [
@@ -339,6 +350,7 @@ export default function Dashboard() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginTop: 12, fontSize: 12.5, color: 'rgba(255,255,255,0.7)' }}>
             <Calendar size={14} />
             {dateTimeLabel}
+            {lastUpdated && <span style={{ opacity: 0.7 }}>· Updated {timeAgo(lastUpdated)}</span>}
           </div>
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 18 }}>
             <button
