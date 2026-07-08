@@ -26,11 +26,52 @@ const STATUS_PILL = {
   'Low Stock': { bg: 'rgba(199,154,43,0.14)', color: 'var(--gold-dark)', label: 'Low Stock' },
 }
 
+function usePrefersReducedMotion() {
+  const [reduced, setReduced] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  )
+  useEffect(() => {
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
+    const handler = (e) => setReduced(e.matches)
+    mq.addEventListener('change', handler)
+    return () => mq.removeEventListener('change', handler)
+  }, [])
+  return reduced
+}
+
+// Isolated so its 1s tick only re-renders this small span, not the whole
+// dashboard — the refresh timestamp is the only thing that needs to update
+// every second.
+function RelativeTime({ date }) {
+  const [, tick] = useState(0)
+  useEffect(() => {
+    const id = setInterval(() => tick((n) => n + 1), 1000)
+    return () => clearInterval(id)
+  }, [])
+  if (!date) return null
+  const seconds = Math.max(0, Math.floor((Date.now() - date.getTime()) / 1000))
+  let text
+  if (seconds < 5) text = 'just now'
+  else if (seconds < 60) text = `${seconds} second${seconds === 1 ? '' : 's'} ago`
+  else {
+    const mins = Math.floor(seconds / 60)
+    text = `${mins} minute${mins === 1 ? '' : 's'} ago`
+  }
+  return <span style={{ opacity: 0.7 }}>· Updated {text}</span>
+}
+
 function StatCard({ accent, icon: Icon, label, value, sub, sparkline, summary, to, navigate, delay = 0 }) {
   const a = ACCENT[accent]
   const clickable = !!to
   const gradId = `sparkGrad-${label.replace(/[^a-zA-Z0-9]/g, '')}`
   const sparklineData = sparkline?.map((v, i) => ({ i, v }))
+  const reducedMotion = usePrefersReducedMotion()
+
+  function handleKeyDown(e) {
+    if (!clickable) return
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate(to) }
+  }
+
   return (
     <div
       className={`card dash-animate${clickable ? ' dash-card-hover' : ''}`}
@@ -39,6 +80,10 @@ function StatCard({ accent, icon: Icon, label, value, sub, sparkline, summary, t
         cursor: clickable ? 'pointer' : 'default', borderTop: `3px solid ${a.color}`,
       }}
       onClick={clickable ? () => navigate(to) : undefined}
+      onKeyDown={clickable ? handleKeyDown : undefined}
+      role={clickable ? 'button' : undefined}
+      tabIndex={clickable ? 0 : undefined}
+      aria-label={clickable ? `View ${label}` : undefined}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
         <span className="icon-badge" style={{ width: 38, height: 38, borderRadius: 11, background: a.bg, color: a.color }}>
@@ -46,15 +91,15 @@ function StatCard({ accent, icon: Icon, label, value, sub, sparkline, summary, t
         </span>
         <span style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{label}</span>
       </div>
-      <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 12 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
         <div style={{ minWidth: 0 }}>
-          <div style={{ fontSize: 30, fontWeight: 700, color: 'var(--text)', lineHeight: 1, letterSpacing: '-0.01em', fontVariantNumeric: 'tabular-nums' }}>{value.toLocaleString()}</div>
+          <div key={value} className="value-pulse" style={{ fontSize: 30, fontWeight: 700, color: 'var(--text)', lineHeight: 1, letterSpacing: '-0.01em', fontVariantNumeric: 'tabular-nums' }}>{value.toLocaleString()}</div>
           <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 6, fontWeight: 400 }}>{sub}</div>
         </div>
         {sparklineData && (
           <div style={{ width: 76, height: 38, flexShrink: 0 }}>
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={sparklineData}>
+              <AreaChart data={sparklineData} margin={{ top: 4, right: 2, bottom: 2, left: 2 }}>
                 <defs>
                   <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0%" stopColor={a.color} stopOpacity={0.3} />
@@ -63,7 +108,7 @@ function StatCard({ accent, icon: Icon, label, value, sub, sparkline, summary, t
                 </defs>
                 <Area
                   type="basis" dataKey="v" stroke={a.color} strokeWidth={2}
-                  fill={`url(#${gradId})`} isAnimationActive={false}
+                  fill={`url(#${gradId})`} isAnimationActive={!reducedMotion} animationDuration={500} animationEasing="ease"
                   dot={(props) => {
                     if (props.index !== sparklineData.length - 1) return <g key={props.index} />
                     return <circle key={props.index} cx={props.cx} cy={props.cy} r={3} fill={a.color} stroke="#fff" strokeWidth={1.5} />
@@ -74,7 +119,7 @@ function StatCard({ accent, icon: Icon, label, value, sub, sparkline, summary, t
           </div>
         )}
         {!sparklineData && summary && (
-          <span style={{
+          <span key={summary.text} className="value-pulse" style={{
             fontSize: 11.5, fontWeight: 600, padding: '4px 10px', borderRadius: 999, whiteSpace: 'nowrap', flexShrink: 0,
             background: summary.tone === 'warning' ? 'var(--warning-tint)' : 'rgba(46,125,50,0.10)',
             color: summary.tone === 'warning' ? 'var(--warning)' : 'var(--green)',
@@ -134,6 +179,7 @@ function StatusPill({ label }) {
 }
 
 function RequestsOverviewChart({ data }) {
+  const reducedMotion = usePrefersReducedMotion()
   return (
     <div>
       <div style={{ display: 'flex', gap: 16, marginBottom: 4 }}>
@@ -167,8 +213,8 @@ function RequestsOverviewChart({ data }) {
               tick={{ fontSize: 11, fill: 'var(--text-muted)' }}
             />
             <Tooltip contentStyle={{ borderRadius: 12, border: '1px solid var(--border)', fontSize: 12 }} />
-            <Area type="monotone" dataKey="pr" name="Purchase Requests" stroke="var(--maroon)" strokeWidth={2.5} fill="url(#reqOverviewGradientPR)" />
-            <Area type="monotone" dataKey="ris" name="RIS" stroke="#3a6fa8" strokeWidth={2.5} fill="url(#reqOverviewGradientRIS)" />
+            <Area type="monotone" dataKey="pr" name="Purchase Requests" stroke="var(--maroon)" strokeWidth={2.5} fill="url(#reqOverviewGradientPR)" isAnimationActive={!reducedMotion} animationDuration={500} animationEasing="ease" />
+            <Area type="monotone" dataKey="ris" name="RIS" stroke="#3a6fa8" strokeWidth={2.5} fill="url(#reqOverviewGradientRIS)" isAnimationActive={!reducedMotion} animationDuration={500} animationEasing="ease" />
           </AreaChart>
         </ResponsiveContainer>
       </div>
@@ -230,8 +276,9 @@ export default function Dashboard() {
   const { profile } = useAuth()
 
   const now = new Date()
-  const dateTimeLabel = now.toLocaleDateString('en-PH', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
-    + ' • ' + now.toLocaleTimeString('en-PH', { hour: 'numeric', minute: '2-digit' })
+  const rangeStart = new Date(now)
+  rangeStart.setDate(rangeStart.getDate() - 29)
+  const rangeLabel = `${rangeStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} – ${now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
 
   useEffect(() => { loadAll() }, [])
 
@@ -348,9 +395,9 @@ export default function Dashboard() {
           <h1 style={{ margin: 0, fontSize: 24, fontWeight: 700 }}>Welcome back, {profile?.full_name || 'Administrator'}</h1>
           <p style={{ margin: '5px 0 0', fontSize: 13.5, color: 'rgba(255,255,255,0.75)' }}>Here's what's happening with your system today.</p>
           <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginTop: 12, fontSize: 12.5, color: 'rgba(255,255,255,0.7)' }}>
-            <Calendar size={14} />
-            {dateTimeLabel}
-            {lastUpdated && <span style={{ opacity: 0.7 }}>· Updated {timeAgo(lastUpdated)}</span>}
+            <Calendar size={14} aria-hidden="true" />
+            <span>{rangeLabel}</span>
+            <RelativeTime date={lastUpdated} />
           </div>
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 18 }}>
             <button
@@ -459,6 +506,10 @@ export default function Dashboard() {
                     <div
                       key={item.id}
                       onClick={() => navigate(item.to)}
+                      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate(item.to) } }}
+                      role="button"
+                      tabIndex={0}
+                      aria-label={item.title}
                       style={{
                         display: 'flex', alignItems: 'center', gap: 12, padding: '14px 20px',
                         borderBottom: idx < feed.length - 1 ? '1px solid var(--border)' : 'none',
