@@ -20,10 +20,10 @@ export default class ErrorBoundary extends Component {
       <div style={{
         minHeight: '100vh', display: 'flex', flexDirection: 'column',
         alignItems: 'center', justifyContent: 'center',
-        background: '#fdf8f6', padding: 24, textAlign: 'center',
+        background: 'var(--bg)', padding: 24, textAlign: 'center',
       }}>
         <div style={{ fontSize: 48, marginBottom: 16 }}>⚠️</div>
-        <h2 style={{ margin: '0 0 8px', color: '#7a1e2a' }}>Something went wrong</h2>
+        <h2 style={{ margin: '0 0 8px', color: 'var(--maroon)' }}>Something went wrong</h2>
         <p style={{ color: '#6b6260', marginBottom: 24, maxWidth: 400 }}>
           An unexpected error occurred. Please reload the page. If the problem persists, contact your system administrator.
         </p>
@@ -35,9 +35,9 @@ export default class ErrorBoundary extends Component {
         </button>
         {import.meta.env.DEV && (
           <pre style={{
-            marginTop: 24, padding: 16, background: '#f5ede8',
+            marginTop: 24, padding: 16, background: 'var(--border)',
             borderRadius: 8, fontSize: 12, textAlign: 'left',
-            maxWidth: 600, overflowX: 'auto', color: '#7a1e2a',
+            maxWidth: 600, overflowX: 'auto', color: 'var(--maroon)',
           }}>
             {this.state.error?.toString()}
           </pre>

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { FileText, Search, ArrowRight, ClipboardList, X } from 'lucide-react'
+import { FileText, Search, ArrowRight, ClipboardList, X, ShieldCheck } from 'lucide-react'
 import LOGO from '../assets/alaminos-seal.png'
 
 export default function PublicHome() {
@@ -49,12 +49,12 @@ export default function PublicHome() {
         <ActionCard
           onClick={() => setOpenModal('purchase-request')}
           icon={FileText}
-          iconBg="linear-gradient(135deg, #7a1e2a 0%, #a8293a 100%)"
+          iconBg="linear-gradient(135deg, #7a1f2b 0%, #a8293a 100%)"
           iconShadow="rgba(122,30,42,0.35)"
           title="Purchase Request"
           description="Submit a new request for items needed by your department, or track one you already sent."
           label="Get Started"
-          accentColor="#7a1e2a"
+          accentColor="#7a1f2b"
         />
         <ActionCard
           onClick={() => setOpenModal('ris')}
@@ -74,13 +74,13 @@ export default function PublicHome() {
       </div>
 
       {openModal === 'purchase-request' && (
-        <ChoiceModal onClose={() => setOpenModal(null)} title="Purchase Request">
+        <ChoiceModal onClose={() => setOpenModal(null)} title="Purchase Request" icon={FileText} accentColor="#7a1f2b">
           <ChoiceOption
             to="/purchase-request"
             icon={FileText}
             title="Submit a Purchase Request"
             description="Fill out a request for items needed by your department."
-            accentColor="#7a1e2a"
+            accentColor="#7a1f2b"
           />
           <ChoiceOption
             to="/track-request"
@@ -93,13 +93,13 @@ export default function PublicHome() {
       )}
 
       {openModal === 'ris' && (
-        <ChoiceModal onClose={() => setOpenModal(null)} title="Requisition and Issue Slip">
+        <ChoiceModal onClose={() => setOpenModal(null)} title="Requisition and Issue Slip" icon={ClipboardList} accentColor="#1a4a7a">
           <ChoiceOption
             to="/requisition-issue-slip"
             icon={ClipboardList}
             title="Submit a Requisition and Issue Slip"
             description="Request supplies already available in GSO inventory."
-            accentColor="#7a1e2a"
+            accentColor="#1a4a7a"
           />
           <ChoiceOption
             to="/track-ris"
@@ -114,14 +114,39 @@ export default function PublicHome() {
   )
 }
 
-function ChoiceModal({ title, onClose, children }) {
+function ChoiceModal({ title, icon: Icon, accentColor, onClose, children }) {
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-box modal-sm" onClick={(e) => e.stopPropagation()}>
         <button className="modal-close" aria-label="Close" onClick={onClose}><X size={16} /></button>
-        <h2 className="modal-title">{title}</h2>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 22 }}>
+          <div style={{
+            width: 48, height: 48, borderRadius: 14, flexShrink: 0,
+            background: `${accentColor}14`, color: accentColor,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <Icon size={22} />
+          </div>
+          <div>
+            <h2 className="modal-title" style={{ margin: 0 }}>{title}</h2>
+            <p style={{ margin: '3px 0 0', fontSize: 13, color: '#6b6260' }}>Choose an option to continue.</p>
+          </div>
+        </div>
+
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {children}
+        </div>
+
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 10, marginTop: 18,
+          padding: '12px 14px', borderRadius: 12,
+          background: `${accentColor}0d`,
+        }}>
+          <ShieldCheck size={16} style={{ color: accentColor, flexShrink: 0 }} />
+          <span style={{ fontSize: 12.5, color: '#4a4340', lineHeight: 1.5 }}>
+            All requests are processed and reviewed by the General Services Office.
+          </span>
         </div>
       </div>
     </div>
@@ -136,17 +161,24 @@ function ChoiceOption({ to, icon: Icon, title, description, accentColor }) {
       className="ris-choice-option"
     >
       <div style={{
-        width: 42, height: 42, borderRadius: 12, flexShrink: 0,
+        width: 44, height: 44, borderRadius: 12, flexShrink: 0,
         background: `${accentColor}14`, color: accentColor,
-        display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 17,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
       }}>
-        <Icon size={18} />
+        <Icon size={19} />
       </div>
       <div style={{ flex: 1 }}>
         <div style={{ fontWeight: 700, fontSize: 14.5, color: '#1a1210' }}>{title}</div>
         <div style={{ fontSize: 12.5, color: '#6b6260', marginTop: 2, lineHeight: 1.5 }}>{description}</div>
       </div>
-      <ArrowRight size={14} style={{ color: accentColor, flexShrink: 0 }} />
+      <div style={{
+        width: 32, height: 32, borderRadius: '50%', flexShrink: 0,
+        background: accentColor,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        boxShadow: `0 4px 12px ${accentColor}40`,
+      }}>
+        <ArrowRight size={14} style={{ color: '#fff' }} />
+      </div>
     </Link>
   )
 }

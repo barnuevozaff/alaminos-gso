@@ -3,7 +3,7 @@ import { NavLink, useNavigate, useLocation } from 'react-router-dom'
 import {
   LayoutDashboard, FileText, Boxes, Tags,
   FileSpreadsheet, ScrollText, Settings, LogOut,
-  Menu, X, ShoppingCart, ChevronDown, ClipboardList, ReceiptText, Warehouse,
+  Menu, X, ShoppingCart, ChevronDown, ClipboardList, ReceiptText, Warehouse, Bell,
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
@@ -101,11 +101,10 @@ export default function Layout({ children }) {
     navigate('/admin/login')
   }
 
-  const today = new Date().toLocaleDateString('en-US', {
-    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
-  })
-
   function closeSidebar() { setSidebarOpen(false) }
+
+  const initials = (profile?.full_name || 'Administrator')
+    .split(' ').filter(Boolean).slice(0, 2).map((w) => w[0]).join('').toUpperCase()
 
   return (
     <div className="app-shell">
@@ -114,7 +113,7 @@ export default function Layout({ children }) {
         <div className="sidebar-overlay" onClick={closeSidebar} />
       )}
 
-      <aside className={`sidebar${sidebarOpen ? ' sidebar-open' : ''}`}>
+      <aside className={`sidebar bg-pattern-burgundy${sidebarOpen ? ' sidebar-open' : ''}`}>
         <div className="sidebar-header">
           <img src={LOGO} alt="Alaminos seal" className="sidebar-logo" onError={(e) => { e.target.style.visibility = 'hidden' }} />
           <div className="sidebar-header-text">
@@ -136,7 +135,7 @@ export default function Layout({ children }) {
                       className={({ isActive }) => 'sidebar-link' + (isActive ? ' active' : '')}
                       onClick={closeSidebar}
                     >
-                      <link.icon size={16} style={{ flexShrink: 0 }} />
+                      <link.icon size={18} style={{ flexShrink: 0 }} />
                       <span>{link.label}</span>
                     </NavLink>
                   ))}
@@ -158,7 +157,7 @@ export default function Layout({ children }) {
                   }
                   onClick={() => toggleGroup(item.label)}
                 >
-                  <item.icon size={16} style={{ flexShrink: 0 }} />
+                  <item.icon size={18} style={{ flexShrink: 0 }} />
                   <span>{item.label}</span>
                   <ChevronDown
                     size={14}
@@ -175,7 +174,7 @@ export default function Layout({ children }) {
                         className={({ isActive }) => 'sidebar-link sidebar-sublink' + (isActive ? ' active' : '')}
                         onClick={closeSidebar}
                       >
-                        <child.icon size={14} style={{ flexShrink: 0 }} />
+                        <child.icon size={18} style={{ flexShrink: 0 }} />
                         <span>{child.label}</span>
                       </NavLink>
                     ))}
@@ -206,7 +205,20 @@ export default function Layout({ children }) {
               <span>Purchase Request &amp; Inventory Management System</span>
             </div>
           </div>
-          <div className="topbar-date">{today}</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
+            <button className="topbar-bell" aria-label="Notifications">
+              <Bell size={19} />
+              <span className="topbar-bell-dot" />
+            </button>
+            <div className="topbar-user">
+              <div className="topbar-avatar">{initials}</div>
+              <div className="topbar-user-text">
+                <div className="name">{profile?.full_name || 'Administrator'}</div>
+                <div className="role">{profile?.role?.toUpperCase() || 'ADMIN'}</div>
+              </div>
+              <ChevronDown size={14} style={{ opacity: 0.5 }} />
+            </div>
+          </div>
         </div>
         {!isOnline && (
           <div style={{

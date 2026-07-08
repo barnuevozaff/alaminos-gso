@@ -1,14 +1,13 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { PieChart, Pie, Cell, BarChart, Bar, XAxis, ResponsiveContainer, Tooltip } from 'recharts'
+import { AreaChart, Area, LineChart, Line, XAxis, ResponsiveContainer, Tooltip } from 'recharts'
 import {
   FileText, Clock, CheckCircle2, XCircle,
-  Boxes, PackageX, ShoppingCart,
-  Plus, Eye, ClipboardList, ScrollText, FilePlus2, ClipboardPlus, AlertTriangle,
+  Boxes, PackageX, ShoppingCart, ChevronRight, Calendar,
+  Plus, ClipboardList, FilePlus2, ClipboardPlus,
 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import Layout from '../components/Layout'
-import StatusBadge from '../components/StatusBadge'
 import { timeAgo } from '../lib/dateUtils'
 import { useAuth } from '../context/AuthContext'
 
@@ -20,44 +19,60 @@ const QUICK_ACTIONS = [
 ]
 
 const ACCENT = {
-  maroon: { bg: 'rgba(73,20,22,0.08)',   color: 'var(--sidebar-bg)', border: 'var(--sidebar-bg)' },
-  gold:   { bg: 'rgba(196,136,15,0.10)', color: 'var(--gold-dark)',  border: 'var(--gold-dark)' },
-  green:  { bg: 'rgba(31,138,58,0.10)',  color: 'var(--green)',      border: 'var(--green)' },
-  red:    { bg: 'rgba(192,49,43,0.10)',  color: 'var(--red)',        border: 'var(--red)' },
-  blue:   { bg: 'rgba(58,111,168,0.10)', color: '#3a6fa8',           border: '#3a6fa8' },
+  maroon: { bg: 'rgba(122,31,43,0.08)',   color: 'var(--maroon)',    border: 'var(--maroon)' },
+  gold:   { bg: 'rgba(199,154,43,0.14)',  color: 'var(--gold-dark)', border: 'var(--gold-dark)' },
+  green:  { bg: 'rgba(46,125,50,0.10)',   color: 'var(--green)',     border: 'var(--green)' },
+  red:    { bg: 'rgba(179,38,30,0.10)',   color: 'var(--red)',       border: 'var(--red)' },
+  blue:   { bg: 'rgba(58,111,168,0.10)',  color: '#3a6fa8',          border: '#3a6fa8' },
 }
 
-// Reused across the donut and the recent-activity chips so status colors mean
-// the same thing everywhere on the page.
-const STATUS_COLORS = { Approved: 'var(--green)', Pending: 'var(--gold-dark)', Rejected: 'var(--red)', Processing: '#3a6fa8' }
+const STATUS_PILL = {
+  Submitted: { bg: 'rgba(199,154,43,0.14)', color: 'var(--gold-dark)', label: 'Pending' },
+  Approved:  { bg: 'rgba(46,125,50,0.12)',  color: 'var(--green)',     label: 'Approved' },
+  Rejected:  { bg: 'rgba(179,38,30,0.12)',  color: 'var(--red)',       label: 'Rejected' },
+  'Low Stock': { bg: 'rgba(199,154,43,0.14)', color: 'var(--gold-dark)', label: 'Low Stock' },
+}
 
-function StatCard({ accent, icon: Icon, label, value, corner, delay = 0 }) {
+function StatCard({ accent, icon: Icon, label, value, sub, sparkline, to, navigate, delay = 0 }) {
   const a = ACCENT[accent]
+  const clickable = !!to
   return (
     <div
-      className="card dash-animate dash-card-hover"
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 12,
-        animationDelay: `${delay}s`,
-      }}
+      className={`card dash-animate${clickable ? ' dash-card-hover' : ''}`}
+      style={{ display: 'flex', flexDirection: 'column', gap: 16, animationDelay: `${delay}s`, cursor: clickable ? 'pointer' : 'default' }}
+      onClick={clickable ? () => navigate(to) : undefined}
     >
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-        <span className="icon-badge" style={{ background: a.bg, color: a.color }}>
-          <Icon size={19} />
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <span className="icon-badge" style={{ width: 36, height: 36, borderRadius: 10, background: a.bg, color: a.color }}>
+          <Icon size={17} />
         </span>
-        {corner && <span style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 600, whiteSpace: 'nowrap' }}>{corner}</span>}
+        <span style={{ fontSize: 13.5, fontWeight: 500, color: 'var(--text-muted)' }}>{label}</span>
       </div>
-      <div>
-        <div style={{ fontSize: 32, fontWeight: 800, color: 'var(--text)', lineHeight: 1 }}>{value.toLocaleString()}</div>
-        <div style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 6 }}>{label}</div>
+      <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 12 }}>
+        <div style={{ minWidth: 0 }}>
+          <div style={{ fontSize: 28, fontWeight: 600, color: 'var(--text)', lineHeight: 1 }}>{value.toLocaleString()}</div>
+          <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 5, fontWeight: 400 }}>{sub}</div>
+        </div>
+        {sparkline && (
+          <div style={{ width: 70, height: 34, flexShrink: 0 }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={sparkline.map((v, i) => ({ i, v }))}>
+                <Line type="monotone" dataKey="v" stroke={a.color} strokeWidth={2} dot={false} isAnimationActive={false} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        )}
+        {clickable && (
+          <span className="icon-badge" style={{ width: 30, height: 30, borderRadius: '50%', background: a.bg, color: a.color, flexShrink: 0 }}>
+            <ChevronRight size={15} />
+          </span>
+        )}
       </div>
     </div>
   )
 }
 
-function PanelCard({ title, icon: Icon, sub, action, children, delay = 0 }) {
+function PanelCard({ title, sub, action, children, delay = 0 }) {
   return (
     <div className="card dash-animate" style={{ padding: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column', animationDelay: `${delay}s` }}>
       <div style={{
@@ -65,11 +80,8 @@ function PanelCard({ title, icon: Icon, sub, action, children, delay = 0 }) {
         borderBottom: '1px solid var(--border)', gap: 12,
       }}>
         <div>
-          <div style={{ fontWeight: 700, fontSize: 15, display: 'flex', alignItems: 'center', gap: 8 }}>
-            {Icon && <Icon size={16} style={{ color: 'var(--sidebar-bg)' }} />}
-            {title}
-          </div>
-          {sub && <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 3 }}>{sub}</div>}
+          <div style={{ fontWeight: 600, fontSize: 13, color: 'var(--maroon)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{title}</div>
+          {sub && <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4 }}>{sub}</div>}
         </div>
         {action}
       </div>
@@ -78,112 +90,105 @@ function PanelCard({ title, icon: Icon, sub, action, children, delay = 0 }) {
   )
 }
 
-function ActivityChip({ type }) {
-  const a = type === 'RIS' ? ACCENT.blue : ACCENT.maroon
+function FeedIcon({ kind }) {
+  const map = {
+    PR: { icon: FileText, accent: ACCENT.maroon },
+    RIS: { icon: ClipboardList, accent: ACCENT.blue },
+    lowstock: { icon: PackageX, accent: ACCENT.gold },
+  }
+  const { icon: Icon, accent } = map[kind]
   return (
-    <span className="icon-badge" style={{ background: a.bg, color: a.color, fontWeight: 800, fontSize: 12 }}>
-      {type}
+    <span className="icon-badge" style={{ background: accent.bg, color: accent.color }}>
+      <Icon size={17} />
     </span>
   )
 }
 
-function DonutChart({ segments, total }) {
+function StatusPill({ label }) {
+  const c = STATUS_PILL[label] || STATUS_PILL.Submitted
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 28, flexWrap: 'wrap' }}>
-      <div style={{ position: 'relative', width: 208, height: 208, flexShrink: 0 }}>
-        <ResponsiveContainer width="100%" height="100%">
-          <PieChart>
-            <Pie data={segments} dataKey="value" nameKey="label" innerRadius={62} outerRadius={92} paddingAngle={2} stroke="none">
-              {segments.map((s) => <Cell key={s.label} fill={s.color} />)}
-            </Pie>
-            <Tooltip contentStyle={{ borderRadius: 12, border: '1px solid var(--border)', fontSize: 12 }} />
-          </PieChart>
-        </ResponsiveContainer>
-        <div style={{
-          position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column',
-          alignItems: 'center', justifyContent: 'center', pointerEvents: 'none',
-        }}>
-          <div style={{ fontSize: 30, fontWeight: 800, color: 'var(--text)', lineHeight: 1 }}>{total}</div>
-          <div style={{ fontSize: 11, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Total</div>
-        </div>
-      </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-        {segments.map((s) => (
-          <div key={s.label} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <span style={{ width: 11, height: 11, borderRadius: 3, background: s.color, flexShrink: 0 }} />
-            <span style={{ fontSize: 13, color: 'var(--text)', minWidth: 84 }}>{s.label}</span>
-            <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>{s.value.toLocaleString()}</span>
-          </div>
-        ))}
-      </div>
+    <span style={{ background: c.bg, color: c.color, fontSize: 11.5, fontWeight: 600, padding: '4px 10px', borderRadius: 999, whiteSpace: 'nowrap', flexShrink: 0 }}>
+      {c.label}
+    </span>
+  )
+}
+
+function RequestsOverviewChart({ data }) {
+  return (
+    <div style={{ height: 250, width: '100%' }}>
+      <ResponsiveContainer width="100%" height="100%">
+        <AreaChart data={data} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
+          <defs>
+            <linearGradient id="reqOverviewGradient" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="var(--maroon)" stopOpacity={0.25} />
+              <stop offset="100%" stopColor="var(--maroon)" stopOpacity={0} />
+            </linearGradient>
+          </defs>
+          <XAxis
+            dataKey="label"
+            axisLine={false}
+            tickLine={false}
+            interval={Math.max(Math.floor(data.length / 6), 3)}
+            tick={{ fontSize: 11, fill: 'var(--text-muted)' }}
+          />
+          <Tooltip contentStyle={{ borderRadius: 12, border: '1px solid var(--border)', fontSize: 12 }} />
+          <Area type="monotone" dataKey="count" stroke="var(--maroon)" strokeWidth={2.5} fill="url(#reqOverviewGradient)" />
+        </AreaChart>
+      </ResponsiveContainer>
     </div>
   )
 }
 
-function MonthlyActivityChart({ data }) {
-  const chartData = data.map((d) => ({ month: d.month, PR: d.pr, RIS: d.ris }))
-  return (
-    <div>
-      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 16, marginBottom: 12 }}>
-        <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--text-muted)' }}>
-          <span style={{ width: 10, height: 10, borderRadius: 3, background: 'var(--maroon)' }} />PR
-        </span>
-        <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--text-muted)' }}>
-          <span style={{ width: 10, height: 10, borderRadius: 3, background: '#3a6fa8' }} />RIS
-        </span>
-      </div>
-      <div style={{ height: 208, width: '100%' }}>
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={chartData} barGap={6}>
-            <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: 'var(--text-muted)' }} />
-            <Tooltip
-              cursor={{ fill: 'var(--bg)' }}
-              contentStyle={{ borderRadius: 12, border: '1px solid var(--border)', fontSize: 12 }}
-            />
-            <Bar dataKey="PR" fill="var(--maroon)" radius={[6, 6, 0, 0]} />
-            <Bar dataKey="RIS" fill="#3a6fa8" radius={[6, 6, 0, 0]} />
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
-    </div>
-  )
-}
-
-function buildMonthlyActivity(prRows, risRows) {
+function buildMonthlySeries(rows) {
   const now = new Date()
   const months = Array.from({ length: 6 }, (_, idx) => {
     const d = new Date(now.getFullYear(), now.getMonth() - (5 - idx), 1)
-    return { key: `${d.getFullYear()}-${d.getMonth()}`, month: d.toLocaleDateString('en-US', { month: 'short' }), pr: 0, ris: 0 }
+    return { key: `${d.getFullYear()}-${d.getMonth()}`, count: 0 }
   })
-  const bump = (rows, field) => {
-    rows.forEach((row) => {
-      const d = new Date(row.created_at)
-      const key = `${d.getFullYear()}-${d.getMonth()}`
-      const bucket = months.find((m) => m.key === key)
-      if (bucket) bucket[field] += 1
-    })
-  }
-  bump(prRows, 'pr')
-  bump(risRows, 'ris')
-  return months
+  rows.forEach((row) => {
+    const d = new Date(row.created_at)
+    const key = `${d.getFullYear()}-${d.getMonth()}`
+    const bucket = months.find((m) => m.key === key)
+    if (bucket) bucket.count += 1
+  })
+  return months.map((m) => m.count)
+}
+
+function buildDailySeries(rows) {
+  const now = new Date()
+  const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate()
+  const monthAbbr = now.toLocaleDateString('en-US', { month: 'short' })
+  const days = Array.from({ length: daysInMonth }, (_, i) => ({ day: i + 1, label: `${monthAbbr} ${i + 1}`, count: 0 }))
+  rows.forEach((row) => {
+    const d = new Date(row.created_at)
+    if (d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()) {
+      const bucket = days[d.getDate() - 1]
+      if (bucket) bucket.count += 1
+    }
+  })
+  return days
 }
 
 const LOW_STOCK_LEVEL = (i) => i.quantity <= (i.reorder_level ?? 10)
+const STATUS_VERB = { Submitted: 'submitted', Approved: 'approved', Rejected: 'rejected' }
 
 export default function Dashboard() {
   const [stats, setStats] = useState(null)
   const [recentPRs, setRecentPRs] = useState([])
   const [recentRis, setRecentRis] = useState([])
   const [lowStockItems, setLowStockItems] = useState([])
-  const [auditLogs, setAuditLogs] = useState([])
-  const [monthlyActivity, setMonthlyActivity] = useState([])
-  const [recentTab, setRecentTab] = useState('pr')
+  const [sparkPR, setSparkPR] = useState([])
+  const [sparkRIS, setSparkRIS] = useState([])
+  const [sparkInv, setSparkInv] = useState([])
+  const [sparkPO, setSparkPO] = useState([])
+  const [requestsDaily, setRequestsDaily] = useState([])
   const [loading, setLoading] = useState(true)
-  const [lastUpdated, setLastUpdated] = useState(null)
   const navigate = useNavigate()
   const { profile } = useAuth()
 
-  const today = new Date().toLocaleDateString('en-PH', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
+  const now = new Date()
+  const dateTimeLabel = now.toLocaleDateString('en-PH', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
+    + ' • ' + now.toLocaleTimeString('en-PH', { hour: 'numeric', minute: '2-digit' })
 
   useEffect(() => { loadAll() }, [])
 
@@ -200,9 +205,10 @@ export default function Dashboard() {
       { count: risTotal }, { count: risPending }, { count: risApproved }, { count: risRejected },
       { data: recentRisRows },
       { data: invRows }, { data: risInvRows },
-      { count: poCount }, { count: poThisMonth },
-      { data: auditRows },
+      { count: poCount },
       { data: prMonthlyRows }, { data: risMonthlyRows },
+      { data: invMonthlyRows }, { data: risInvMonthlyRows }, { data: poMonthlyRows },
+      { data: prDailyRows },
     ] = await Promise.all([
       supabase.from('purchase_requests').select('*', { count: 'exact', head: true }),
       supabase.from('purchase_requests').select('*', { count: 'exact', head: true }).eq('status', 'Submitted'),
@@ -214,13 +220,15 @@ export default function Dashboard() {
       supabase.from('requisition_issue_slips').select('*', { count: 'exact', head: true }).eq('status', 'Approved'),
       supabase.from('requisition_issue_slips').select('*', { count: 'exact', head: true }).eq('status', 'Rejected'),
       supabase.from('requisition_issue_slips').select('id, ris_number, requester_name, status, created_at').order('created_at', { ascending: false }).limit(5),
-      supabase.from('inventory').select('item_name, unit, quantity, reorder_level'),
-      supabase.from('ris_inventory').select('item_name, unit, quantity, reorder_level'),
+      supabase.from('inventory').select('item_name, unit, quantity, reorder_level, updated_at'),
+      supabase.from('ris_inventory').select('item_name, unit, quantity, reorder_level, updated_at'),
       supabase.from('purchase_orders').select('*', { count: 'exact', head: true }),
-      supabase.from('purchase_orders').select('*', { count: 'exact', head: true }).gte('created_at', startOfMonth.toISOString()),
-      supabase.from('audit_logs').select('id, action, description, created_at').order('created_at', { ascending: false }).limit(5),
       supabase.from('purchase_requests').select('created_at').gte('created_at', sixMonthsAgo.toISOString()),
       supabase.from('requisition_issue_slips').select('created_at').gte('created_at', sixMonthsAgo.toISOString()),
+      supabase.from('inventory').select('created_at').gte('created_at', sixMonthsAgo.toISOString()),
+      supabase.from('ris_inventory').select('created_at').gte('created_at', sixMonthsAgo.toISOString()),
+      supabase.from('purchase_orders').select('created_at').gte('created_at', sixMonthsAgo.toISOString()),
+      supabase.from('purchase_requests').select('created_at').gte('created_at', startOfMonth.toISOString()),
     ])
 
     const lowStock = [
@@ -228,8 +236,12 @@ export default function Dashboard() {
       ...(risInvRows || []).filter(LOW_STOCK_LEVEL).map((i) => ({ ...i, source: 'RIS' })),
     ].sort((a, b) => a.quantity - b.quantity)
 
-    const monthly = buildMonthlyActivity(prMonthlyRows || [], risMonthlyRows || [])
-    const currentMonthBucket = monthly[monthly.length - 1]
+    const prMonthly = buildMonthlySeries(prMonthlyRows || [])
+    const risMonthly = buildMonthlySeries(risMonthlyRows || [])
+    const invMonthly = buildMonthlySeries(invMonthlyRows || [])
+    const risInvMonthly = buildMonthlySeries(risInvMonthlyRows || [])
+    const poMonthly = buildMonthlySeries(poMonthlyRows || [])
+    const combinedInvMonthly = invMonthly.map((v, i) => v + risInvMonthly[i])
 
     setStats({
       prTotal: prTotal || 0, prPending: prPending || 0, prApproved: prApproved || 0, prRejected: prRejected || 0,
@@ -237,96 +249,103 @@ export default function Dashboard() {
       invItems: (invRows?.length || 0) + (risInvRows?.length || 0),
       lowStock: lowStock.length,
       poCount: poCount || 0,
-      poThisMonth: poThisMonth || 0,
-      prThisMonth: currentMonthBucket?.pr || 0,
-      risThisMonth: currentMonthBucket?.ris || 0,
+      poThisMonth: poMonthly[poMonthly.length - 1] || 0,
+      prThisMonth: prMonthly[prMonthly.length - 1] || 0,
+      risThisMonth: risMonthly[risMonthly.length - 1] || 0,
     })
     setRecentPRs(recentPrRows || [])
     setRecentRis(recentRisRows || [])
-    setLowStockItems(lowStock.slice(0, 4))
-    setAuditLogs(auditRows || [])
-    setMonthlyActivity(monthly)
-    setLastUpdated(new Date().toISOString())
+    setLowStockItems(lowStock.slice(0, 3))
+    setSparkPR(prMonthly)
+    setSparkRIS(risMonthly)
+    setSparkInv(combinedInvMonthly)
+    setSparkPO(poMonthly)
+    setRequestsDaily(buildDailySeries(prDailyRows || []))
     setLoading(false)
   }
 
-  const recentActivity = [
-    ...recentPRs.map((r) => ({ id: `pr-${r.id}`, type: 'PR', number: r.pr_number, subtitle: r.department, status: r.status, created_at: r.created_at, to: `/admin/requests/${r.id}` })),
-    ...recentRis.map((r) => ({ id: `ris-${r.id}`, type: 'RIS', number: r.ris_number, subtitle: r.requester_name, status: r.status, created_at: r.created_at, to: `/admin/ris/${r.id}` })),
+  const feed = [
+    ...recentPRs.map((r) => ({
+      id: `pr-${r.id}`, kind: 'PR',
+      title: `Purchase Request ${r.pr_number} has been ${STATUS_VERB[r.status] || r.status.toLowerCase()}`,
+      subtitle: `${r.department || r.requester_name} · ${timeAgo(r.created_at)}`,
+      status: r.status, created_at: r.created_at, to: `/admin/requests/${r.id}`,
+    })),
+    ...recentRis.map((r) => ({
+      id: `ris-${r.id}`, kind: 'RIS',
+      title: `Requisition Slip ${r.ris_number} has been ${STATUS_VERB[r.status] || r.status.toLowerCase()}`,
+      subtitle: `${r.requester_name} · ${timeAgo(r.created_at)}`,
+      status: r.status, created_at: r.created_at, to: `/admin/ris/${r.id}`,
+    })),
+    ...lowStockItems.map((item, idx) => ({
+      id: `lowstock-${idx}`, kind: 'lowstock',
+      title: `Inventory item "${item.item_name}" is running low`,
+      subtitle: `Current stock: ${item.quantity} ${item.unit} · ${timeAgo(item.updated_at)}`,
+      status: 'Low Stock', created_at: item.updated_at,
+      to: item.source === 'RIS' ? '/admin/ris-inventory?filter=lowstock' : '/admin/inventory?filter=lowstock',
+    })),
   ].sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 6)
-
-  const donutSegments = stats ? [
-    { label: 'Approved', value: stats.prApproved + stats.risApproved, color: STATUS_COLORS.Approved },
-    { label: 'Pending', value: stats.prPending + stats.risPending, color: STATUS_COLORS.Pending },
-    { label: 'Rejected', value: stats.prRejected + stats.risRejected, color: STATUS_COLORS.Rejected },
-    {
-      label: 'Processing',
-      value: Math.max(0,
-        (stats.prTotal - stats.prApproved - stats.prPending - stats.prRejected) +
-        (stats.risTotal - stats.risApproved - stats.risPending - stats.risRejected)
-      ),
-      color: STATUS_COLORS.Processing,
-    },
-  ] : []
-  const donutTotal = donutSegments.reduce((sum, s) => sum + s.value, 0)
 
   const combinedTotal = stats ? stats.prTotal + stats.risTotal : 0
   const approvedPct = stats && combinedTotal ? Math.round(((stats.prApproved + stats.risApproved) / combinedTotal) * 100) : 0
   const rejectedPct = stats && combinedTotal ? Math.round(((stats.prRejected + stats.risRejected) / combinedTotal) * 100) : 0
+  const requestsTotalThisMonth = requestsDaily.reduce((sum, d) => sum + d.count, 0)
 
   return (
     <Layout>
       {/* Header */}
-      <div className="dash-animate" style={{
+      <div className="dash-animate bg-pattern-burgundy" style={{
         background: 'linear-gradient(135deg, var(--sidebar-bg) 0%, var(--sidebar-accent) 100%)',
-        borderRadius: 'var(--radius-lg)', padding: '22px 24px', marginBottom: 'var(--space-section)',
+        borderRadius: 'var(--radius-lg)', padding: '24px 26px', marginBottom: 'var(--space-section)',
         color: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start',
         flexWrap: 'wrap', gap: 20,
       }}>
         <div style={{ flex: 1, minWidth: 280 }}>
-          <div style={{ fontSize: 11, color: 'var(--gold)', marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700 }}>
-            Administrator Overview
+          <h1 style={{ margin: 0, fontSize: 24, fontWeight: 700 }}>Welcome back, {profile?.full_name || 'Administrator'}</h1>
+          <p style={{ margin: '5px 0 0', fontSize: 13.5, color: 'rgba(255,255,255,0.75)' }}>Here's what's happening with your system today.</p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginTop: 12, fontSize: 12.5, color: 'rgba(255,255,255,0.7)' }}>
+            <Calendar size={14} />
+            {dateTimeLabel}
           </div>
-          <h1 style={{ margin: 0, fontSize: 22, fontWeight: 700 }}>Welcome back, {profile?.full_name || 'Administrator'}</h1>
-          <p style={{ margin: '5px 0 0', fontSize: 12.5, color: 'rgba(255,255,255,0.7)' }}>
-            {today} · Updated {lastUpdated ? timeAgo(lastUpdated) : 'just now'}
-          </p>
-          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 16 }}>
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 18 }}>
             <button
               className="btn"
-              style={{ background: '#fff', color: 'var(--sidebar-bg)', border: 'none', fontWeight: 700 }}
+              style={{ background: 'var(--maroon-dark)', color: '#fff', border: '1px solid rgba(255,255,255,0.15)', fontWeight: 600 }}
               onClick={() => navigate('/admin/requests/new')}
             >
-              <Plus size={16} style={{ marginRight: 7 }} />New Request
+              <Plus size={16} style={{ marginRight: 7 }} />New Purchase Request
             </button>
             <button
               className="btn"
-              style={{ background: 'var(--gold)', color: 'var(--maroon-dark)', border: 'none', fontWeight: 700 }}
+              style={{ background: 'var(--gold)', color: 'var(--maroon-dark)', border: 'none', fontWeight: 600 }}
               onClick={() => navigate('/requisition-issue-slip')}
             >
-              <ClipboardList size={16} style={{ marginRight: 7 }} />New RIS
+              <Plus size={16} style={{ marginRight: 7 }} />New RIS
             </button>
             <button
               className="btn"
-              style={{ background: 'rgba(255,255,255,0.15)', color: '#fff', border: '1px solid rgba(255,255,255,0.3)', backdropFilter: 'blur(4px)' }}
+              style={{ background: 'transparent', color: '#fff', border: '1px solid rgba(255,255,255,0.35)', fontWeight: 600 }}
               onClick={() => navigate('/admin/requests')}
             >
-              <FileText size={16} style={{ marginRight: 7 }} />View Requests
+              View All Requests
             </button>
           </div>
         </div>
         {stats && (
           <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
             {[
-              ['Total PR', stats.prTotal],
-              ['Total RIS', stats.risTotal],
-              ['Inventory', stats.invItems],
-            ].map(([label, value]) => (
+              ['Total PR', stats.prTotal, FileText, 'This month'],
+              ['Total RIS', stats.risTotal, ClipboardList, 'This month'],
+              ['Inventory Items', stats.invItems, Boxes, 'Total items'],
+            ].map(([label, value, Icon, sub]) => (
               <div key={label} style={{
-                background: 'rgba(255,255,255,0.12)', borderRadius: 12, padding: '12px 18px', minWidth: 104,
+                background: 'rgba(255,255,255,0.12)', borderRadius: 12, padding: '12px 18px', minWidth: 116,
+                position: 'relative',
               }}>
-                <div style={{ fontSize: 10.5, color: 'rgba(255,255,255,0.7)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{label}</div>
-                <div style={{ fontSize: 22, fontWeight: 800, marginTop: 3 }}>{value.toLocaleString()}</div>
+                <Icon size={14} style={{ position: 'absolute', top: 12, right: 12, opacity: 0.55 }} />
+                <div style={{ fontSize: 10.5, color: 'rgba(255,255,255,0.7)', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 500 }}>{label}</div>
+                <div style={{ fontSize: 22, fontWeight: 600, marginTop: 4 }}>{value.toLocaleString()}</div>
+                <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.6)', marginTop: 2 }}>{sub}</div>
               </div>
             ))}
           </div>
@@ -339,11 +358,11 @@ export default function Dashboard() {
         <>
           {/* Quick Actions */}
           <div className="dash-animate" style={{ marginBottom: 14, animationDelay: '0.05s' }}>
-            <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--gold-dark)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Do It Fast</div>
-            <h2 style={{ margin: '4px 0 4px', fontSize: 20, fontWeight: 800 }}>Quick Actions</h2>
+            <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--gold-dark)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Do It Fast</div>
+            <h2 style={{ margin: '4px 0 4px', fontSize: 18, fontWeight: 600 }}>Quick Actions</h2>
             <p style={{ margin: 0, fontSize: 13, color: 'var(--text-muted)' }}>Start the most common tasks in a single click</p>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16, marginBottom: 28 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16, marginBottom: 'var(--space-section)' }}>
             {QUICK_ACTIONS.map((a, i) => {
               const accent = ACCENT[a.accent]
               return (
@@ -356,7 +375,7 @@ export default function Dashboard() {
                   <span className="icon-badge" style={{ width: 38, height: 38, background: accent.bg, color: accent.color }}>
                     <a.icon size={17} />
                   </span>
-                  <div style={{ fontWeight: 700, fontSize: 14 }}>{a.title}</div>
+                  <div style={{ fontWeight: 600, fontSize: 14 }}>{a.title}</div>
                   <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{a.sub}</div>
                 </div>
               )
@@ -364,221 +383,84 @@ export default function Dashboard() {
           </div>
 
           {/* System Overview — stat grid, 2 rows x 4 */}
-          <div className="dash-animate" style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10, animationDelay: '0.15s' }}>
+          <div className="dash-animate" style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10, animationDelay: '0.15s' }}>
             System Overview
           </div>
           <div className="stats-grid" style={{ marginBottom: 16 }}>
-            <StatCard delay={0.18} accent="maroon" icon={FileText}      label="Purchase Requests" value={stats.prTotal}  corner={`${stats.prThisMonth} this month`} />
-            <StatCard delay={0.21} accent="blue"   icon={ClipboardList} label="RIS Transactions"  value={stats.risTotal} corner={`${stats.risThisMonth} this month`} />
-            <StatCard delay={0.24} accent="maroon" icon={Boxes}         label="Inventory Items"   value={stats.invItems} corner="2 catalogs" />
-            <StatCard delay={0.27} accent="blue"   icon={ShoppingCart}  label="Purchase Orders"   value={stats.poCount}  corner={`${stats.poThisMonth} this month`} />
+            <StatCard delay={0.18} accent="maroon" icon={FileText}      label="Purchase Requests" value={stats.prTotal}  sub="This month" sparkline={sparkPR} />
+            <StatCard delay={0.21} accent="blue"   icon={ClipboardList} label="RIS Transactions"  value={stats.risTotal} sub="This month" sparkline={sparkRIS} />
+            <StatCard delay={0.24} accent="maroon" icon={Boxes}         label="Inventory Items"   value={stats.invItems} sub="Total items" sparkline={sparkInv} />
+            <StatCard delay={0.27} accent="blue"   icon={ShoppingCart}  label="Purchase Orders"   value={stats.poCount}  sub="This month" sparkline={sparkPO} />
           </div>
-          <div className="stats-grid" style={{ marginBottom: 28 }}>
-            <StatCard delay={0.3}  accent="gold"  icon={Clock}        label="Pending Approvals" value={stats.prPending + stats.risPending} corner="Awaiting review" />
-            <StatCard delay={0.33} accent="green" icon={CheckCircle2} label="Approved"          value={stats.prApproved + stats.risApproved} corner={`${approvedPct}% of total`} />
-            <StatCard delay={0.36} accent="red"   icon={XCircle}      label="Rejected"          value={stats.prRejected + stats.risRejected} corner={`${rejectedPct}% of total`} />
-            <StatCard delay={0.39} accent="gold"  icon={PackageX}      label="Low Stock"         value={stats.lowStock} corner="Needs review" />
+          <div className="stats-grid" style={{ marginBottom: 'var(--space-section)' }}>
+            <StatCard navigate={navigate} delay={0.3}  accent="gold"  icon={Clock}        label="Pending Approvals" value={stats.prPending + stats.risPending} sub="Awaiting review" to="/admin/requests?status=Submitted" />
+            <StatCard navigate={navigate} delay={0.33} accent="green" icon={CheckCircle2} label="Approved"          value={stats.prApproved + stats.risApproved} sub={`${approvedPct}% of total`} to="/admin/requests?status=Approved" />
+            <StatCard navigate={navigate} delay={0.36} accent="red"   icon={XCircle}      label="Rejected"          value={stats.prRejected + stats.risRejected} sub={`${rejectedPct}% of total`} to="/admin/requests?status=Rejected" />
+            <StatCard navigate={navigate} delay={0.39} accent="gold"  icon={PackageX}     label="Low Stock"         value={stats.lowStock} sub="Needs review" to="/admin/inventory?filter=lowstock" />
           </div>
 
-          {/* Activity + Low Stock + Audit Logs */}
-          <div className="dashboard-two-col" style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: 20, marginBottom: 'var(--space-section)', alignItems: 'start' }}>
+          {/* Requests Overview + Recent Activity */}
+          <div className="dashboard-two-col" style={{ display: 'grid', gridTemplateColumns: '1.6fr 1fr', gap: 20, marginBottom: 'var(--space-section)', alignItems: 'start' }}>
             <PanelCard
+              title="Requests Overview"
               delay={0.42}
-              title="Recent System Activity"
-              sub="Purchase Requests & Requisition Slips combined"
-              action={<button className="btn btn-secondary btn-sm" onClick={() => navigate('/admin/requests')}>View all</button>}
+              action={
+                <span style={{
+                  fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', border: '1px solid var(--border)',
+                  borderRadius: 8, padding: '5px 10px', display: 'inline-flex', alignItems: 'center', gap: 4,
+                }}>
+                  This Month
+                </span>
+              }
             >
-              {recentActivity.length === 0 ? (
+              <div style={{ padding: '16px 20px 20px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 8 }}>
+                  <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>Requests Trend</span>
+                  <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)' }}>{requestsTotalThisMonth.toLocaleString()} Total Requests</span>
+                </div>
+                <RequestsOverviewChart data={requestsDaily} />
+              </div>
+            </PanelCard>
+
+            <PanelCard
+              title="Recent Activity"
+              delay={0.45}
+              action={<button className="btn btn-secondary btn-sm" onClick={() => navigate('/admin/requests')}>View All</button>}
+            >
+              {feed.length === 0 ? (
                 <div className="state-box" style={{ padding: '32px 0' }}>No activity yet.</div>
               ) : (
                 <div>
-                  {recentActivity.map((item, idx) => (
+                  {feed.map((item, idx) => (
                     <div
                       key={item.id}
                       onClick={() => navigate(item.to)}
                       style={{
-                        display: 'flex', alignItems: 'center', gap: 14, padding: '14px 20px',
-                        borderBottom: idx < recentActivity.length - 1 ? '1px solid var(--border)' : 'none',
+                        display: 'flex', alignItems: 'center', gap: 12, padding: '14px 20px',
+                        borderBottom: idx < feed.length - 1 ? '1px solid var(--border)' : 'none',
                         cursor: 'pointer',
                       }}
                     >
-                      <ActivityChip type={item.type} />
+                      <FeedIcon kind={item.kind} />
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontWeight: 700, fontSize: 14 }}>{item.number} {item.status.toLowerCase()}</div>
-                        <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{item.subtitle || '—'}</div>
+                        <div style={{ fontWeight: 600, fontSize: 13.5, lineHeight: 1.35 }}>{item.title}</div>
+                        <div style={{ fontSize: 11.5, color: 'var(--text-muted)', marginTop: 2 }}>{item.subtitle}</div>
                       </div>
-                      <div style={{ fontSize: 12, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>{timeAgo(item.created_at)}</div>
+                      <StatusPill label={item.status} />
                     </div>
                   ))}
                 </div>
               )}
             </PanelCard>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-              <PanelCard title="Low Stock Alert" icon={AlertTriangle} delay={0.45}>
-                {lowStockItems.length === 0 ? (
-                  <div className="state-box" style={{ padding: '24px 0' }}>All stock levels healthy.</div>
-                ) : (
-                  <div>
-                    {lowStockItems.map((item, idx) => (
-                      <div key={`${item.source}-${item.item_name}-${idx}`} style={{
-                        display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12,
-                        padding: '12px 20px', borderBottom: idx < lowStockItems.length - 1 ? '1px solid var(--border)' : 'none',
-                      }}>
-                        <div style={{ minWidth: 0 }}>
-                          <div style={{ fontWeight: 600, fontSize: 13 }}>{item.item_name}</div>
-                          <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{item.source}</div>
-                        </div>
-                        <span style={{
-                          background: 'rgba(196,136,15,0.12)', color: 'var(--gold-dark)', fontWeight: 700,
-                          fontSize: 12, padding: '4px 10px', borderRadius: 999, whiteSpace: 'nowrap',
-                        }}>
-                          {item.quantity} {item.unit}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </PanelCard>
-
-              <PanelCard title="Recent Audit Logs" icon={ScrollText} delay={0.48}>
-                {auditLogs.length === 0 ? (
-                  <div className="state-box" style={{ padding: '24px 0' }}>No audit activity yet.</div>
-                ) : (
-                  <div>
-                    {auditLogs.map((log, idx) => (
-                      <div
-                        key={log.id}
-                        style={{
-                          display: 'flex', alignItems: 'center', gap: 14, padding: '14px 20px',
-                          borderBottom: idx < auditLogs.length - 1 ? '1px solid var(--border)' : 'none',
-                        }}
-                      >
-                        <span className="icon-badge" style={{ background: ACCENT.maroon.bg, color: ACCENT.maroon.color }}>
-                          <ScrollText size={17} />
-                        </span>
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontWeight: 700, fontSize: 14 }}>{log.description}</div>
-                          <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{log.action}</div>
-                        </div>
-                        <div style={{ fontSize: 12, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>{timeAgo(log.created_at)}</div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </PanelCard>
-            </div>
           </div>
 
-          {/* Charts */}
-          <div className="dashboard-two-col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 'var(--space-section)', alignItems: 'stretch' }}>
-            <PanelCard title="Overall Transaction Status" sub="Across the entire system" delay={0.51}>
-              <div style={{ padding: 20 }}>
-                <DonutChart segments={donutSegments} total={donutTotal} />
-              </div>
-            </PanelCard>
-            <PanelCard title="Monthly System Activity" sub="Purchase Requests vs Requisition Slips" delay={0.54}>
-              <div style={{ padding: 20 }}>
-                <MonthlyActivityChart data={monthlyActivity} />
-              </div>
-            </PanelCard>
-          </div>
-
-          {/* Recent requests table */}
-          <div className="card dash-animate" style={{ padding: 0, overflow: 'hidden', animationDelay: '0.57s' }}>
-            <div style={{
-              padding: '18px 22px', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-              borderBottom: '1px solid var(--border)', flexWrap: 'wrap', gap: 12,
-            }}>
-              <div style={{ display: 'flex', gap: 8 }}>
-                <button
-                  className={`btn btn-sm ${recentTab === 'pr' ? '' : 'btn-secondary'}`}
-                  style={recentTab === 'pr' ? { background: 'var(--sidebar-bg)', color: '#fff' } : undefined}
-                  onClick={() => setRecentTab('pr')}
-                >
-                  Purchase Requests
-                </button>
-                <button
-                  className={`btn btn-sm ${recentTab === 'ris' ? '' : 'btn-secondary'}`}
-                  style={recentTab === 'ris' ? { background: '#3a6fa8', color: '#fff' } : undefined}
-                  onClick={() => setRecentTab('ris')}
-                >
-                  Requisition Slips
-                </button>
-              </div>
-              <button
-                className="btn btn-secondary btn-sm"
-                onClick={() => navigate(recentTab === 'pr' ? '/admin/requests' : '/admin/ris')}
-              >
-                <Eye size={16} style={{ marginRight: 6 }} />View All
-              </button>
-            </div>
-
-            {recentTab === 'pr' ? (
-              recentPRs.length === 0 ? (
-                <div className="state-box" style={{ padding: '32px 0' }}>No requests yet.</div>
-              ) : (
-                <table className="data-table">
-                  <thead>
-                    <tr>
-                      <th>PR Number</th>
-                      <th>Department</th>
-                      <th>Requested By</th>
-                      <th>Date</th>
-                      <th>Status</th>
-                      <th></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {recentPRs.map((r) => (
-                      <tr key={r.pr_number} style={{ cursor: 'pointer' }} onClick={() => navigate(`/admin/requests/${r.id}`)}>
-                        <td><strong>{r.pr_number}</strong></td>
-                        <td>{r.department}</td>
-                        <td>{r.requester_name}</td>
-                        <td>{new Date(r.created_at).toLocaleDateString()}</td>
-                        <td><StatusBadge status={r.status} /></td>
-                        <td>
-                          <button className="btn btn-outline btn-sm" onClick={(e) => { e.stopPropagation(); navigate(`/admin/requests/${r.id}`) }}>
-                            <Eye size={14} style={{ marginRight: 5 }} />View
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )
-            ) : (
-              recentRis.length === 0 ? (
-                <div className="state-box" style={{ padding: '32px 0' }}>No requisition slips yet.</div>
-              ) : (
-                <table className="data-table">
-                  <thead>
-                    <tr>
-                      <th>RIS Number</th>
-                      <th>Requested By</th>
-                      <th>Date</th>
-                      <th>Status</th>
-                      <th></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {recentRis.map((r) => (
-                      <tr key={r.ris_number} style={{ cursor: 'pointer' }} onClick={() => navigate(`/admin/ris/${r.id}`)}>
-                        <td><strong>{r.ris_number}</strong></td>
-                        <td>{r.requester_name}</td>
-                        <td>{new Date(r.created_at).toLocaleDateString()}</td>
-                        <td><StatusBadge status={r.status} /></td>
-                        <td>
-                          <button className="btn btn-outline btn-sm" onClick={(e) => { e.stopPropagation(); navigate(`/admin/ris/${r.id}`) }}>
-                            <Eye size={14} style={{ marginRight: 5 }} />View
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )
-            )}
+          {/* Footer */}
+          <div className="dash-animate" style={{
+            display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+            padding: '4px 4px 8px', fontSize: 12, color: 'var(--text-muted)', animationDelay: '0.5s',
+          }}>
+            <span>© {now.getFullYear()} Municipality of Alaminos - General Services Office. All rights reserved.</span>
+            <span>v1.0.0</span>
           </div>
         </>
       )}
