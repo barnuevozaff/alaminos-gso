@@ -8,7 +8,6 @@ import {
 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import Layout from '../components/Layout'
-import HeroBackground from '../components/HeroBackground'
 import { timeAgo } from '../lib/dateUtils'
 import { useAuth } from '../context/AuthContext'
 
@@ -296,12 +295,10 @@ export default function Dashboard() {
     <Layout>
       {/* Header */}
       <div className="dash-animate hero-banner-bg" style={{
-        position: 'relative', zIndex: 0, overflow: 'hidden',
         borderRadius: 'var(--radius-lg)', padding: '24px 26px', marginBottom: 'var(--space-section)',
         color: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start',
         flexWrap: 'wrap', gap: 20,
       }}>
-        <HeroBackground />
         <div style={{ flex: 1, minWidth: 280 }}>
           <h1 style={{ margin: 0, fontSize: 24, fontWeight: 700 }}>Welcome back, {profile?.full_name || 'Administrator'}</h1>
           <p style={{ margin: '5px 0 0', fontSize: 13.5, color: 'rgba(255,255,255,0.75)' }}>Here's what's happening with your system today.</p>
