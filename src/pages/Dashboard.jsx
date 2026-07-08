@@ -62,7 +62,7 @@ function StatCard({ accent, icon: Icon, label, value, sub, sparkline, to, naviga
                   </linearGradient>
                 </defs>
                 <Area
-                  type="monotone" dataKey="v" stroke={a.color} strokeWidth={2}
+                  type="basis" dataKey="v" stroke={a.color} strokeWidth={2}
                   fill={`url(#${gradId})`} isAnimationActive={false}
                   dot={(props) => {
                     if (props.index !== sparklineData.length - 1) return <g key={props.index} />
