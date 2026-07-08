@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { AreaChart, Area, LineChart, Line, XAxis, ResponsiveContainer, Tooltip } from 'recharts'
+import { AreaChart, Area, XAxis, ResponsiveContainer, Tooltip } from 'recharts'
 import {
   FileText, Clock, CheckCircle2, XCircle,
   Boxes, PackageX, ShoppingCart, ChevronRight, Calendar,
@@ -29,34 +29,52 @@ const STATUS_PILL = {
 function StatCard({ accent, icon: Icon, label, value, sub, sparkline, to, navigate, delay = 0 }) {
   const a = ACCENT[accent]
   const clickable = !!to
+  const gradId = `sparkGrad-${label.replace(/[^a-zA-Z0-9]/g, '')}`
+  const sparklineData = sparkline?.map((v, i) => ({ i, v }))
   return (
     <div
       className={`card dash-animate${clickable ? ' dash-card-hover' : ''}`}
-      style={{ display: 'flex', flexDirection: 'column', gap: 16, animationDelay: `${delay}s`, cursor: clickable ? 'pointer' : 'default' }}
+      style={{
+        display: 'flex', flexDirection: 'column', gap: 16, animationDelay: `${delay}s`,
+        cursor: clickable ? 'pointer' : 'default', borderTop: `3px solid ${a.color}`,
+      }}
       onClick={clickable ? () => navigate(to) : undefined}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-        <span className="icon-badge" style={{ width: 36, height: 36, borderRadius: 10, background: a.bg, color: a.color }}>
+        <span className="icon-badge" style={{ width: 38, height: 38, borderRadius: 11, background: a.bg, color: a.color }}>
           <Icon size={17} />
         </span>
-        <span style={{ fontSize: 13.5, fontWeight: 500, color: 'var(--text-muted)' }}>{label}</span>
+        <span style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{label}</span>
       </div>
       <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 12 }}>
         <div style={{ minWidth: 0 }}>
-          <div style={{ fontSize: 28, fontWeight: 600, color: 'var(--text)', lineHeight: 1 }}>{value.toLocaleString()}</div>
-          <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 5, fontWeight: 400 }}>{sub}</div>
+          <div style={{ fontSize: 30, fontWeight: 700, color: 'var(--text)', lineHeight: 1, letterSpacing: '-0.01em', fontVariantNumeric: 'tabular-nums' }}>{value.toLocaleString()}</div>
+          <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 6, fontWeight: 400 }}>{sub}</div>
         </div>
-        {sparkline && (
-          <div style={{ width: 70, height: 34, flexShrink: 0 }}>
+        {sparklineData && (
+          <div style={{ width: 76, height: 38, flexShrink: 0 }}>
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={sparkline.map((v, i) => ({ i, v }))}>
-                <Line type="monotone" dataKey="v" stroke={a.color} strokeWidth={2} dot={false} isAnimationActive={false} />
-              </LineChart>
+              <AreaChart data={sparklineData}>
+                <defs>
+                  <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor={a.color} stopOpacity={0.3} />
+                    <stop offset="100%" stopColor={a.color} stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <Area
+                  type="monotone" dataKey="v" stroke={a.color} strokeWidth={2}
+                  fill={`url(#${gradId})`} isAnimationActive={false}
+                  dot={(props) => {
+                    if (props.index !== sparklineData.length - 1) return <g key={props.index} />
+                    return <circle key={props.index} cx={props.cx} cy={props.cy} r={3} fill={a.color} stroke="#fff" strokeWidth={1.5} />
+                  }}
+                />
+              </AreaChart>
             </ResponsiveContainer>
           </div>
         )}
         {clickable && (
-          <span className="icon-badge" style={{ width: 30, height: 30, borderRadius: '50%', background: a.bg, color: a.color, flexShrink: 0 }}>
+          <span className="icon-badge stat-arrow" style={{ width: 30, height: 30, borderRadius: '50%', background: a.bg, color: a.color, flexShrink: 0, transition: 'transform 0.15s ease' }}>
             <ChevronRight size={15} />
           </span>
         )}
