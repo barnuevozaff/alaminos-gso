@@ -464,9 +464,9 @@ export default function Dashboard() {
             <StatCard delay={0.17} accent="blue"   icon={ShoppingCart}  label="Purchase Orders"   value={stats.poLast30}  sub="Last 30 days" sparkline={sparkPO} />
           </div>
           <div className="stats-grid" style={{ marginBottom: 'var(--space-section)' }}>
-            <StatCard navigate={navigate} delay={0.2}  accent="gold"  icon={Clock}        label="Pending Approvals" value={stats.prPending + stats.risPending} sub="Awaiting review" to="/admin/requests?status=Submitted" />
-            <StatCard navigate={navigate} delay={0.23} accent="green" icon={CheckCircle2} label="Approved"          value={stats.prApproved + stats.risApproved} sub={`${approvedPct}% of total`} to="/admin/requests?status=Approved" />
-            <StatCard navigate={navigate} delay={0.26} accent="red"   icon={XCircle}      label="Rejected"          value={stats.prRejected + stats.risRejected} sub={`${rejectedPct}% of total`} to="/admin/requests?status=Rejected" />
+            <StatCard navigate={navigate} delay={0.2}  accent="gold"  icon={Clock}        label="Pending Approvals" value={stats.prPending + stats.risPending} sub="Awaiting review" to={stats.prPending > 0 || stats.risPending === 0 ? '/admin/requests?status=Submitted' : '/admin/ris?status=Submitted'} />
+            <StatCard navigate={navigate} delay={0.23} accent="green" icon={CheckCircle2} label="Approved"          value={stats.prApproved + stats.risApproved} sub={`${approvedPct}% of total`} to={stats.prApproved > 0 || stats.risApproved === 0 ? '/admin/requests?status=Approved' : '/admin/ris?status=Approved'} />
+            <StatCard navigate={navigate} delay={0.26} accent="red"   icon={XCircle}      label="Rejected"          value={stats.prRejected + stats.risRejected} sub={`${rejectedPct}% of total`} to={stats.prRejected > 0 || stats.risRejected === 0 ? '/admin/requests?status=Rejected' : '/admin/ris?status=Rejected'} />
             <StatCard navigate={navigate} delay={0.29} accent="gold"  icon={PackageX}     label="Low Stock"         value={stats.lowStock} sub="Needs review" to="/admin/inventory?filter=lowstock" />
           </div>
 
