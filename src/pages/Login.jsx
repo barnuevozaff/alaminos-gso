@@ -82,7 +82,7 @@ export default function Login() {
               </button>
             </div>
             {capsLock && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 6, fontSize: 12, color: '#b45309' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 6, fontSize: 12, color: 'var(--warning)' }}>
                 <TriangleAlert size={14} />
                 Caps Lock is on
               </div>

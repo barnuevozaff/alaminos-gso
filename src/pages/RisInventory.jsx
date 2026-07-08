@@ -177,7 +177,7 @@ export default function RisInventory() {
                 <tr
                   key={item.id}
                   onClick={deleteMode ? () => toggleSelect(item.id) : undefined}
-                  style={deleteMode ? { cursor: 'pointer', background: selectedIds.includes(item.id) ? 'rgba(185,28,28,0.07)' : undefined } : undefined}
+                  style={deleteMode ? { cursor: 'pointer', background: selectedIds.includes(item.id) ? 'var(--danger-tint)' : undefined } : undefined}
                 >
                   {deleteMode && (
                     <td onClick={(e) => e.stopPropagation()}>
@@ -191,8 +191,8 @@ export default function RisInventory() {
                       {item.quantity <= (item.reorder_level ?? 10) && (
                         <span style={{
                           display: 'inline-flex', alignItems: 'center', gap: 4,
-                          fontSize: 11, fontWeight: 700, color: '#b45309',
-                          background: 'rgba(180,83,9,0.1)', borderRadius: 4,
+                          fontSize: 11, fontWeight: 700, color: 'var(--warning)',
+                          background: 'var(--warning-tint)', borderRadius: 'var(--radius-sm)',
                           padding: '1px 6px', width: 'fit-content',
                         }}>
                           ⚠ Low Stock
@@ -201,7 +201,7 @@ export default function RisInventory() {
                     </div>
                   </td>
                   <td>{item.unit}</td>
-                  <td style={{ color: item.quantity <= (item.reorder_level ?? 10) ? '#b45309' : undefined, fontWeight: item.quantity <= (item.reorder_level ?? 10) ? 700 : undefined }}>{item.quantity}</td>
+                  <td style={{ color: item.quantity <= (item.reorder_level ?? 10) ? 'var(--warning)' : undefined, fontWeight: item.quantity <= (item.reorder_level ?? 10) ? 700 : undefined }}>{item.quantity}</td>
                   <td>₱{fmt(item.unit_cost)}</td>
                   <td>₱{fmt(item.quantity * item.unit_cost)}</td>
                   {!deleteMode && (

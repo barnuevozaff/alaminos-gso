@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Trash2, Search } from 'lucide-react'
+import { Trash2, Search, Loader2 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import DepartmentAutocomplete from '../components/DepartmentAutocomplete'
 import RisItemAutocomplete from '../components/RisItemAutocomplete'
@@ -126,7 +126,7 @@ export default function PublicRequisitionIssueSlipForm() {
               <DepartmentAutocomplete value={office} onChange={setOffice} placeholder="Type or select an office…" />
             </div>
           </div>
-          <div className="form-row">
+          <div className="form-row form-row-3">
             <div className="form-group">
               <label className="form-label">Fund (optional)</label>
               <input className="form-input" value={fund} onChange={(e) => setFund(e.target.value)} />
@@ -183,7 +183,7 @@ export default function PublicRequisitionIssueSlipForm() {
         <div className="print-actions">
           <button className="btn btn-secondary" onClick={() => navigate('/')}>Cancel</button>
           <button className="btn btn-primary" disabled={submitting} onClick={handleSubmit}>
-            {submitting ? 'Submitting…' : '+ Submit Requisition'}
+            {submitting ? <><Loader2 size={16} className="icon-spin" style={{ marginRight: 6 }} />Submitting…</> : '+ Submit Requisition'}
           </button>
         </div>
       </div>

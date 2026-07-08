@@ -116,7 +116,7 @@ export default function PurchaseRequestDetail() {
   }
 
   if (loading) return <Layout><div className="state-box"><div className="spinner"></div>Loading request…</div></Layout>
-  if (!pr) return <Layout><div className="state-box">Request not found.</div></Layout>
+  if (!pr) return <Layout><div className="state-box"><div className="state-title">Request not found</div>It may have been deleted or the link is incorrect.</div></Layout>
 
   const grandTotal = items.reduce((sum, it) => sum + Number(it.total_cost ?? it.quantity * it.unit_cost), 0)
 
@@ -124,7 +124,7 @@ export default function PurchaseRequestDetail() {
     <Layout>
       <div className="flex-between" style={{ marginBottom: 18 }}>
         <div>
-          <button className="btn-signout" style={{ width: 'auto', background: 'none', border: 'none', color: 'var(--text)', padding: 0, marginBottom: 8 }} onClick={() => navigate('/admin/requests')}><ArrowLeft size={16} style={{ marginRight: 6 }} />Back</button>
+          <button className="btn-back" onClick={() => navigate('/admin/requests')}><ArrowLeft size={16} />Back</button>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <h1 className="page-title" style={{ margin: 0 }}>{pr.pr_number}</h1>
             <StatusBadge status={pr.status} />

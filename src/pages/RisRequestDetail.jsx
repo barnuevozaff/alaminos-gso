@@ -68,13 +68,13 @@ export default function RisRequestDetail() {
   }
 
   if (loading) return <Layout><div className="state-box"><div className="spinner"></div>Loading request…</div></Layout>
-  if (!ris) return <Layout><div className="state-box">Request not found.</div></Layout>
+  if (!ris) return <Layout><div className="state-box"><div className="state-title">Request not found</div>It may have been deleted or the link is incorrect.</div></Layout>
 
   return (
     <Layout>
       <div className="flex-between" style={{ marginBottom: 18 }}>
         <div>
-          <button className="btn-signout" style={{ width: 'auto', background: 'none', border: 'none', color: 'var(--text)', padding: 0, marginBottom: 8 }} onClick={() => navigate('/admin/ris')}><ArrowLeft size={16} style={{ marginRight: 6 }} />Back</button>
+          <button className="btn-back" onClick={() => navigate('/admin/ris')}><ArrowLeft size={16} />Back</button>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <h1 className="page-title" style={{ margin: 0 }}>{ris.ris_number}</h1>
             <StatusBadge status={ris.status} />

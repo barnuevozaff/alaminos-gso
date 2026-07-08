@@ -183,7 +183,7 @@ export default function PurchaseRequestsList() {
                 <tr
                   key={r.id}
                   onClick={deleteMode ? () => toggleSelect(r.id) : undefined}
-                  style={deleteMode ? { cursor: 'pointer', background: selectedIds.includes(r.id) ? 'rgba(185,28,28,0.07)' : undefined } : undefined}
+                  style={deleteMode ? { cursor: 'pointer', background: selectedIds.includes(r.id) ? 'var(--danger-tint)' : undefined } : undefined}
                 >
                   {deleteMode && (
                     <td onClick={(e) => e.stopPropagation()}>

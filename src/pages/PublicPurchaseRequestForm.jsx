@@ -1,7 +1,7 @@
 import { fmt } from '../lib/fmt.js'
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Trash2, Search } from 'lucide-react'
+import { Trash2, Search, Loader2 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import DepartmentAutocomplete from '../components/DepartmentAutocomplete'
 import ItemAutocomplete from '../components/ItemAutocomplete'
@@ -173,7 +173,7 @@ export default function PublicPurchaseRequestForm() {
         <div className="print-actions">
           <button className="btn btn-secondary" onClick={() => navigate('/')}>Cancel</button>
           <button className="btn btn-primary" disabled={submitting} onClick={handleSubmit}>
-            {submitting ? 'Submitting…' : '+ Submit Request'}
+            {submitting ? <><Loader2 size={16} className="icon-spin" style={{ marginRight: 6 }} />Submitting…</> : '+ Submit Request'}
           </button>
         </div>
       </div>

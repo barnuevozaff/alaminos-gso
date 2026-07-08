@@ -1,7 +1,7 @@
 import { fmtDate } from '../lib/dateUtils'
 import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { Search, Home, Eye } from 'lucide-react'
+import { Search, Home, Eye, Loader2 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { generateRequisitionIssueSlipPDF } from '../lib/generateRisPdf'
 import StatusBadge from '../components/StatusBadge'
@@ -84,7 +84,7 @@ export default function TrackRequisitionIssueSlip() {
               onKeyDown={(e) => e.key === 'Enter' && handleTrack()}
             />
             <button className="btn btn-primary" onClick={() => handleTrack()} disabled={loading}>
-              {loading ? 'Searching…' : <><Search size={16} style={{ marginRight: 6 }} />Track</>}
+              {loading ? <><Loader2 size={16} className="icon-spin" style={{ marginRight: 6 }} />Searching…</> : <><Search size={16} style={{ marginRight: 6 }} />Track</>}
             </button>
           </div>
 

@@ -367,6 +367,7 @@ p.page-subtitle { color: var(--text-muted); font-size: 14px; margin: 0 0 22px; }
 /* ---------- Forms ---------- */
 .form-group { margin-bottom: 16px; }
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.form-row-3 { grid-template-columns: 1fr 1fr 1fr; }
 .form-label {
   display: block;
   font-size: 13px;
@@ -584,6 +585,21 @@ p.page-subtitle { color: var(--text-muted); font-size: 14px; margin: 0 0 22px; }
 .icon-btn { background: none; border: none; padding: 4px; color: var(--text-muted); border-radius: var(--radius-sm); }
 .icon-btn:hover { background: var(--border); color: var(--text); }
 .icon-btn.danger:hover { background: #fde8e6; color: var(--red); }
+
+.btn-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  padding: 0;
+  margin-bottom: 8px;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 500;
+  transition: color 0.15s;
+}
+.btn-back:hover { color: var(--maroon); }
 
 /* ---------- Mobile hamburger button ---------- */
 .hamburger-btn {

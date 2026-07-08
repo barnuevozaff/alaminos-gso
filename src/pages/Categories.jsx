@@ -92,6 +92,11 @@ export default function Categories() {
       <div className="card" style={{ padding: 0 }}>
         {loading ? (
           <div className="state-box"><div className="spinner"></div>Loading categories…</div>
+        ) : categories.length === 0 ? (
+          <div className="state-box">
+            <div className="state-title">No categories yet</div>
+            Add one above to start organizing inventory items.
+          </div>
         ) : (
           <table className="data-table">
             <thead><tr><th style={{ width: '100%' }}>Name</th><th style={{ whiteSpace: 'nowrap', minWidth: 160 }}>Actions</th></tr></thead>

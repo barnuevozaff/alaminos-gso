@@ -2,7 +2,7 @@ import { fmt } from '../lib/fmt.js'
 import { fmtDate } from '../lib/dateUtils'
 import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { Search, Home } from 'lucide-react'
+import { Search, Home, Loader2 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { generatePurchaseRequestPDF } from '../lib/generatePrPdf'
 import StatusBadge from '../components/StatusBadge'
@@ -86,7 +86,7 @@ export default function TrackRequest() {
               onKeyDown={(e) => e.key === 'Enter' && handleTrack()}
             />
             <button className="btn btn-primary" onClick={() => handleTrack()} disabled={loading}>
-              {loading ? 'Searching…' : <><Search size={16} style={{ marginRight: 6 }} />Track</>}
+              {loading ? <><Loader2 size={16} className="icon-spin" style={{ marginRight: 6 }} />Searching…</> : <><Search size={16} style={{ marginRight: 6 }} />Track</>}
             </button>
           </div>
 

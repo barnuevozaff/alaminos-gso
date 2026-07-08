@@ -20,7 +20,10 @@ export default function AuditLogs() {
         {loading ? (
           <div className="state-box"><div className="spinner"></div>Loading logs…</div>
         ) : logs.length === 0 ? (
-          <div className="state-box">No audit activity yet.</div>
+          <div className="state-box">
+            <div className="state-title">No audit activity yet</div>
+            Approvals, rejections, and document generation will appear here.
+          </div>
         ) : (
           <table className="data-table">
             <thead><tr><th>When</th><th>Action</th><th>Description</th></tr></thead>
