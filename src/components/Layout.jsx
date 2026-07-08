@@ -8,6 +8,7 @@ import {
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 import LOGO from '../assets/alaminos-seal.png'
+import SidebarBackground from './SidebarBackground'
 
 const NAV_ITEMS = [
   {
@@ -113,7 +114,8 @@ export default function Layout({ children }) {
         <div className="sidebar-overlay" onClick={closeSidebar} />
       )}
 
-      <aside className={`sidebar bg-pattern-burgundy${sidebarOpen ? ' sidebar-open' : ''}`}>
+      <aside className={`sidebar${sidebarOpen ? ' sidebar-open' : ''}`}>
+        <SidebarBackground />
         <div className="sidebar-header">
           <img src={LOGO} alt="Alaminos seal" className="sidebar-logo" onError={(e) => { e.target.style.visibility = 'hidden' }} />
           <div className="sidebar-header-text">

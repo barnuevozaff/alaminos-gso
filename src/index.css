@@ -45,26 +45,11 @@ body {
   font-weight: 400;
 }
 
-/* Abstract flowing contour lines, mesh curves, and soft radial blooms —
-   a single non-repeating vector composition at 3-5% opacity, used as
-   ambient texture on dark burgundy surfaces (sidebar, hero). */
-.bg-pattern-burgundy {
-  background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20width%3D'900'%20height%3D'900'%20viewBox%3D'0%200%20900%20900'%3E%20%3Cdefs%3E%20%3CradialGradient%20id%3D'g1'%20cx%3D'50%25'%20cy%3D'50%25'%20r%3D'50%25'%3E%20%3Cstop%20offset%3D'0%25'%20stop-color%3D'%23ffffff'%20stop-opacity%3D'0.9'%2F%3E%20%3Cstop%20offset%3D'100%25'%20stop-color%3D'%23ffffff'%20stop-opacity%3D'0'%2F%3E%20%3C%2FradialGradient%3E%20%3CradialGradient%20id%3D'g2'%20cx%3D'50%25'%20cy%3D'50%25'%20r%3D'50%25'%3E%20%3Cstop%20offset%3D'0%25'%20stop-color%3D'%23ffffff'%20stop-opacity%3D'0.7'%2F%3E%20%3Cstop%20offset%3D'100%25'%20stop-color%3D'%23ffffff'%20stop-opacity%3D'0'%2F%3E%20%3C%2FradialGradient%3E%20%3C%2Fdefs%3E%20%3Cg%20opacity%3D'0.045'%3E%20%3Ccircle%20cx%3D'700'%20cy%3D'140'%20r%3D'300'%20fill%3D'url(%23g1)'%2F%3E%20%3Ccircle%20cx%3D'120'%20cy%3D'760'%20r%3D'260'%20fill%3D'url(%23g2)'%2F%3E%20%3Cg%20fill%3D'none'%20stroke%3D'%23ffffff'%20stroke-width%3D'1.6'%20stroke-linecap%3D'round'%3E%20%3Cpath%20d%3D'M%20-60%20170%20C%20140%20110%2C%20340%20250%2C%20540%20160%20S%20760%2060%2C%20960%20170'%2F%3E%20%3Cpath%20d%3D'M%20-60%20340%20C%20170%20280%2C%20380%20430%2C%20570%20330%20S%20800%20240%2C%20960%20360'%2F%3E%20%3Cpath%20d%3D'M%20-60%20520%20C%20210%20590%2C%20400%20440%2C%20600%20540%20S%20780%20630%2C%20960%20500'%2F%3E%20%3Cpath%20d%3D'M%20-60%20680%20C%20230%20620%2C%20440%20750%2C%20630%20660%20S%20820%20570%2C%20960%20700'%2F%3E%20%3C%2Fg%3E%20%3Cg%20fill%3D'none'%20stroke%3D'%23ffffff'%20stroke-width%3D'1.3'%20stroke-linecap%3D'round'%3E%20%3Cpath%20d%3D'M%20130%20-60%20C%2080%20220%2C%20250%20420%2C%20150%20640%20S%2090%20860%2C%20130%20960'%2F%3E%20%3Cpath%20d%3D'M%20380%20-60%20C%20460%20260%2C%20300%20470%2C%20410%20680%20S%20460%20880%2C%20420%20960'%2F%3E%20%3Cpath%20d%3D'M%20640%20-60%20C%20570%20240%2C%20730%20440%2C%20610%20660%20S%20680%20880%2C%20630%20960'%2F%3E%20%3C%2Fg%3E%20%3C%2Fg%3E%20%3C%2Fsvg%3E");
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: cover;
-}
-
-/* Same composition, layered under the hero's gradient (a single element
-   can't have two separate background shorthands, so this bakes both into
-   one background-image so neither is clobbered by inline styles). */
+/* Solid gradient base for the hero banner — the decorative mesh/line
+   artwork is a real SVG component (HeroBackground.jsx) layered on top
+   in JSX, not baked into this background. */
 .hero-banner-bg {
-  background-image:
-    linear-gradient(135deg, var(--sidebar-bg) 0%, var(--sidebar-accent) 100%),
-    url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20width%3D'900'%20height%3D'900'%20viewBox%3D'0%200%20900%20900'%3E%20%3Cdefs%3E%20%3CradialGradient%20id%3D'g1'%20cx%3D'50%25'%20cy%3D'50%25'%20r%3D'50%25'%3E%20%3Cstop%20offset%3D'0%25'%20stop-color%3D'%23ffffff'%20stop-opacity%3D'0.9'%2F%3E%20%3Cstop%20offset%3D'100%25'%20stop-color%3D'%23ffffff'%20stop-opacity%3D'0'%2F%3E%20%3C%2FradialGradient%3E%20%3CradialGradient%20id%3D'g2'%20cx%3D'50%25'%20cy%3D'50%25'%20r%3D'50%25'%3E%20%3Cstop%20offset%3D'0%25'%20stop-color%3D'%23ffffff'%20stop-opacity%3D'0.7'%2F%3E%20%3Cstop%20offset%3D'100%25'%20stop-color%3D'%23ffffff'%20stop-opacity%3D'0'%2F%3E%20%3C%2FradialGradient%3E%20%3C%2Fdefs%3E%20%3Cg%20opacity%3D'0.045'%3E%20%3Ccircle%20cx%3D'700'%20cy%3D'140'%20r%3D'300'%20fill%3D'url(%23g1)'%2F%3E%20%3Ccircle%20cx%3D'120'%20cy%3D'760'%20r%3D'260'%20fill%3D'url(%23g2)'%2F%3E%20%3Cg%20fill%3D'none'%20stroke%3D'%23ffffff'%20stroke-width%3D'1.6'%20stroke-linecap%3D'round'%3E%20%3Cpath%20d%3D'M%20-60%20170%20C%20140%20110%2C%20340%20250%2C%20540%20160%20S%20760%2060%2C%20960%20170'%2F%3E%20%3Cpath%20d%3D'M%20-60%20340%20C%20170%20280%2C%20380%20430%2C%20570%20330%20S%20800%20240%2C%20960%20360'%2F%3E%20%3Cpath%20d%3D'M%20-60%20520%20C%20210%20590%2C%20400%20440%2C%20600%20540%20S%20780%20630%2C%20960%20500'%2F%3E%20%3Cpath%20d%3D'M%20-60%20680%20C%20230%20620%2C%20440%20750%2C%20630%20660%20S%20820%20570%2C%20960%20700'%2F%3E%20%3C%2Fg%3E%20%3Cg%20fill%3D'none'%20stroke%3D'%23ffffff'%20stroke-width%3D'1.3'%20stroke-linecap%3D'round'%3E%20%3Cpath%20d%3D'M%20130%20-60%20C%2080%20220%2C%20250%20420%2C%20150%20640%20S%2090%20860%2C%20130%20960'%2F%3E%20%3Cpath%20d%3D'M%20380%20-60%20C%20460%20260%2C%20300%20470%2C%20410%20680%20S%20460%20880%2C%20420%20960'%2F%3E%20%3Cpath%20d%3D'M%20640%20-60%20C%20570%20240%2C%20730%20440%2C%20610%20660%20S%20680%20880%2C%20630%20960'%2F%3E%20%3C%2Fg%3E%20%3C%2Fg%3E%20%3C%2Fsvg%3E");
-  background-repeat: no-repeat, no-repeat;
-  background-position: center, center;
-  background-size: cover, cover;
+  background-image: linear-gradient(135deg, var(--sidebar-bg) 0%, var(--sidebar-accent) 100%);
 }
 
 button {
@@ -97,6 +82,8 @@ a { color: inherit; }
   height: 100vh;
   overflow-y: auto;
   overscroll-behavior: contain;
+  position: relative;
+  z-index: 0;
 }
 
 .sidebar-header {
