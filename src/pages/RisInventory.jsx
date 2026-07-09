@@ -97,7 +97,7 @@ export default function RisInventory() {
 
   return (
     <Layout>
-    <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 113px)' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <div style={{ flexShrink: 0, background: 'var(--bg)', paddingBottom: 12, borderBottom: '1px solid var(--border)' }}>
         <div className="flex-between">
           <div>

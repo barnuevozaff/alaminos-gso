@@ -247,6 +247,7 @@ a { color: inherit; }
 .page-content {
   padding: 28px 32px;
   flex: 1;
+  min-height: 0; /* lets a full-height flex child (e.g. Inventory's item list) actually be bounded to the remaining space instead of growing past it */
 }
 
 /* ---------- Typography ---------- */
