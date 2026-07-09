@@ -103,6 +103,7 @@ a { color: inherit; }
   padding: 2px 0 24px;
   height: 100vh;
   overflow: hidden;
+  transition: width 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .sidebar-header {
@@ -114,7 +115,24 @@ a { color: inherit; }
   padding: 0 20px;
   border-bottom: 1px solid rgba(255,255,255,0.08);
   margin-bottom: 16px;
+  position: relative;
 }
+
+.sidebar-collapse-toggle {
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.2);
+  color: var(--sidebar-text);
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: auto;
+  flex-shrink: 0;
+  transition: background 0.15s ease;
+}
+.sidebar-collapse-toggle:hover { background: rgba(255,255,255,0.2); }
 
 .sidebar-logo {
   width: 40px;
@@ -226,6 +244,28 @@ a { color: inherit; }
   gap: 6px;
 }
 .btn-signout:hover { background: rgba(255,255,255,0.18); }
+
+/* Mini/collapsed sidebar mode — desktop only. Scoped to a min-width query
+   so the persisted `collapsed` preference never shrinks the mobile
+   slide-in drawer (which is always full width regardless). */
+@media (min-width: 769px) {
+  .sidebar.collapsed { width: 80px; }
+  .sidebar.collapsed .sidebar-header { justify-content: space-between; padding: 0 8px; gap: 0; }
+  .sidebar.collapsed .sidebar-header-text { display: none; }
+  .sidebar.collapsed .sidebar-collapse-toggle { margin-left: 0; }
+  .sidebar.collapsed .sidebar-logo { width: 32px; height: 32px; }
+  .sidebar.collapsed .sidebar-nav { padding: 0 10px; }
+  .sidebar.collapsed .sidebar-section-label { display: none; }
+  .sidebar.collapsed .sidebar-link { justify-content: center; padding: 12px; gap: 0; }
+  .sidebar.collapsed .sidebar-link span { display: none; }
+  .sidebar.collapsed .sidebar-link:hover { transform: none; }
+  .sidebar.collapsed .sidebar-group-chevron { display: none; }
+  .sidebar.collapsed .sidebar-submenu { padding-left: 0; }
+  .sidebar.collapsed .sidebar-footer { padding: 16px 10px 0; }
+  .sidebar.collapsed .sidebar-user-name,
+  .sidebar.collapsed .sidebar-user-role,
+  .sidebar.collapsed .btn-signout span { display: none; }
+}
 
 .main-content {
   flex: 1;
@@ -688,7 +728,11 @@ p.page-subtitle { color: var(--text-muted); font-size: 14px; margin: 0 0 22px; }
   .hamburger-btn { display: flex; align-items: center; justify-content: center; }
   .sidebar-overlay { display: block; }
 
-  /* Sidebar slides in from left */
+  /* Sidebar slides in from left — always full width here, ignoring the
+     desktop mini/collapsed mode (that state can be persisted from a
+     prior desktop session via localStorage; the .collapsed rules that
+     shrink it are themselves scoped to a min-width media query so they
+     simply don't apply below that breakpoint). */
   .sidebar {
     position: fixed;
     top: 0; left: 0; bottom: 0;
@@ -698,6 +742,7 @@ p.page-subtitle { color: var(--text-muted); font-size: 14px; margin: 0 0 22px; }
     transition: transform 0.25s ease;
   }
   .sidebar.sidebar-open { transform: translateX(0); }
+  .sidebar-collapse-toggle { display: none; }
 
   /* Main content takes full width */
   .app-shell { flex-direction: column; }

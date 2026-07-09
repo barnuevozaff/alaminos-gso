@@ -4,7 +4,7 @@ import {
   LayoutDashboard, FileText, Boxes, Tags,
   FileSpreadsheet, ScrollText, Settings, LogOut,
   Menu, X, ShoppingCart, ChevronDown, ClipboardList, ReceiptText, Warehouse,
-  Building2, ListChecks, CalendarRange,
+  Building2, ListChecks, CalendarRange, PanelLeftClose, PanelLeftOpen,
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
@@ -76,6 +76,11 @@ export default function Layout({ children }) {
   const toast = useToast()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [isOnline, setIsOnline] = useState(navigator.onLine)
+  const [collapsed, setCollapsed] = useState(() => localStorage.getItem('gso-sidebar-collapsed') === '1')
+
+  useEffect(() => {
+    localStorage.setItem('gso-sidebar-collapsed', collapsed ? '1' : '0')
+  }, [collapsed])
 
   const groupHasActiveChild = (item) =>
     item.children?.some((child) => location.pathname.startsWith(child.to))
@@ -122,13 +127,22 @@ export default function Layout({ children }) {
         <div className="sidebar-overlay" onClick={closeSidebar} />
       )}
 
-      <aside className={`sidebar${sidebarOpen ? ' sidebar-open' : ''}`}>
+      <aside className={`sidebar${sidebarOpen ? ' sidebar-open' : ''}${collapsed ? ' collapsed' : ''}`}>
         <div className="sidebar-header">
           <img src={LOGO} alt="Alaminos seal" className="sidebar-logo" onError={(e) => { e.target.style.visibility = 'hidden' }} />
           <div className="sidebar-header-text">
             <div className="title">GSO System</div>
             <div className="subtitle">Municipality of Alaminos</div>
           </div>
+          <button
+            type="button"
+            className="sidebar-collapse-toggle"
+            onClick={() => setCollapsed((v) => !v)}
+            aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          >
+            {collapsed ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}
+          </button>
         </div>
 
         <nav className="sidebar-nav">
@@ -143,6 +157,7 @@ export default function Layout({ children }) {
                       to={link.to}
                       className={({ isActive }) => 'sidebar-link' + (isActive ? ' active' : '')}
                       onClick={closeSidebar}
+                      title={collapsed ? link.label : undefined}
                     >
                       <link.icon size={18} style={{ flexShrink: 0 }} />
                       <span>{link.label}</span>
@@ -165,6 +180,7 @@ export default function Layout({ children }) {
                     + (isOpen ? ' open' : '')
                   }
                   onClick={() => toggleGroup(item.label)}
+                  title={collapsed ? item.label : undefined}
                 >
                   <item.icon size={18} style={{ flexShrink: 0 }} />
                   <span>{item.label}</span>
@@ -182,6 +198,7 @@ export default function Layout({ children }) {
                         to={child.to}
                         className={({ isActive }) => 'sidebar-link sidebar-sublink' + (isActive ? ' active' : '')}
                         onClick={closeSidebar}
+                        title={collapsed ? child.label : undefined}
                       >
                         <child.icon size={18} style={{ flexShrink: 0 }} />
                         <span>{child.label}</span>
@@ -197,8 +214,8 @@ export default function Layout({ children }) {
         <div className="sidebar-footer">
           <div className="sidebar-user-name">{profile?.full_name || 'Administrator'}</div>
           <div className="sidebar-user-role">{profile?.role?.toUpperCase() || 'GSO ADMIN'}</div>
-          <button className="btn-signout" onClick={handleSignOut}>
-            <LogOut size={16} style={{ marginRight: 6 }} />Sign out
+          <button className="btn-signout" onClick={handleSignOut} title={collapsed ? 'Sign out' : undefined}>
+            <LogOut size={16} /><span>Sign out</span>
           </button>
         </div>
       </aside>
