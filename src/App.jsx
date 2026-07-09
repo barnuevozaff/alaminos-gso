@@ -6,6 +6,9 @@ import PublicPurchaseRequestForm from './pages/PublicPurchaseRequestForm'
 import TrackRequest from './pages/TrackRequest'
 import PublicRequisitionIssueSlipForm from './pages/PublicRequisitionIssueSlipForm'
 import TrackRequisitionIssueSlip from './pages/TrackRequisitionIssueSlip'
+import PublicFacilityReservationForm from './pages/PublicFacilityReservationForm'
+import FacilityReservationsList from './pages/FacilityReservationsList'
+import FacilityReservationCalendar from './pages/FacilityReservationCalendar'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import PurchaseRequestsList from './pages/PurchaseRequestsList'
@@ -44,6 +47,7 @@ export default function App() {
       <Route path="/track-request" element={<TrackRequest />} />
       <Route path="/requisition-issue-slip" element={<PublicRequisitionIssueSlipForm />} />
       <Route path="/track-ris" element={<TrackRequisitionIssueSlip />} />
+      <Route path="/reserve-facility" element={<PublicFacilityReservationForm />} />
 
       {/* ================= ADMIN PORTAL =================
           Everything lives under /admin. Login is never linked
@@ -66,6 +70,8 @@ export default function App() {
       <Route path="/admin/ris-inventory" element={<PrivateRoute><RisInventory /></PrivateRoute>} />
       <Route path="/admin/ris-categories" element={<PrivateRoute><RisCategories /></PrivateRoute>} />
       <Route path="/admin/rsmi-report" element={<PrivateRoute><RsmiReport /></PrivateRoute>} />
+      <Route path="/admin/facility-reservations" element={<PrivateRoute><FacilityReservationsList /></PrivateRoute>} />
+      <Route path="/admin/facility-calendar" element={<PrivateRoute><FacilityReservationCalendar /></PrivateRoute>} />
       <Route path="/admin/audit-logs" element={<PrivateRoute><AuditLogs /></PrivateRoute>} />
       <Route path="/admin/settings" element={<PrivateRoute><Settings /></PrivateRoute>} />
 

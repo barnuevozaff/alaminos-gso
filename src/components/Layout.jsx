@@ -4,6 +4,7 @@ import {
   LayoutDashboard, FileText, Boxes, Tags,
   FileSpreadsheet, ScrollText, Settings, LogOut,
   Menu, X, ShoppingCart, ChevronDown, ClipboardList, ReceiptText, Warehouse,
+  Building2, ListChecks, CalendarRange,
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
@@ -37,6 +38,16 @@ const NAV_ITEMS = [
       { to: '/admin/ris', label: 'Requisition Slips', icon: FileText },
       { to: '/admin/ris-categories', label: 'RIS Categories', icon: Tags },
       { to: '/admin/rsmi-report', label: 'RSMI Report', icon: ReceiptText },
+    ],
+  },
+  {
+    type: 'group',
+    sectionLabel: 'Facilities',
+    label: 'Facility Booking',
+    icon: Building2,
+    children: [
+      { to: '/admin/facility-reservations', label: 'Reservations', icon: ListChecks },
+      { to: '/admin/facility-calendar', label: 'Calendar', icon: CalendarRange },
     ],
   },
   {

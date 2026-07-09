@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { FileText, Search, ArrowRight, ClipboardList, X, ShieldCheck } from 'lucide-react'
+import { FileText, Search, ArrowRight, ClipboardList, X, ShieldCheck, CalendarRange } from 'lucide-react'
 import LOGO from '../assets/alaminos-seal.png'
 
 export default function PublicHome() {
@@ -44,7 +44,7 @@ export default function PublicHome() {
       <div style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-        gap: 24, maxWidth: 760, margin: '0 auto', padding: '0 24px 80px',
+        gap: 24, maxWidth: 980, margin: '0 auto', padding: '0 24px 80px',
       }}>
         <ActionCard
           onClick={() => setOpenModal('purchase-request')}
@@ -65,6 +65,16 @@ export default function PublicHome() {
           description="Request supplies already available in GSO inventory, or track one you already sent."
           label="Get Started"
           accentColor="#1a4a7a"
+        />
+        <ActionCard
+          to="/reserve-facility"
+          icon={CalendarRange}
+          iconBg="linear-gradient(135deg, #1f7a4d 0%, #25a863 100%)"
+          iconShadow="rgba(31,122,77,0.35)"
+          title="Reserve Facility"
+          description="Book a gym, court, conference room, or hall — reservations are confirmed instantly."
+          label="Reserve Now"
+          accentColor="#1f7a4d"
         />
       </div>
 
@@ -183,15 +193,19 @@ function ChoiceOption({ to, icon: Icon, title, description, accentColor }) {
   )
 }
 
-function ActionCard({ onClick, icon: Icon, iconBg, iconShadow, title, description, label, accentColor }) {
+function ActionCard({ to, onClick, icon: Icon, iconBg, iconShadow, title, description, label, accentColor }) {
+  const Wrapper = to ? Link : 'div'
+  const wrapperProps = to
+    ? { to, style: { display: 'flex', textDecoration: 'none' } }
+    : {
+        role: 'button',
+        tabIndex: 0,
+        onClick,
+        onKeyDown: (e) => { if (e.key === 'Enter' || e.key === ' ') onClick() },
+        style: { display: 'flex' },
+      }
   return (
-    <div
-      role="button"
-      tabIndex={0}
-      onClick={onClick}
-      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onClick() }}
-      style={{ display: 'flex' }}
-    >
+    <Wrapper {...wrapperProps}>
       <div
         style={{
           background: '#fff',
@@ -250,6 +264,6 @@ function ActionCard({ onClick, icon: Icon, iconBg, iconShadow, title, descriptio
           <ArrowRight size={13} style={{ transition: 'transform 0.2s' }} />
         </div>
       </div>
-    </div>
+    </Wrapper>
   )
 }
