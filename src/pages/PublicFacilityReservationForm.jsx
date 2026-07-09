@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Trash2, Plus, Loader2 } from 'lucide-react'
+import { Trash2, Plus, Loader2, CheckCircle2 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { getMonday, toDateInputValue, formatTime12h } from '../lib/facilityTime'
 import WeekCalendar from '../components/WeekCalendar'
@@ -34,6 +34,7 @@ export default function PublicFacilityReservationForm() {
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
+  const [successInfo, setSuccessInfo] = useState(null)
 
   useEffect(() => {
     supabase.from('facilities').select('*').order('name').then(({ data }) => {
@@ -101,7 +102,7 @@ export default function PublicFacilityReservationForm() {
         item_name: it.item_name.trim(),
         quantity: Number(it.quantity),
       }))
-      const { error: rpcErr } = await supabase.rpc('create_facility_reservation', {
+      const { data: resData, error: rpcErr } = await supabase.rpc('create_facility_reservation', {
         p_facility_id: facilityId,
         p_date: reservationDate,
         p_start: startTime,
@@ -117,10 +118,14 @@ export default function PublicFacilityReservationForm() {
 
       toast.success('Reservation confirmed!')
       setConfirmOpen(false)
-      setStep(1)
-      setFullName(''); setContactNumber(''); setOrganization(''); setPurpose(''); setNotes('')
-      setItems([BLANK_ITEM()])
-      setStartTime(''); setEndTime('')
+      setSuccessInfo({
+        reservationNumber: resData?.reservation_number,
+        facilityName,
+        date: reservationDate,
+        start: startTime,
+        end: endTime,
+      })
+      setStep(3)
       loadReservations()
     } catch (e) {
       setConfirmOpen(false)
@@ -128,6 +133,15 @@ export default function PublicFacilityReservationForm() {
     } finally {
       setSubmitting(false)
     }
+  }
+
+  function handleReserveAgain() {
+    setFullName(''); setContactNumber(''); setOrganization(''); setPurpose(''); setNotes('')
+    setItems([BLANK_ITEM()])
+    setStartTime(''); setEndTime('')
+    setSuccessInfo(null)
+    setError('')
+    setStep(1)
   }
 
   const facilityName = facilities.find((f) => f.id === facilityId)?.name || ''
@@ -148,7 +162,9 @@ export default function PublicFacilityReservationForm() {
       <div className="page-content" style={{ maxWidth: 960, margin: '0 auto' }}>
         <h1 className="page-title">Reserve a Facility</h1>
         <p className="page-subtitle">
-          {step === 1 ? 'Pick a facility, date, and time. Reservations are confirmed instantly.' : 'A few more details to complete your reservation.'}
+          {step === 1 && 'Pick a facility, date, and time. Reservations are confirmed instantly.'}
+          {step === 2 && 'A few more details to complete your reservation.'}
+          {step === 3 && 'Your reservation is confirmed.'}
         </p>
 
         {error && <div className="alert alert-error">{error}</div>}
@@ -248,6 +264,35 @@ export default function PublicFacilityReservationForm() {
               <button className="btn btn-primary" onClick={handleReview}>Review Reservation</button>
             </div>
           </>
+        )}
+
+        {step === 3 && successInfo && (
+          <div className="card" style={{ textAlign: 'center', padding: '48px 32px' }}>
+            <div style={{
+              width: 64, height: 64, borderRadius: '50%', margin: '0 auto 20px',
+              background: 'rgba(46,125,50,0.12)', color: 'var(--green)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <CheckCircle2 size={32} />
+            </div>
+            <h2 style={{ margin: '0 0 8px', fontSize: 22, fontWeight: 700 }}>Reservation Confirmed!</h2>
+            <p className="text-muted" style={{ margin: '0 0 28px' }}>
+              Your facility reservation has been saved — no further action needed.
+            </p>
+            <div style={{
+              background: 'var(--bg)', borderRadius: 'var(--radius-sm)', padding: 18,
+              maxWidth: 380, margin: '0 auto 28px', textAlign: 'left', fontSize: 13.5, lineHeight: 1.9,
+            }}>
+              {successInfo.reservationNumber && <div><strong>Reservation #:</strong> {successInfo.reservationNumber}</div>}
+              <div><strong>Facility:</strong> {successInfo.facilityName}</div>
+              <div><strong>Date:</strong> {new Date(successInfo.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</div>
+              <div><strong>Time:</strong> {formatTime12h(successInfo.start)} – {formatTime12h(successInfo.end)}</div>
+            </div>
+            <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
+              <button className="btn btn-secondary" onClick={() => navigate('/')}>Back to Home</button>
+              <button className="btn btn-primary" onClick={handleReserveAgain}>Reserve Again</button>
+            </div>
+          </div>
         )}
       </div>
 
