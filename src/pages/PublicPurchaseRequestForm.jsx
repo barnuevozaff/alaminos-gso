@@ -1,4 +1,5 @@
 import { fmt } from '../lib/fmt.js'
+import { capitalizeUnit } from '../lib/units'
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Trash2, Search, Loader2 } from 'lucide-react'
@@ -150,7 +151,7 @@ export default function PublicPurchaseRequestForm() {
                 ) : items.map((it, idx) => (
                   <tr key={idx}>
                     <td><strong>{it.item_description}</strong></td>
-                    <td>{it.unit}</td>
+                    <td>{capitalizeUnit(it.unit)}</td>
                     <td>{it.available}</td>
                     <td>
                       <input type="number" min="1" max={it.available} className="form-input" style={{ width: 90 }}

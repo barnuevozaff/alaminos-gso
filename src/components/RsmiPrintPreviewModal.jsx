@@ -1,5 +1,6 @@
 import { fmt } from '../lib/fmt.js'
 import { fmtDate } from '../lib/dateUtils'
+import { capitalizeUnit } from '../lib/units'
 import { X, Printer } from 'lucide-react'
 import sealLogo from '../assets/alaminos-seal.png'
 
@@ -51,7 +52,7 @@ export default function RsmiPrintPreviewModal({ dateFrom, dateTo, fund, onFundCh
                   <td></td>
                   <td>{it.stock_no}</td>
                   <td>{it.description}</td>
-                  <td>{it.unit}</td>
+                  <td>{capitalizeUnit(it.unit)}</td>
                   <td style={{ textAlign: 'right' }}>{it.quantity}</td>
                   <td style={{ textAlign: 'right' }}>{fmt(it.unit_cost)}</td>
                   <td style={{ textAlign: 'right' }}>{fmt(it.amount)}</td>

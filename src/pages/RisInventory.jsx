@@ -5,7 +5,7 @@ import { useToast } from '../context/ToastContext'
 import { useAuth } from '../context/AuthContext'
 import { Trash2, SquarePen, Plus, X, FileUp, Receipt } from 'lucide-react'
 import { supabase } from '../lib/supabase'
-import { UNITS } from '../lib/units'
+import { UNITS, capitalizeUnit } from '../lib/units'
 import Layout from '../components/Layout'
 import ConfirmDialog from '../components/ConfirmDialog'
 import RisInventoryImportModal from '../components/RisInventoryImportModal'
@@ -200,7 +200,7 @@ export default function RisInventory() {
                       )}
                     </div>
                   </td>
-                  <td>{item.unit}</td>
+                  <td>{capitalizeUnit(item.unit)}</td>
                   <td style={{ color: item.quantity <= (item.reorder_level ?? 10) ? 'var(--warning)' : undefined, fontWeight: item.quantity <= (item.reorder_level ?? 10) ? 700 : undefined }}>{item.quantity}</td>
                   <td>₱{fmt(item.unit_cost)}</td>
                   <td>₱{fmt(item.quantity * item.unit_cost)}</td>

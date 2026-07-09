@@ -1,4 +1,5 @@
 import { fmt } from '../lib/fmt.js'
+import { capitalizeUnit } from '../lib/units'
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Printer, ArrowLeft } from 'lucide-react'
@@ -217,7 +218,7 @@ export default function PurchaseOrderDetail() {
             {items.map((it, idx) => (
               <tr key={idx}>
                 <td className="text-muted">{it.stock_property_no || '—'}</td>
-                <td className="text-muted">{it.unit}</td>
+                <td className="text-muted">{capitalizeUnit(it.unit)}</td>
                 <td><strong>{it.description}</strong></td>
                 <td>
                   {isLocked ? it.quantity : (

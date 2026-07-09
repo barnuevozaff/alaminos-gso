@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { supabase } from '../lib/supabase'
+import { capitalizeUnit } from '../lib/units'
 
 export default function RisItemAutocomplete({ onSelect, excludeIds = [], placeholder = 'Type item name or stock number to search…' }) {
   const [query, setQuery] = useState('')
@@ -105,7 +106,7 @@ export default function RisItemAutocomplete({ onSelect, excludeIds = [], placeho
                 }}
               >
                 <span><strong>{item.item_name}</strong> <span className="text-muted">({item.item_code})</span></span>
-                <span className="text-muted">{item.unit} · available {item.quantity}</span>
+                <span className="text-muted">{capitalizeUnit(item.unit)} · available {item.quantity}</span>
               </div>
             ))
           )}

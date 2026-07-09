@@ -1,4 +1,5 @@
 import { fmt } from '../lib/fmt.js'
+import { capitalizeUnit } from '../lib/units'
 import { useState } from 'react'
 import { X, Printer } from 'lucide-react'
 import sealLogo from '../assets/alaminos-seal.png'
@@ -66,7 +67,7 @@ export default function PrintPreviewModal({ pr, items, onClose }) {
               {rows.map((it, idx) => (
                 <tr key={idx} style={{ height: 26 }}>
                   <td>{it ? idx + 1 : ''}</td>
-                  <td>{it?.unit || ''}</td>
+                  <td>{capitalizeUnit(it?.unit)}</td>
                   <td>{it?.item_description || ''}</td>
                   <td style={{ textAlign: 'right' }}>{it?.quantity || ''}</td>
                   <td style={{ textAlign: 'right' }}>{it ? fmt(it.unit_cost) : ''}</td>

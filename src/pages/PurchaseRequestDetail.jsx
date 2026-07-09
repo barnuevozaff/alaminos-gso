@@ -1,4 +1,5 @@
 import { fmt } from '../lib/fmt.js'
+import { capitalizeUnit } from '../lib/units'
 import { fmtDate } from '../lib/dateUtils'
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
@@ -201,7 +202,7 @@ export default function PurchaseRequestDetail() {
             {items.map((it, idx) => (
               <tr key={it.id}>
                 <td>{idx + 1}</td>
-                <td>{it.unit}</td>
+                <td>{capitalizeUnit(it.unit)}</td>
                 <td><strong>{it.item_description}</strong></td>
                 <td>{it.quantity}</td>
                 <td>₱{fmt(it.unit_cost)}</td>

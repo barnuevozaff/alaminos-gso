@@ -1,5 +1,6 @@
 import { fmt } from '../lib/fmt.js'
 import { fmtDate } from '../lib/dateUtils'
+import { capitalizeUnit } from '../lib/units'
 import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { Search, Home, Loader2 } from 'lucide-react'
@@ -121,7 +122,7 @@ export default function TrackRequest() {
                   {items.map((it) => (
                     <tr key={it.id}>
                       <td>{it.item_description}</td>
-                      <td>{it.unit}</td>
+                      <td>{capitalizeUnit(it.unit)}</td>
                       <td>{it.quantity}</td>
                       <td>₱{fmt(it.total_cost ?? it.quantity * it.unit_cost)}</td>
                     </tr>

@@ -1,4 +1,5 @@
 import { fmtDate } from '../lib/dateUtils'
+import { capitalizeUnit } from '../lib/units'
 import { useEffect, useMemo, useState } from 'react'
 import { X, Printer } from 'lucide-react'
 import { supabase } from '../lib/supabase'
@@ -99,7 +100,7 @@ export default function RisStockCardModal({ item, onClose }) {
             <div><strong>Stock No.:</strong> {item.item_code}</div>
             <div><strong>Description:</strong> {item.item_name}</div>
             <div><strong>Re-order Point:</strong> {item.reorder_level ?? 10}</div>
-            <div><strong>Unit of Measurement:</strong> {item.unit}</div>
+            <div><strong>Unit of Measurement:</strong> {capitalizeUnit(item.unit)}</div>
             <div></div>
           </div>
 

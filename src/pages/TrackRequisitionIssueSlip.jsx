@@ -1,4 +1,5 @@
 import { fmtDate } from '../lib/dateUtils'
+import { capitalizeUnit } from '../lib/units'
 import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { Search, Home, Eye, Loader2 } from 'lucide-react'
@@ -123,7 +124,7 @@ export default function TrackRequisitionIssueSlip() {
                     <tr key={it.id}>
                       <td className="text-muted">{it.stock_no}</td>
                       <td>{it.description}</td>
-                      <td>{it.unit}</td>
+                      <td>{capitalizeUnit(it.unit)}</td>
                       <td>{it.quantity}</td>
                       <td>{it.issued_quantity ?? '—'}</td>
                     </tr>

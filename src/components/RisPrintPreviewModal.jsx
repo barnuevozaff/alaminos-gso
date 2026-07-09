@@ -1,5 +1,6 @@
 import { X, Printer } from 'lucide-react'
 import sealLogo from '../assets/alaminos-seal.png'
+import { capitalizeUnit } from '../lib/units'
 
 export default function RisPrintPreviewModal({ ris, items, onClose }) {
   const rows = [...items]
@@ -51,7 +52,7 @@ export default function RisPrintPreviewModal({ ris, items, onClose }) {
               {rows.map((it, idx) => (
                 <tr key={idx} style={{ height: 26 }}>
                   <td>{it?.stock_no || ''}</td>
-                  <td>{it?.unit || ''}</td>
+                  <td>{capitalizeUnit(it?.unit)}</td>
                   <td>{it?.description || ''}</td>
                   <td style={{ textAlign: 'right' }}>{it?.quantity ?? ''}</td>
                   <td style={{ textAlign: 'right' }}>{it?.issued_quantity ?? ''}</td>

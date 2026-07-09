@@ -9,6 +9,7 @@ import {
 import { supabase } from '../lib/supabase'
 import Layout from '../components/Layout'
 import { timeAgo } from '../lib/dateUtils'
+import { capitalizeUnit } from '../lib/units'
 import { useAuth } from '../context/AuthContext'
 
 const ACCENT = {
@@ -372,7 +373,7 @@ export default function Dashboard() {
     ...lowStockItems.map((item, idx) => ({
       id: `lowstock-${idx}`, kind: 'lowstock',
       title: `Inventory item "${item.item_name}" is running low`,
-      subtitle: `Current stock: ${item.quantity} ${item.unit} · ${timeAgo(item.updated_at)}`,
+      subtitle: `Current stock: ${item.quantity} ${capitalizeUnit(item.unit)} · ${timeAgo(item.updated_at)}`,
       status: 'Low Stock', created_at: item.updated_at,
       to: item.source === 'RIS' ? '/admin/ris-inventory?filter=lowstock' : '/admin/inventory?filter=lowstock',
     })),

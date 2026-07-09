@@ -1,4 +1,5 @@
 import { fmtDate } from '../lib/dateUtils'
+import { capitalizeUnit } from '../lib/units'
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { X, Check, ArrowLeft, Printer, FileDown } from 'lucide-react'
@@ -127,7 +128,7 @@ export default function RisRequestDetail() {
               <tr key={it.id}>
                 <td>{idx + 1}</td>
                 <td className="text-muted">{it.stock_no}</td>
-                <td>{it.unit}</td>
+                <td>{capitalizeUnit(it.unit)}</td>
                 <td><strong>{it.description}</strong></td>
                 <td>{it.quantity}</td>
                 <td>{it.issued_quantity ?? '—'}</td>

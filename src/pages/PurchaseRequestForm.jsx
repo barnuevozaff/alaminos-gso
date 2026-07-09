@@ -1,4 +1,5 @@
 import { fmt } from '../lib/fmt.js'
+import { capitalizeUnit } from '../lib/units'
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Trash2 } from 'lucide-react'
@@ -200,7 +201,7 @@ export default function PurchaseRequestForm() {
               <tr><td colSpan={6} style={{ textAlign: 'center', color: 'var(--text-muted)', padding: 24 }}>No items added yet.</td></tr>
             ) : items.map((it, idx) => (
               <tr key={idx}>
-                <td>{it.unit}</td>
+                <td>{capitalizeUnit(it.unit)}</td>
                 <td><strong>{it.item_description}</strong></td>
                 <td>
                   {isLocked ? it.quantity : (

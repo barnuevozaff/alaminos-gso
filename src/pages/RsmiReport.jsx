@@ -1,4 +1,5 @@
 import { fmt } from '../lib/fmt.js'
+import { capitalizeUnit } from '../lib/units'
 import { useEffect, useMemo, useState } from 'react'
 import { Printer } from 'lucide-react'
 import { supabase } from '../lib/supabase'
@@ -135,7 +136,7 @@ export default function RsmiReport() {
                   <td>{it.ris_number}</td>
                   <td className="text-muted">{it.stock_no}</td>
                   <td><strong>{it.description}</strong></td>
-                  <td>{it.unit}</td>
+                  <td>{capitalizeUnit(it.unit)}</td>
                   <td>{it.quantity}</td>
                   <td>₱{fmt(it.unit_cost)}</td>
                   <td>₱{fmt(it.amount)}</td>

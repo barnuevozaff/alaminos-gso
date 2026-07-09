@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Trash2, Search, Loader2 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
+import { capitalizeUnit } from '../lib/units'
 import DepartmentAutocomplete from '../components/DepartmentAutocomplete'
 import RisItemAutocomplete from '../components/RisItemAutocomplete'
 import LOGO from '../assets/alaminos-seal.png'
@@ -166,7 +167,7 @@ export default function PublicRequisitionIssueSlipForm() {
                   <tr key={idx}>
                     <td className="text-muted">{it.stock_no}</td>
                     <td><strong>{it.description}</strong></td>
-                    <td>{it.unit}</td>
+                    <td>{capitalizeUnit(it.unit)}</td>
                     <td>{it.available}</td>
                     <td>
                       <input type="number" min="1" max={it.available} className="form-input" style={{ width: 90 }}

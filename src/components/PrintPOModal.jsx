@@ -1,4 +1,5 @@
 import { fmt } from '../lib/fmt.js'
+import { capitalizeUnit } from '../lib/units'
 import { X, Printer } from 'lucide-react'
 import sealLogo from '../assets/alaminos-seal.png'
 
@@ -80,7 +81,7 @@ export default function PrintPOModal({ po, items, prNumber, onClose }) {
               {rows.map((it, idx) => (
                 <tr key={idx} style={{ height: 24 }}>
                   <td>{it?.stock_property_no || ''}</td>
-                  <td>{it?.unit || ''}</td>
+                  <td>{capitalizeUnit(it?.unit)}</td>
                   <td>{it?.description || ''}</td>
                   <td style={{ textAlign: 'right' }}>{it?.quantity || ''}</td>
                   <td style={{ textAlign: 'right' }}>{it ? fmt(it.unit_cost) : ''}</td>
