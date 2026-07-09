@@ -453,7 +453,7 @@ export default function Dashboard() {
           <div className="dash-animate" style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10, animationDelay: '0.05s' }}>
             System Overview
           </div>
-          <div className="stats-grid bento-row" style={{ marginBottom: 16 }}>
+          <div className="stats-grid" style={{ marginBottom: 16 }}>
             <StatCard delay={0.08} accent="maroon" icon={FileText}      label="Purchase Requests" value={stats.prLast30}  sub="Last 30 days" sparkline={sparkPR} />
             <StatCard delay={0.11} accent="blue"   icon={ClipboardList} label="RIS Transactions"  value={stats.risLast30} sub="Last 30 days" sparkline={sparkRIS} />
             <StatCard delay={0.14} accent="maroon" icon={Boxes}         label="Inventory Items"   value={stats.invItems} sub="Total items"
@@ -464,7 +464,7 @@ export default function Dashboard() {
             />
             <StatCard delay={0.17} accent="blue"   icon={ShoppingCart}  label="Purchase Orders"   value={stats.poLast30}  sub="Last 30 days" sparkline={sparkPO} />
           </div>
-          <div className="stats-grid bento-row" style={{ marginBottom: 'var(--space-section)' }}>
+          <div className="stats-grid" style={{ marginBottom: 'var(--space-section)' }}>
             <StatCard navigate={navigate} delay={0.2}  accent="gold"  icon={Clock}        label="Pending Approvals" value={stats.prPending + stats.risPending} sub="Awaiting review" to={stats.prPending > 0 || stats.risPending === 0 ? '/admin/requests?status=Submitted' : '/admin/ris?status=Submitted'} />
             <StatCard navigate={navigate} delay={0.23} accent="green" icon={CheckCircle2} label="Approved"          value={stats.prApproved + stats.risApproved} sub={`${approvedPct}% of total`} to={stats.prApproved > 0 || stats.risApproved === 0 ? '/admin/requests?status=Approved' : '/admin/ris?status=Approved'} />
             <StatCard navigate={navigate} delay={0.26} accent="red"   icon={XCircle}      label="Rejected"          value={stats.prRejected + stats.risRejected} sub={`${rejectedPct}% of total`} to={stats.prRejected > 0 || stats.risRejected === 0 ? '/admin/requests?status=Rejected' : '/admin/ris?status=Rejected'} />

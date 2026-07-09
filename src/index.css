@@ -103,7 +103,6 @@ a { color: inherit; }
   padding: 2px 0 24px;
   height: 100vh;
   overflow: hidden;
-  transition: width 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .sidebar-header {
@@ -115,24 +114,7 @@ a { color: inherit; }
   padding: 0 20px;
   border-bottom: 1px solid rgba(255,255,255,0.08);
   margin-bottom: 16px;
-  position: relative;
 }
-
-.sidebar-collapse-toggle {
-  background: rgba(255,255,255,0.1);
-  border: 1px solid rgba(255,255,255,0.2);
-  color: var(--sidebar-text);
-  width: 26px;
-  height: 26px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-left: auto;
-  flex-shrink: 0;
-  transition: background 0.15s ease;
-}
-.sidebar-collapse-toggle:hover { background: rgba(255,255,255,0.2); }
 
 .sidebar-logo {
   width: 40px;
@@ -245,28 +227,6 @@ a { color: inherit; }
 }
 .btn-signout:hover { background: rgba(255,255,255,0.18); }
 
-/* Mini/collapsed sidebar mode — desktop only. Scoped to a min-width query
-   so the persisted `collapsed` preference never shrinks the mobile
-   slide-in drawer (which is always full width regardless). */
-@media (min-width: 769px) {
-  .sidebar.collapsed { width: 80px; }
-  .sidebar.collapsed .sidebar-header { justify-content: space-between; padding: 0 8px; gap: 0; }
-  .sidebar.collapsed .sidebar-header-text { display: none; }
-  .sidebar.collapsed .sidebar-collapse-toggle { margin-left: 0; }
-  .sidebar.collapsed .sidebar-logo { width: 32px; height: 32px; }
-  .sidebar.collapsed .sidebar-nav { padding: 0 10px; }
-  .sidebar.collapsed .sidebar-section-label { display: none; }
-  .sidebar.collapsed .sidebar-link { justify-content: center; padding: 12px; gap: 0; }
-  .sidebar.collapsed .sidebar-link span { display: none; }
-  .sidebar.collapsed .sidebar-link:hover { transform: none; }
-  .sidebar.collapsed .sidebar-group-chevron { display: none; }
-  .sidebar.collapsed .sidebar-submenu { padding-left: 0; }
-  .sidebar.collapsed .sidebar-footer { padding: 16px 10px 0; }
-  .sidebar.collapsed .sidebar-user-name,
-  .sidebar.collapsed .sidebar-user-role,
-  .sidebar.collapsed .btn-signout span { display: none; }
-}
-
 .main-content {
   flex: 1;
   display: flex;
@@ -333,12 +293,6 @@ p.page-subtitle { color: var(--text-muted); font-size: 14px; margin: 0 0 22px; }
   margin-bottom: 18px;
 }
 
-/* Bento-style variant — gives the first card in the row more visual
-   weight instead of four uniformly-sized cells. Falls back to the same
-   responsive breakpoints as .stats-grid below since both rules target
-   the same class and the media queries win at those widths. */
-.bento-row { grid-template-columns: 1.4fr 1fr 1fr 1fr; }
-
 @media (max-width: 900px) {
   .stats-grid { grid-template-columns: repeat(2, 1fr); }
 }
@@ -359,7 +313,7 @@ p.page-subtitle { color: var(--text-muted); font-size: 14px; margin: 0 0 22px; }
 .btn:active:not(:disabled) { transform: scale(0.97) translateY(0); box-shadow: none; }
 .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-.btn-primary { background: linear-gradient(135deg, var(--maroon-light) 0%, var(--maroon) 55%, var(--maroon-dark) 100%); color: #fff; }
+.btn-primary { background: var(--maroon); color: #fff; }
 .btn-secondary { background: #fff; color: var(--text); border: 1px solid var(--border); }
 .btn-success { background: var(--green); color: #fff; }
 .btn-danger { background: var(--red); color: #fff; }
@@ -399,28 +353,19 @@ p.page-subtitle { color: var(--text-muted); font-size: 14px; margin: 0 0 22px; }
 
 /* ---------- Badges ---------- */
 .badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
+  display: inline-block;
   padding: 4px 12px;
   border-radius: 14px;
   font-size: 12px;
   font-weight: 700;
+  color: #fff;
 }
-.badge::before {
-  content: '';
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: currentColor;
-  flex-shrink: 0;
-}
-.badge-pending { background: color-mix(in srgb, var(--gold-dark) 16%, white); color: var(--gold-dark); }
-.badge-approved, .badge-issued, .badge-complete, .badge-acknowledged { background: color-mix(in srgb, var(--green) 16%, white); color: var(--green); }
-.badge-rejected { background: color-mix(in srgb, var(--red) 14%, white); color: var(--red); }
-.badge-draft { background: color-mix(in srgb, var(--badge-draft) 18%, white); color: #57534e; }
-.badge-submitted { background: color-mix(in srgb, var(--info) 15%, white); color: var(--info); }
-.badge-completed { background: color-mix(in srgb, var(--maroon) 14%, white); color: var(--maroon); }
+.badge-pending { background: var(--gold-dark); }
+.badge-approved, .badge-issued, .badge-complete, .badge-acknowledged { background: var(--green); }
+.badge-rejected { background: var(--red); }
+.badge-draft { background: var(--badge-draft); }
+.badge-submitted { background: var(--info); }
+.badge-completed { background: var(--maroon); }
 
 /* ---------- Forms ---------- */
 .form-group { margin-bottom: 16px; }
@@ -503,9 +448,7 @@ p.page-subtitle { color: var(--text-muted); font-size: 14px; margin: 0 0 22px; }
 /* ---------- Modal ---------- */
 .modal-overlay {
   position: fixed; inset: 0;
-  background: rgba(20,10,10,0.4);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  background: rgba(20,10,10,0.55);
   display: flex; align-items: center; justify-content: center;
   z-index: 100;
   padding: 24px;
@@ -515,10 +458,7 @@ p.page-subtitle { color: var(--text-muted); font-size: 14px; margin: 0 0 22px; }
   to   { opacity: 1; transform: scale(1) translateY(0); }
 }
 .modal-box {
-  background: rgba(255,255,255,0.82);
-  backdrop-filter: blur(24px) saturate(180%);
-  -webkit-backdrop-filter: blur(24px) saturate(180%);
-  border: 1px solid rgba(255,255,255,0.6);
+  background: #fff;
   border-radius: var(--radius);
   box-shadow: var(--shadow-lg);
   max-width: 960px;
@@ -527,7 +467,7 @@ p.page-subtitle { color: var(--text-muted); font-size: 14px; margin: 0 0 22px; }
   overflow-y: auto;
   padding: 28px;
   position: relative;
-  animation: modalPop 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: modalPop 0.18s ease;
 }
 .modal-box.modal-sm { max-width: 480px; }
 .modal-close {
@@ -734,11 +674,7 @@ p.page-subtitle { color: var(--text-muted); font-size: 14px; margin: 0 0 22px; }
   .hamburger-btn { display: flex; align-items: center; justify-content: center; }
   .sidebar-overlay { display: block; }
 
-  /* Sidebar slides in from left — always full width here, ignoring the
-     desktop mini/collapsed mode (that state can be persisted from a
-     prior desktop session via localStorage; the .collapsed rules that
-     shrink it are themselves scoped to a min-width media query so they
-     simply don't apply below that breakpoint). */
+  /* Sidebar slides in from left */
   .sidebar {
     position: fixed;
     top: 0; left: 0; bottom: 0;
@@ -748,7 +684,6 @@ p.page-subtitle { color: var(--text-muted); font-size: 14px; margin: 0 0 22px; }
     transition: transform 0.25s ease;
   }
   .sidebar.sidebar-open { transform: translateX(0); }
-  .sidebar-collapse-toggle { display: none; }
 
   /* Main content takes full width */
   .app-shell { flex-direction: column; }
