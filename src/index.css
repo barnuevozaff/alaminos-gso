@@ -241,14 +241,14 @@ a { color: inherit; }
   height: 72px;
   box-sizing: border-box;
   padding: 0 32px;
-  border-bottom: 1px solid rgba(255,255,255,0.08);
-  background: var(--sidebar-bg);
+  border-bottom: 1px solid var(--border);
+  background: var(--card-bg);
   position: sticky;
   top: 0;
   z-index: 50;
 }
 
-.topbar-title { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 16px; color: var(--sidebar-text); }
+.topbar-title { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 16px; }
 
 .page-content {
   padding: 28px 32px;
@@ -634,14 +634,14 @@ p.page-subtitle { color: var(--text-muted); font-size: 14px; margin: 0 0 22px; }
   display: none;
   background: none;
   border: none;
-  color: var(--sidebar-text);
+  color: var(--text);
   font-size: 20px;
   padding: 4px 8px;
   cursor: pointer;
   margin-right: 8px;
   border-radius: var(--radius-sm);
 }
-.hamburger-btn:hover { background: var(--sidebar-accent); }
+.hamburger-btn:hover { background: var(--border); }
 
 /* Sidebar overlay for mobile */
 .sidebar-overlay {
