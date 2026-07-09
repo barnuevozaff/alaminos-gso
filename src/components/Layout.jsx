@@ -48,6 +48,7 @@ const NAV_ITEMS = [
     children: [
       { to: '/admin/facility-reservations', label: 'Reservations', icon: ListChecks },
       { to: '/admin/facility-calendar', label: 'Calendar', icon: CalendarRange },
+      { to: '/admin/facility-management', label: 'Manage Facilities', icon: Tags },
     ],
   },
   {

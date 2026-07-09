@@ -1,5 +1,5 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { getWeekDates, timeToMinutes, formatTime12h } from '../lib/facilityTime'
+import { getWeekDates, timeToMinutes, formatTime12h, getFacilityColor } from '../lib/facilityTime'
 
 const DAY_START_MIN = 6 * 60   // 6:00 AM
 const DAY_END_MIN = 21 * 60    // 9:00 PM
@@ -13,8 +13,12 @@ function hourLabel(h) {
 }
 
 // Shared weekly time-grid calendar (Mon-Sun, 6AM-9PM), used by both the
-// public reservation form and the admin monitoring calendar.
-export default function WeekCalendar({ weekStart, reservations, onWeekChange, onBlockClick }) {
+// public reservation form and the admin monitoring calendar. Shows every
+// facility together in one grid, color-coded per facility (see the legend).
+// mode="public" shows only the facility name + time on each block;
+// mode="admin" shows the borrower name + time, and supports onBlockClick
+// for a full detail modal.
+export default function WeekCalendar({ weekStart, reservations, facilities, mode = 'public', onWeekChange, onBlockClick }) {
   const days = getWeekDates(weekStart)
   const today = new Date()
   today.setHours(0, 0, 0, 0)
@@ -52,6 +56,17 @@ export default function WeekCalendar({ weekStart, reservations, onWeekChange, on
         </button>
       </div>
 
+      {facilities?.length > 0 && (
+        <div className="week-calendar-legend">
+          {facilities.map((f) => (
+            <span key={f.id} className="week-calendar-legend-item">
+              <span className="week-calendar-legend-dot" style={{ background: getFacilityColor(f.id, facilities) }} />
+              {f.name}
+            </span>
+          ))}
+        </div>
+      )}
+
       <div className="week-calendar-scroll">
         <div className="week-calendar-grid">
           <div className="week-calendar-gutter">
@@ -82,16 +97,21 @@ export default function WeekCalendar({ weekStart, reservations, onWeekChange, on
                     if (endMin <= startMin) return null
                     const top = ((startMin - DAY_START_MIN) / TOTAL_MIN) * 100
                     const height = ((endMin - startMin) / TOTAL_MIN) * 100
+                    const color = getFacilityColor(r.facility_id, facilities || [])
+                    const label = mode === 'admin' ? r.borrower_name : (r.facilities?.name || '')
                     return (
                       <button
                         key={r.id}
                         type="button"
                         className="week-calendar-block"
-                        style={{ top: `${top}%`, height: `${height}%` }}
+                        style={{
+                          top: `${top}%`, height: `${height}%`,
+                          background: `${color}1f`, borderColor: `${color}4d`, borderLeftColor: color,
+                        }}
                         onClick={onBlockClick ? () => onBlockClick(r) : undefined}
                         disabled={!onBlockClick}
                       >
-                        <div className="week-calendar-block-name">{r.borrower_name}</div>
+                        <div className="week-calendar-block-name" style={{ color }}>{label}</div>
                         <div className="week-calendar-block-time">
                           {formatTime12h(r.start_time)} – {formatTime12h(r.end_time)}
                         </div>

@@ -8,26 +8,21 @@ import WeekCalendar from '../components/WeekCalendar'
 
 export default function FacilityReservationCalendar() {
   const [facilities, setFacilities] = useState([])
-  const [facilityId, setFacilityId] = useState('')
   const [weekStart, setWeekStart] = useState(() => getMonday(new Date()))
   const [reservations, setReservations] = useState([])
   const [detail, setDetail] = useState(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    supabase.from('facilities').select('*').order('name').then(({ data }) => {
-      setFacilities(data || [])
-      if (data?.length) setFacilityId(data[0].id)
-    })
+    supabase.from('facilities').select('*').order('name').then(({ data }) => setFacilities(data || []))
   }, [])
 
   useEffect(() => {
-    if (!facilityId) return
     load()
     const interval = setInterval(() => load(true), 20000)
     return () => clearInterval(interval)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [facilityId, weekStart])
+  }, [weekStart])
 
   async function load(silent = false) {
     if (!silent) setLoading(true)
@@ -36,7 +31,6 @@ export default function FacilityReservationCalendar() {
     const { data } = await supabase
       .from('facility_reservations')
       .select('*, facilities(name), facility_reservation_items(item_name, quantity)')
-      .eq('facility_id', facilityId)
       .gte('reservation_date', toDateInputValue(weekStart))
       .lte('reservation_date', toDateInputValue(weekEnd))
     setReservations(data || [])
@@ -49,16 +43,11 @@ export default function FacilityReservationCalendar() {
       <p className="page-subtitle">Monitoring only — all bookings are already confirmed.</p>
 
       <div className="card">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, flexWrap: 'wrap', gap: 12 }}>
-          <h3 style={{ margin: 0 }}>Weekly Schedule</h3>
-          <select className="form-select" style={{ minWidth: 200 }} value={facilityId} onChange={(e) => setFacilityId(e.target.value)}>
-            {facilities.map((f) => <option key={f.id} value={f.id}>{f.name}</option>)}
-          </select>
-        </div>
+        <h3 style={{ marginTop: 0 }}>Weekly Schedule</h3>
         {loading ? (
           <div className="state-box"><div className="spinner"></div>Loading calendar…</div>
         ) : (
-          <WeekCalendar weekStart={weekStart} reservations={reservations} onWeekChange={setWeekStart} onBlockClick={setDetail} />
+          <WeekCalendar weekStart={weekStart} reservations={reservations} facilities={facilities} mode="admin" onWeekChange={setWeekStart} onBlockClick={setDetail} />
         )}
       </div>
 

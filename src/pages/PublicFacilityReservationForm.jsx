@@ -44,20 +44,18 @@ export default function PublicFacilityReservationForm() {
   }, [])
 
   useEffect(() => {
-    if (!facilityId) return
     loadReservations()
     const interval = setInterval(loadReservations, 20000)
     return () => clearInterval(interval)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [facilityId, weekStart])
+  }, [weekStart])
 
   async function loadReservations() {
     const weekEnd = new Date(weekStart)
     weekEnd.setDate(weekEnd.getDate() + 6)
     const { data } = await supabase
       .from('facility_reservations')
-      .select('id, borrower_name, reservation_date, start_time, end_time')
-      .eq('facility_id', facilityId)
+      .select('id, facility_id, reservation_date, start_time, end_time, facilities(name)')
       .gte('reservation_date', toDateInputValue(weekStart))
       .lte('reservation_date', toDateInputValue(weekEnd))
     setReservations(data || [])
@@ -172,23 +170,27 @@ export default function PublicFacilityReservationForm() {
         {step === 1 && (
           <>
             <div className="card" style={{ marginBottom: 20 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, flexWrap: 'wrap', gap: 12 }}>
-                <h3 style={{ margin: 0 }}>Facility Calendar</h3>
-                <select className="form-select" style={{ minWidth: 200 }} value={facilityId} onChange={(e) => setFacilityId(e.target.value)}>
-                  {facilities.map((f) => <option key={f.id} value={f.id}>{f.name}</option>)}
-                </select>
-              </div>
-              <WeekCalendar weekStart={weekStart} reservations={reservations} onWeekChange={setWeekStart} />
+              <h3 style={{ marginTop: 0, marginBottom: 16 }}>Facility Calendar</h3>
+              <WeekCalendar weekStart={weekStart} reservations={reservations} facilities={facilities} mode="public" onWeekChange={setWeekStart} />
             </div>
 
             <div className="card" style={{ marginBottom: 20 }}>
-              <h3 style={{ marginTop: 0 }}>Select Date &amp; Time</h3>
+              <h3 style={{ marginTop: 0 }}>Select Facility, Date &amp; Time</h3>
               <div className="form-row form-row-3">
+                <div className="form-group">
+                  <label className="form-label">Facility *</label>
+                  <select className="form-select" value={facilityId} onChange={(e) => setFacilityId(e.target.value)}>
+                    {facilities.map((f) => <option key={f.id} value={f.id}>{f.name}</option>)}
+                  </select>
+                </div>
                 <div className="form-group">
                   <label className="form-label">Date *</label>
                   <input type="date" className="form-input" value={reservationDate}
                     onChange={(e) => { setReservationDate(e.target.value); setWeekStart(getMonday(new Date(e.target.value + 'T00:00:00'))) }} />
                 </div>
+                <div />
+              </div>
+              <div className="form-row">
                 <div className="form-group">
                   <label className="form-label">Start Time *</label>
                   <input type="time" className="form-input" value={startTime} onChange={(e) => setStartTime(e.target.value)} />

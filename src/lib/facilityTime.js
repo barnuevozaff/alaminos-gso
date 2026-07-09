@@ -44,3 +44,24 @@ export function toDateInputValue(date) {
   const d = String(date.getDate()).padStart(2, '0')
   return `${y}-${m}-${d}`
 }
+
+// One consistent color per facility, cycling if there are more facilities
+// than colors. Stable as long as `facilities` is fetched in the same
+// order each time (both calendars sort by name), so a given facility
+// always lands on the same color.
+export const FACILITY_COLORS = [
+  '#7A1F2B', // maroon (brand)
+  '#1F7A4D', // green
+  '#1A4A7A', // blue
+  '#8A6A1C', // gold-dark
+  '#6B3FA0', // purple
+  '#B3261E', // red
+  '#0E7C86', // teal
+  '#A34E1F', // orange-brown
+]
+
+export function getFacilityColor(facilityId, facilities) {
+  const idx = facilities.findIndex((f) => f.id === facilityId)
+  if (idx === -1) return FACILITY_COLORS[0]
+  return FACILITY_COLORS[idx % FACILITY_COLORS.length]
+}
