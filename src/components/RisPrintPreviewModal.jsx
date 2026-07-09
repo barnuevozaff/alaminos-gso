@@ -63,12 +63,35 @@ export default function RisPrintPreviewModal({ ris, items, onClose }) {
 
           <p style={{ marginTop: 14, fontSize: 13 }}><strong>Purpose:</strong> {ris.purpose || ''}</p>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 16, marginTop: 30 }}>
-            <div className="signature-blank">Requested by</div>
-            <div className="signature-blank">Approved by</div>
-            <div className="signature-blank">Issued by</div>
-            <div className="signature-blank">Received by</div>
-          </div>
+          <table style={{ marginTop: 24 }}>
+            <thead>
+              <tr>
+                <th></th>
+                <th>Requested by:</th>
+                <th>Approved by:</th>
+                <th>Issued by:</th>
+                <th>Received by:</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style={{ height: 34 }}>
+                <td><strong>Signature :</strong></td>
+                <td></td><td></td><td></td><td></td>
+              </tr>
+              <tr style={{ height: 30 }}>
+                <td><strong>Printed Name :</strong></td>
+                <td></td><td></td><td></td><td></td>
+              </tr>
+              <tr style={{ height: 30 }}>
+                <td><strong>Designation :</strong></td>
+                <td></td><td></td><td></td><td></td>
+              </tr>
+              <tr style={{ height: 30 }}>
+                <td><strong>Date :</strong></td>
+                <td></td><td></td><td></td><td></td>
+              </tr>
+            </tbody>
+          </table>
         </div>
 
         <div className="print-actions">
