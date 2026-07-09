@@ -155,7 +155,7 @@ export default function RisInventory() {
 
       {error && <div className="alert alert-error">{error}</div>}
 
-      <div className="card" style={{ padding: 0, overflow: 'auto', maxHeight: 'calc(100vh - 220px)' }}>
+      <div className="card" style={{ padding: 0, overflow: 'auto', maxHeight: 'calc(100vh - 220px)', overscrollBehavior: 'contain' }}>
         {loading ? (
           <div className="state-box"><div className="spinner"></div>Loading RIS inventory…</div>
         ) : filtered.length === 0 ? (
