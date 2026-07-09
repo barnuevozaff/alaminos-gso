@@ -324,7 +324,17 @@ p.page-subtitle { color: var(--text-muted); font-size: 14px; margin: 0 0 22px; }
   font-size: 13px;
   padding: 10px 14px;
   background: var(--card-bg);
-  box-shadow: 0 1px 0 var(--border);
+  border-bottom: 1px solid var(--border);
+}
+/* Sticky table headers (Inventory/RIS Inventory) — promote to their own
+   compositor layer so fast/momentum scrolling doesn't tear or blend the
+   header with rows scrolling underneath it. */
+.sticky-thead {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  will-change: transform;
+  transform: translateZ(0);
 }
 .data-table td {
   padding: 14px;

@@ -162,7 +162,7 @@ export default function Inventory() {
           </div>
         ) : (
           <table className="data-table">
-            <thead style={{ position: 'sticky', top: 0, zIndex: 5 }}>
+            <thead className="sticky-thead">
               <tr>
                 {deleteMode && <th style={{ width: 40 }}></th>}
                 <th>Item</th><th>Category</th><th>Unit</th><th>Qty</th><th>Unit Cost</th><th>Total Cost</th>
