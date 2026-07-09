@@ -93,7 +93,7 @@ a { color: inherit; }
 
 .sidebar {
   width: 280px;
-  background-image: linear-gradient(180deg, var(--sidebar-accent) 0%, var(--sidebar-bg) 55%, var(--maroon-dark) 100%);
+  background-image: linear-gradient(180deg, var(--sidebar-accent) 0%, var(--sidebar-bg) 100%);
   color: var(--sidebar-text);
   display: flex;
   flex-direction: column;
