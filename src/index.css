@@ -100,8 +100,7 @@ a { color: inherit; }
   flex-shrink: 0;
   padding: 2px 0 24px;
   height: 100vh;
-  overflow-y: auto;
-  overscroll-behavior: contain;
+  overflow: hidden;
 }
 
 .sidebar-header {
@@ -130,6 +129,9 @@ a { color: inherit; }
   display: flex;
   flex-direction: column;
   padding: 0 12px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  min-height: 0;
 }
 
 .sidebar-section { display: flex; flex-direction: column; gap: 2px; margin-bottom: 22px; }
