@@ -313,7 +313,7 @@ p.page-subtitle { color: var(--text-muted); font-size: 14px; margin: 0 0 22px; }
 .btn:active:not(:disabled) { transform: scale(0.97) translateY(0); box-shadow: none; }
 .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-.btn-primary { background: var(--maroon); color: #fff; }
+.btn-primary { background: linear-gradient(135deg, var(--maroon-light) 0%, var(--maroon) 55%, var(--maroon-dark) 100%); color: #fff; }
 .btn-secondary { background: #fff; color: var(--text); border: 1px solid var(--border); }
 .btn-success { background: var(--green); color: #fff; }
 .btn-danger { background: var(--red); color: #fff; }
@@ -353,19 +353,28 @@ p.page-subtitle { color: var(--text-muted); font-size: 14px; margin: 0 0 22px; }
 
 /* ---------- Badges ---------- */
 .badge {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   padding: 4px 12px;
   border-radius: 14px;
   font-size: 12px;
   font-weight: 700;
-  color: #fff;
 }
-.badge-pending { background: var(--gold-dark); }
-.badge-approved, .badge-issued, .badge-complete, .badge-acknowledged { background: var(--green); }
-.badge-rejected { background: var(--red); }
-.badge-draft { background: var(--badge-draft); }
-.badge-submitted { background: var(--info); }
-.badge-completed { background: var(--maroon); }
+.badge::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  flex-shrink: 0;
+}
+.badge-pending { background: color-mix(in srgb, var(--gold-dark) 16%, white); color: var(--gold-dark); }
+.badge-approved, .badge-issued, .badge-complete, .badge-acknowledged { background: color-mix(in srgb, var(--green) 16%, white); color: var(--green); }
+.badge-rejected { background: color-mix(in srgb, var(--red) 14%, white); color: var(--red); }
+.badge-draft { background: color-mix(in srgb, var(--badge-draft) 18%, white); color: #57534e; }
+.badge-submitted { background: color-mix(in srgb, var(--info) 15%, white); color: var(--info); }
+.badge-completed { background: color-mix(in srgb, var(--maroon) 14%, white); color: var(--maroon); }
 
 /* ---------- Forms ---------- */
 .form-group { margin-bottom: 16px; }
