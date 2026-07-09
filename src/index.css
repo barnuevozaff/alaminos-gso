@@ -753,7 +753,7 @@ p.page-subtitle { color: var(--text-muted); font-size: 14px; margin: 0 0 22px; }
 
 .week-calendar-block {
   position: absolute;
-  left: 3px; right: 3px;
+  box-sizing: border-box;
   border: 1px solid;
   border-left-width: 3px;
   border-radius: var(--radius-sm);
