@@ -97,15 +97,8 @@ export default function RisInventory() {
 
   return (
     <Layout>
-      <div style={{
-        position: 'sticky',
-        top: 75,
-        zIndex: 10,
-        background: 'var(--bg)',
-        paddingBottom: 12,
-        marginBottom: 4,
-        borderBottom: '1px solid var(--border)',
-      }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 113px)' }}>
+      <div style={{ flexShrink: 0, background: 'var(--bg)', paddingBottom: 12, borderBottom: '1px solid var(--border)' }}>
         <div className="flex-between">
           <div>
             <h1 className="page-title">RIS Inventory</h1>
@@ -153,9 +146,9 @@ export default function RisInventory() {
       </div>
       </div>
 
-      {error && <div className="alert alert-error">{error}</div>}
+      {error && <div className="alert alert-error" style={{ flexShrink: 0 }}>{error}</div>}
 
-      <div className="card" style={{ padding: 0, overflow: 'auto', maxHeight: 'calc(100vh - 220px)', overscrollBehavior: 'contain' }}>
+      <div className="card" style={{ padding: 0, overflow: 'auto', flex: 1, minHeight: 0, marginTop: 4, overscrollBehavior: 'contain' }}>
         {loading ? (
           <div className="state-box"><div className="spinner"></div>Loading RIS inventory…</div>
         ) : filtered.length === 0 ? (
@@ -265,6 +258,7 @@ export default function RisInventory() {
           onCancel={() => setConfirmBulkDelete(false)}
         />
       )}
+    </div>
     </Layout>
   )
 }
