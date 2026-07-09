@@ -333,6 +333,12 @@ p.page-subtitle { color: var(--text-muted); font-size: 14px; margin: 0 0 22px; }
   margin-bottom: 18px;
 }
 
+/* Bento-style variant — gives the first card in the row more visual
+   weight instead of four uniformly-sized cells. Falls back to the same
+   responsive breakpoints as .stats-grid below since both rules target
+   the same class and the media queries win at those widths. */
+.bento-row { grid-template-columns: 1.4fr 1fr 1fr 1fr; }
+
 @media (max-width: 900px) {
   .stats-grid { grid-template-columns: repeat(2, 1fr); }
 }
