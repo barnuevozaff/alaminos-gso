@@ -93,7 +93,7 @@ a { color: inherit; }
 
 .sidebar {
   width: 280px;
-  background-color: var(--sidebar-bg);
+  background-image: linear-gradient(180deg, var(--sidebar-accent) 0%, var(--sidebar-bg) 55%, var(--maroon-dark) 100%);
   color: var(--sidebar-text);
   display: flex;
   flex-direction: column;
@@ -158,11 +158,12 @@ a { color: inherit; }
   text-decoration: none;
   font-size: 14px;
   font-weight: 500;
-  transition: background 0.15s;
+  transition: background 0.2s ease, color 0.2s ease, transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.sidebar-link:hover { background: var(--sidebar-accent); }
+.sidebar-link:hover { background: rgba(255,255,255,0.1); transform: translateX(3px); }
 .sidebar-link.active { background: var(--sidebar-active-bg); color: var(--sidebar-active-text); font-weight: 700; }
+.sidebar-link.active:hover { transform: translateX(3px); }
 
 .sidebar-group-toggle {
   width: 100%;
@@ -171,7 +172,7 @@ a { color: inherit; }
   cursor: pointer;
   font-family: inherit;
   text-align: left;
-  transition: background 0.15s;
+  transition: background 0.2s ease, color 0.2s ease, transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .sidebar-group-toggle.active-group { color: var(--sidebar-active-bg); font-weight: 600; }
 .sidebar-group-toggle.open {
@@ -254,6 +255,7 @@ a { color: inherit; }
   padding: 28px 32px;
   flex: 1;
   min-height: 0; /* lets a full-height flex child (e.g. Inventory's item list) actually be bounded to the remaining space instead of growing past it */
+  animation: fadeInUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 /* ---------- Typography ---------- */
@@ -303,10 +305,10 @@ p.page-subtitle { color: var(--text-muted); font-size: 14px; margin: 0 0 22px; }
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  transition: opacity 0.15s, transform 0.15s;
+  transition: opacity 0.2s ease, transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease;
 }
-.btn:hover { opacity: 0.9; }
-.btn:active { transform: scale(0.97); }
+.btn:hover:not(:disabled) { opacity: 0.92; transform: translateY(-1px); box-shadow: var(--shadow-sm); }
+.btn:active:not(:disabled) { transform: scale(0.97) translateY(0); box-shadow: none; }
 .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
 .btn-primary { background: var(--maroon); color: #fff; }
@@ -344,6 +346,7 @@ p.page-subtitle { color: var(--text-muted); font-size: 14px; margin: 0 0 22px; }
   vertical-align: middle;
 }
 .data-table tr:last-child td { border-bottom: none; }
+.data-table tbody tr { transition: background 0.15s ease; }
 .data-table tbody tr:hover { background: var(--row-hover); }
 
 /* ---------- Badges ---------- */

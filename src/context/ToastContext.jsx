@@ -57,7 +57,7 @@ function ToastContainer({ toasts, onDismiss }) {
               fontSize: 14, fontWeight: 500,
               minWidth: 240, maxWidth: 380,
               pointerEvents: 'auto',
-              animation: 'slideInRight 0.2s ease',
+              animation: 'slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
             }}
           >
             <span style={{ fontWeight: 700, fontSize: 16 }}>{s.icon}</span>
