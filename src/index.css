@@ -93,9 +93,7 @@ a { color: inherit; }
 
 .sidebar {
   width: 280px;
-  background-image:
-    radial-gradient(130% 65% at 8% 96%, var(--maroon-light) 0%, transparent 55%),
-    linear-gradient(165deg, #250709 0%, var(--maroon-dark) 45%, var(--maroon) 100%);
+  background-color: var(--sidebar-bg);
   color: var(--sidebar-text);
   display: flex;
   flex-direction: column;
