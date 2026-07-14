@@ -51,7 +51,7 @@ function layoutDayReservations(dayReservations) {
   if (current.length > 0) clusters.push(current)
 
   const placed = []
-  for (const cluster of clusters) {
+  clusters.forEach((cluster, clusterId) => {
     const columnEndTimes = []
     const clusterPlaced = []
     for (const r of cluster) {
@@ -67,9 +67,21 @@ function layoutDayReservations(dayReservations) {
       clusterPlaced.push({ reservation: r, columnIndex })
     }
     const totalColumns = columnEndTimes.length
-    for (const p of clusterPlaced) placed.push({ ...p, totalColumns })
-  }
+    for (const p of clusterPlaced) placed.push({ ...p, totalColumns, clusterId, clusterReservations: cluster })
+  })
   return placed
+}
+
+// Groups a day's laid-out reservations by overlap cluster, preserving
+// insertion order — used by public mode to decide whether a cluster renders
+// as one normal block (cluster of 1) or one merged "Reserved" block (2+).
+function groupByCluster(dayLayoutItems) {
+  const map = new Map()
+  for (const item of dayLayoutItems) {
+    if (!map.has(item.clusterId)) map.set(item.clusterId, [])
+    map.get(item.clusterId).push(item)
+  }
+  return [...map.values()]
 }
 
 // Shared weekly time-grid calendar (Mon-Sun, 6AM-9PM), used by both the
@@ -87,9 +99,11 @@ export default function WeekCalendar({ weekStart, reservations, facilities, mode
   // In public mode there's no parent-supplied onBlockClick, so blocks
   // (especially squished, side-by-side ones) would be unclickable dead ends.
   // Fall back to a lightweight built-in popup showing just facility + time —
-  // no borrower/contact info, since this view is public-facing.
-  const [publicDetail, setPublicDetail] = useState(null)
-  const handleBlockClick = onBlockClick || (mode === 'public' ? setPublicDetail : undefined)
+  // no borrower/contact info, since this view is public-facing. Holds an
+  // array of reservations so the same popup can list one or several
+  // (a merged "Reserved" block covers everything in its overlap cluster).
+  const [popupItems, setPopupItems] = useState(null)
+  const blocksClickable = !!onBlockClick || mode === 'public'
 
   function goToWeek(offsetDays) {
     const d = new Date(weekStart)
@@ -140,7 +154,7 @@ export default function WeekCalendar({ weekStart, reservations, facilities, mode
         </div>
       )}
 
-      {handleBlockClick && (
+      {blocksClickable && (
         <p className="text-muted" style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 5, marginTop: -6, marginBottom: 12 }}>
           <Info size={13} style={{ flexShrink: 0 }} />
           Tip: Click on a colored block to see which facility is occupied at that time.
@@ -170,36 +184,95 @@ export default function WeekCalendar({ weekStart, reservations, facilities, mode
                   {HOUR_LABELS.map((h) => (
                     <div key={h} className="week-calendar-hourline" />
                   ))}
-                  {dayLayouts[i].map(({ reservation: r, columnIndex, totalColumns }) => {
-                    const startMin = Math.max(timeToMinutes(r.start_time), DAY_START_MIN)
-                    const endMin = Math.min(timeToMinutes(r.end_time), DAY_END_MIN)
-                    if (endMin <= startMin) return null
-                    const top = ((startMin - DAY_START_MIN) / TOTAL_MIN) * 100
-                    const height = ((endMin - startMin) / TOTAL_MIN) * 100
-                    const color = getFacilityColor(r.facility_id, facilities || [])
-                    const label = mode === 'admin' ? r.borrower_name : (r.facilities?.name || '')
-                    const widthPct = 100 / totalColumns
-                    return (
-                      <button
-                        key={r.id}
-                        type="button"
-                        className="week-calendar-block"
-                        style={{
-                          top: `${top}%`, height: `${height}%`,
-                          left: `calc(${columnIndex * widthPct}% + ${BLOCK_GAP_PX}px)`,
-                          width: `calc(${widthPct}% - ${BLOCK_GAP_PX * 2}px)`,
-                          background: `${color}1f`, borderColor: `${color}4d`, borderLeftColor: color,
-                        }}
-                        onClick={handleBlockClick ? () => handleBlockClick(r) : undefined}
-                        disabled={!handleBlockClick}
-                      >
-                        <div className="week-calendar-block-name" style={{ color }}>{label}</div>
-                        <div className="week-calendar-block-time">
-                          {formatTime12h(r.start_time)} – {formatTime12h(r.end_time)}
-                        </div>
-                      </button>
-                    )
-                  })}
+                  {!onBlockClick && mode === 'public'
+                    ? groupByCluster(dayLayouts[i]).map((group) => {
+                      if (group.length === 1) {
+                        const { reservation: r, columnIndex, totalColumns } = group[0]
+                        const startMin = Math.max(timeToMinutes(r.start_time), DAY_START_MIN)
+                        const endMin = Math.min(timeToMinutes(r.end_time), DAY_END_MIN)
+                        if (endMin <= startMin) return null
+                        const top = ((startMin - DAY_START_MIN) / TOTAL_MIN) * 100
+                        const height = ((endMin - startMin) / TOTAL_MIN) * 100
+                        const color = getFacilityColor(r.facility_id, facilities || [])
+                        const widthPct = 100 / totalColumns
+                        return (
+                          <button
+                            key={r.id}
+                            type="button"
+                            className="week-calendar-block"
+                            style={{
+                              top: `${top}%`, height: `${height}%`,
+                              left: `calc(${columnIndex * widthPct}% + ${BLOCK_GAP_PX}px)`,
+                              width: `calc(${widthPct}% - ${BLOCK_GAP_PX * 2}px)`,
+                              background: `${color}1f`, borderColor: `${color}4d`, borderLeftColor: color,
+                            }}
+                            onClick={() => setPopupItems([r])}
+                          >
+                            <div className="week-calendar-block-name" style={{ color }}>{r.facilities?.name || ''}</div>
+                            <div className="week-calendar-block-time">
+                              {formatTime12h(r.start_time)} – {formatTime12h(r.end_time)}
+                            </div>
+                          </button>
+                        )
+                      }
+                      // Multiple facilities overlap here — a squished side-by-side
+                      // render becomes unreadable, so merge into one "Reserved"
+                      // block spanning the full cluster's time range; clicking
+                      // it lists every facility/time covered underneath.
+                      const starts = group.map((g) => timeToMinutes(g.reservation.start_time))
+                      const ends = group.map((g) => timeToMinutes(g.reservation.end_time))
+                      const startMin = Math.max(Math.min(...starts), DAY_START_MIN)
+                      const endMin = Math.min(Math.max(...ends), DAY_END_MIN)
+                      if (endMin <= startMin) return null
+                      const top = ((startMin - DAY_START_MIN) / TOTAL_MIN) * 100
+                      const height = ((endMin - startMin) / TOTAL_MIN) * 100
+                      return (
+                        <button
+                          key={`cluster-${group[0].clusterId}`}
+                          type="button"
+                          className="week-calendar-block"
+                          style={{
+                            top: `${top}%`, height: `${height}%`,
+                            left: `${BLOCK_GAP_PX}px`, width: `calc(100% - ${BLOCK_GAP_PX * 2}px)`,
+                            background: 'rgba(122,31,43,0.07)', borderColor: 'rgba(122,31,43,0.3)', borderLeftColor: 'var(--maroon)',
+                          }}
+                          onClick={() => setPopupItems(group.map((g) => g.reservation))}
+                        >
+                          <div className="week-calendar-block-name" style={{ color: 'var(--maroon)' }}>Reserved</div>
+                          <div className="week-calendar-block-time">Click to view · {group.length} facilities</div>
+                        </button>
+                      )
+                    })
+                    : dayLayouts[i].map(({ reservation: r, columnIndex, totalColumns }) => {
+                      const startMin = Math.max(timeToMinutes(r.start_time), DAY_START_MIN)
+                      const endMin = Math.min(timeToMinutes(r.end_time), DAY_END_MIN)
+                      if (endMin <= startMin) return null
+                      const top = ((startMin - DAY_START_MIN) / TOTAL_MIN) * 100
+                      const height = ((endMin - startMin) / TOTAL_MIN) * 100
+                      const color = getFacilityColor(r.facility_id, facilities || [])
+                      const label = mode === 'admin' ? r.borrower_name : (r.facilities?.name || '')
+                      const widthPct = 100 / totalColumns
+                      return (
+                        <button
+                          key={r.id}
+                          type="button"
+                          className="week-calendar-block"
+                          style={{
+                            top: `${top}%`, height: `${height}%`,
+                            left: `calc(${columnIndex * widthPct}% + ${BLOCK_GAP_PX}px)`,
+                            width: `calc(${widthPct}% - ${BLOCK_GAP_PX * 2}px)`,
+                            background: `${color}1f`, borderColor: `${color}4d`, borderLeftColor: color,
+                          }}
+                          onClick={onBlockClick ? () => onBlockClick(r) : undefined}
+                          disabled={!onBlockClick}
+                        >
+                          <div className="week-calendar-block-name" style={{ color }}>{label}</div>
+                          <div className="week-calendar-block-time">
+                            {formatTime12h(r.start_time)} – {formatTime12h(r.end_time)}
+                          </div>
+                        </button>
+                      )
+                    })}
                 </div>
               </div>
             )
@@ -207,15 +280,19 @@ export default function WeekCalendar({ weekStart, reservations, facilities, mode
         </div>
       </div>
 
-      {!onBlockClick && publicDetail && (
-        <div className="modal-overlay" onClick={() => setPublicDetail(null)}>
+      {!onBlockClick && popupItems && (
+        <div className="modal-overlay" onClick={() => setPopupItems(null)}>
           <div className="modal-box modal-sm" onClick={(e) => e.stopPropagation()}>
-            <button className="modal-close" aria-label="Close" onClick={() => setPublicDetail(null)}><X size={16} /></button>
-            <h3 className="modal-title">Facility Occupied</h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, fontSize: 14 }}>
-              <div><strong>Facility:</strong> {publicDetail.facilities?.name || '—'}</div>
-              <div><strong>Date:</strong> {fmtDate(publicDetail.reservation_date)}</div>
-              <div><strong>Time:</strong> {formatTime12h(publicDetail.start_time)} – {formatTime12h(publicDetail.end_time)}</div>
+            <button className="modal-close" aria-label="Close" onClick={() => setPopupItems(null)}><X size={16} /></button>
+            <h3 className="modal-title">{popupItems.length > 1 ? 'Facilities Occupied' : 'Facility Occupied'}</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 14, fontSize: 14 }}>
+              {popupItems.map((r, idx) => (
+                <div key={r.id} style={idx > 0 ? { display: 'flex', flexDirection: 'column', gap: 10, borderTop: '1px solid var(--border)', paddingTop: 14 } : { display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  <div><strong>Facility:</strong> {r.facilities?.name || '—'}</div>
+                  <div><strong>Date:</strong> {fmtDate(r.reservation_date)}</div>
+                  <div><strong>Time:</strong> {formatTime12h(r.start_time)} – {formatTime12h(r.end_time)}</div>
+                </div>
+              ))}
             </div>
           </div>
         </div>
