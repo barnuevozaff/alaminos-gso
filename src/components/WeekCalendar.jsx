@@ -74,7 +74,7 @@ function layoutDayReservations(dayReservations) {
 
 // Groups a day's laid-out reservations by overlap cluster, preserving
 // insertion order — used by public mode to decide whether a cluster renders
-// as one normal block (cluster of 1) or one merged "Reserved" block (2+).
+// as one normal block (cluster of 1) or one merged "Occupied Facilities" block (2+).
 function groupByCluster(dayLayoutItems) {
   const map = new Map()
   for (const item of dayLayoutItems) {
@@ -101,7 +101,7 @@ export default function WeekCalendar({ weekStart, reservations, facilities, mode
   // Fall back to a lightweight built-in popup showing just facility + time —
   // no borrower/contact info, since this view is public-facing. Holds an
   // array of reservations so the same popup can list one or several
-  // (a merged "Reserved" block covers everything in its overlap cluster).
+  // (a merged "Occupied Facilities" block covers everything in its overlap cluster).
   const [popupItems, setPopupItems] = useState(null)
   const blocksClickable = !!onBlockClick || mode === 'public'
 
@@ -216,7 +216,7 @@ export default function WeekCalendar({ weekStart, reservations, facilities, mode
                         )
                       }
                       // Multiple facilities overlap here — a squished side-by-side
-                      // render becomes unreadable, so merge into one "Reserved"
+                      // render becomes unreadable, so merge into one "Occupied Facilities"
                       // block spanning the full cluster's time range; clicking
                       // it lists every facility/time covered underneath.
                       const starts = group.map((g) => timeToMinutes(g.reservation.start_time))
@@ -238,7 +238,7 @@ export default function WeekCalendar({ weekStart, reservations, facilities, mode
                           }}
                           onClick={() => setPopupItems(group.map((g) => g.reservation))}
                         >
-                          <div className="week-calendar-block-name" style={{ color: 'var(--maroon)' }}>Reserved</div>
+                          <div className="week-calendar-block-name" style={{ color: 'var(--maroon)' }}>Occupied Facilities</div>
                           <div className="week-calendar-block-time">Click to view · {group.length} facilities</div>
                         </button>
                       )
