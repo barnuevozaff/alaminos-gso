@@ -1,6 +1,7 @@
-import { useMemo } from 'react'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { useMemo, useState } from 'react'
+import { ChevronLeft, ChevronRight, Info, X } from 'lucide-react'
 import { getWeekDates, timeToMinutes, formatTime12h, getFacilityColor } from '../lib/facilityTime'
+import { fmtDate } from '../lib/dateUtils'
 
 const DAY_START_MIN = 6 * 60   // 6:00 AM
 const DAY_END_MIN = 21 * 60    // 9:00 PM
@@ -83,6 +84,12 @@ export default function WeekCalendar({ weekStart, reservations, facilities, mode
   const days = getWeekDates(weekStart)
   const today = new Date()
   today.setHours(0, 0, 0, 0)
+  // In public mode there's no parent-supplied onBlockClick, so blocks
+  // (especially squished, side-by-side ones) would be unclickable dead ends.
+  // Fall back to a lightweight built-in popup showing just facility + time —
+  // no borrower/contact info, since this view is public-facing.
+  const [publicDetail, setPublicDetail] = useState(null)
+  const handleBlockClick = onBlockClick || (mode === 'public' ? setPublicDetail : undefined)
 
   function goToWeek(offsetDays) {
     const d = new Date(weekStart)
@@ -133,6 +140,13 @@ export default function WeekCalendar({ weekStart, reservations, facilities, mode
         </div>
       )}
 
+      {handleBlockClick && (
+        <p className="text-muted" style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 5, marginTop: -6, marginBottom: 12 }}>
+          <Info size={13} style={{ flexShrink: 0 }} />
+          Tip: Click on a colored block to see which facility is occupied at that time.
+        </p>
+      )}
+
       <div className="week-calendar-scroll">
         <div className="week-calendar-grid">
           <div className="week-calendar-gutter">
@@ -176,8 +190,8 @@ export default function WeekCalendar({ weekStart, reservations, facilities, mode
                           width: `calc(${widthPct}% - ${BLOCK_GAP_PX * 2}px)`,
                           background: `${color}1f`, borderColor: `${color}4d`, borderLeftColor: color,
                         }}
-                        onClick={onBlockClick ? () => onBlockClick(r) : undefined}
-                        disabled={!onBlockClick}
+                        onClick={handleBlockClick ? () => handleBlockClick(r) : undefined}
+                        disabled={!handleBlockClick}
                       >
                         <div className="week-calendar-block-name" style={{ color }}>{label}</div>
                         <div className="week-calendar-block-time">
@@ -192,6 +206,20 @@ export default function WeekCalendar({ weekStart, reservations, facilities, mode
           })}
         </div>
       </div>
+
+      {!onBlockClick && publicDetail && (
+        <div className="modal-overlay" onClick={() => setPublicDetail(null)}>
+          <div className="modal-box modal-sm" onClick={(e) => e.stopPropagation()}>
+            <button className="modal-close" aria-label="Close" onClick={() => setPublicDetail(null)}><X size={16} /></button>
+            <h3 className="modal-title">Facility Occupied</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, fontSize: 14 }}>
+              <div><strong>Facility:</strong> {publicDetail.facilities?.name || '—'}</div>
+              <div><strong>Date:</strong> {fmtDate(publicDetail.reservation_date)}</div>
+              <div><strong>Time:</strong> {formatTime12h(publicDetail.start_time)} – {formatTime12h(publicDetail.end_time)}</div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
