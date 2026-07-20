@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabase'
 import Layout from '../components/Layout'
 import EnergyReportPrintModal from '../components/EnergyReportPrintModal'
 import { fmt } from '../lib/fmt'
-import { MONTH_NAMES, compareAmounts, previousPeriod, periodKey } from '../lib/energyUtils'
+import { MONTH_NAMES, compareAmounts, previousPeriod, nextPeriod, periodKey } from '../lib/energyUtils'
 import { generateEnergyReportPdf } from '../lib/generateEnergyReportPdf'
 import { generateEnergyReportExcel } from '../lib/generateEnergyReportExcel'
 
@@ -156,8 +156,8 @@ export default function EnergyReport() {
   }, [mode, filteredComparison, filteredRange])
 
   // Official printed report mirrors the GSO's paper template: a single
-  // "Monthly Electricity Consumption" table with the selected month and the
-  // 2 months before it as columns (oldest to newest, left to right), one
+  // "Monthly Electricity Consumption" table with the selected month as the
+  // STARTING column and the 2 months after it (left to right), one
   // "Total Amount" row aggregated across every account — no per-account
   // breakdown, no location/meter columns. Only meaningful in comparison mode.
   const threeMonthTrend = useMemo(() => {
@@ -165,8 +165,8 @@ export default function EnergyReport() {
     let period = { year, month }
     const periods = [period]
     for (let i = 0; i < 2; i++) {
-      period = previousPeriod(period.year, period.month)
-      periods.unshift(period)
+      period = nextPeriod(period.year, period.month)
+      periods.push(period)
     }
     return periods.map((p) => ({
       month: p.month,

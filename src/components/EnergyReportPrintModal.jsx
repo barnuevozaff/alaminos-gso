@@ -8,6 +8,12 @@ export default function EnergyReportPrintModal({ mode, periodLabel, rows, summar
     window.print()
   }
 
+  const trendPeriodLabel = threeMonthTrend.length === 3
+    ? threeMonthTrend[0].year === threeMonthTrend[2].year
+      ? `${threeMonthTrend[0].label} – ${threeMonthTrend[2].label} ${threeMonthTrend[2].year}`
+      : `${threeMonthTrend[0].label} ${threeMonthTrend[0].year} – ${threeMonthTrend[2].label} ${threeMonthTrend[2].year}`
+    : periodLabel
+
   return (
     <div className="modal-overlay">
       {/* Scoped to this modal only (removed on unmount) so other reports'
@@ -29,7 +35,7 @@ export default function EnergyReportPrintModal({ mode, periodLabel, rows, summar
             <div>Province of Laguna</div>
             <div style={{ fontWeight: 700, marginTop: 4 }}>GENERAL SERVICES OFFICE (GSO)</div>
             <div className="doc-title">ENERGY CONSUMPTION REPORT</div>
-            <div style={{ marginTop: 6 }}>{mode === 'comparison' ? `For ${periodLabel}` : `For the Period ${periodLabel}`}</div>
+            <div style={{ marginTop: 6 }}>{mode === 'comparison' ? `For ${trendPeriodLabel}` : `For the Period ${periodLabel}`}</div>
           </div>
 
           <div className="print-meta-grid">

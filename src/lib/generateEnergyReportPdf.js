@@ -49,9 +49,15 @@ export async function generateEnergyReportPdf({ mode, periodLabel, rows, summary
   doc.text('ENERGY CONSUMPTION REPORT', pageWidth / 2, y, { align: 'center' })
   y += 18
 
+  const trendPeriodLabel = threeMonthTrend?.length === 3
+    ? threeMonthTrend[0].year === threeMonthTrend[2].year
+      ? `${threeMonthTrend[0].label} – ${threeMonthTrend[2].label} ${threeMonthTrend[2].year}`
+      : `${threeMonthTrend[0].label} ${threeMonthTrend[0].year} – ${threeMonthTrend[2].label} ${threeMonthTrend[2].year}`
+    : periodLabel
+
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(10)
-  doc.text(mode === 'comparison' ? `For ${periodLabel}` : `For the Period ${periodLabel}`, pageWidth / 2, y, { align: 'center' })
+  doc.text(mode === 'comparison' ? `For ${trendPeriodLabel}` : `For the Period ${periodLabel}`, pageWidth / 2, y, { align: 'center' })
   y += 10
 
   doc.text(`Generated: ${new Date().toLocaleDateString('en-PH', { year: 'numeric', month: 'long', day: 'numeric' })}`, pageWidth - margin, y + 14, { align: 'right' })
@@ -81,12 +87,12 @@ export async function generateEnergyReportPdf({ mode, periodLabel, rows, summary
     const noteText = trendComparison.status !== 'none'
       ? `${trendComparison.status === 'increase' ? 'Increased' : 'Decreased'} by ${Math.abs(trendComparison.pct).toFixed(2)}% compared to previous month`
       : 'No prior month data available for comparison'
-    doc.setFont('helvetica', 'normal')
-    doc.setFontSize(10)
+    doc.setFont('helvetica', 'bold')
+    doc.setFontSize(13)
     const noteBoxX = pageWidth / 2 + 10
     const noteBoxWidth = pageWidth - margin - noteBoxX
     doc.rect(noteBoxX, y, noteBoxWidth, doc.lastAutoTable.finalY - y)
-    doc.text(noteText, noteBoxX + noteBoxWidth / 2, (y + doc.lastAutoTable.finalY) / 2, { align: 'center', maxWidth: noteBoxWidth - 20 })
+    doc.text(noteText, noteBoxX + noteBoxWidth / 2, (y + doc.lastAutoTable.finalY) / 2, { align: 'center', maxWidth: noteBoxWidth - 30 })
 
     signatureBlock(doc, pageWidth, margin, doc.lastAutoTable.finalY + 60)
   } else {

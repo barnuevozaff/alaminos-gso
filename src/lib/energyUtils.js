@@ -21,3 +21,7 @@ export function periodKey(year, month) {
 export function previousPeriod(year, month) {
   return month === 1 ? { year: year - 1, month: 12 } : { year, month: month - 1 }
 }
+
+export function nextPeriod(year, month) {
+  return month === 12 ? { year: year + 1, month: 1 } : { year, month: month + 1 }
+}
