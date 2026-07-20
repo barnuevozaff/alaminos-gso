@@ -10,12 +10,15 @@ export default function EnergyReportPrintModal({ mode, periodLabel, rows, summar
 
   return (
     <div className="modal-overlay">
+      {/* Scoped to this modal only (removed on unmount) so other reports'
+          print output — RSMI, PR, RIS — stays portrait as before. */}
+      <style>{'@media print { @page { size: landscape; margin: 14mm; } }'}</style>
       <div className="modal-box">
         <button className="modal-close" aria-label="Close" onClick={onClose}><X size={16} /></button>
         <h3 className="modal-title">Print Preview — Energy Consumption Report</h3>
         <p className="text-muted" style={{ marginTop: -8, marginBottom: 16 }}>Signature blocks are left blank for manual completion on the printed copy.</p>
 
-        <div className="print-sheet">
+        <div className="print-sheet" style={{ maxWidth: 920 }}>
           <div className="print-header-center">
             <img src={sealLogo} alt="" style={{ width: 64, height: 64, marginBottom: 6 }} />
             <div>Republic of the Philippines</div>

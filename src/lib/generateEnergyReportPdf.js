@@ -21,7 +21,7 @@ function loadImageAsDataURL(url) {
  * Prepared By / Approved By signature footer.
  */
 export async function generateEnergyReportPdf({ mode, periodLabel, rows, summary }) {
-  const doc = new jsPDF({ unit: 'pt', format: 'letter' })
+  const doc = new jsPDF({ unit: 'pt', format: 'letter', orientation: 'landscape' })
   const pageWidth = doc.internal.pageSize.getWidth()
   const margin = 40
 
