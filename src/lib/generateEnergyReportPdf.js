@@ -20,7 +20,7 @@ function loadImageAsDataURL(url) {
  * columns depend on the active report mode, grand total, and a
  * Prepared By / Approved By signature footer.
  */
-export async function generateEnergyReportPdf({ mode, periodLabel, rows, summary }) {
+export async function generateEnergyReportPdf({ mode, periodLabel, rows, summary, threeMonthTrend, trendComparison }) {
   const doc = new jsPDF({ unit: 'pt', format: 'letter', orientation: 'landscape' })
   const pageWidth = doc.internal.pageSize.getWidth()
   const margin = 40
@@ -58,33 +58,37 @@ export async function generateEnergyReportPdf({ mode, periodLabel, rows, summary
   y += 24
 
   if (mode === 'comparison') {
-    const body = rows.map((r) => [
-      r.account_number, r.location, r.meter_number,
-      r.current != null ? fmt(r.current) : '—',
-      r.previous != null ? fmt(r.previous) : '—',
-      r.diff != null ? `${r.diff >= 0 ? '+' : ''}${fmt(r.diff)}` : '—',
-      r.status === 'increase' ? 'Increased' : r.status === 'decrease' ? 'Decreased' : 'No Change',
-    ])
+    // Mirrors the GSO's paper template: one "Monthly Electricity Consumption"
+    // table (selected month + the 2 before it as columns, Total Amount as the
+    // only row) plus a trailing increase/decrease note — no per-account rows.
+    doc.setFont('helvetica', 'bold')
+    doc.setFontSize(11)
+    doc.text('Monthly Electricity Consumption', margin, y)
+    y += 10
+
     autoTable(doc, {
       startY: y,
-      margin: { left: margin, right: margin },
-      head: [['Account Number', 'Location', 'Meter Number', 'Current Bill', 'Previous Bill', 'Difference', 'Status']],
-      body,
-      foot: [['', '', '', 'GRAND TOTAL', fmt(summary.grandTotal), '', '']],
+      margin: { left: margin, right: pageWidth / 2 },
+      tableWidth: pageWidth / 2 - margin - 10,
+      head: [['', ...threeMonthTrend.map((p) => p.label)]],
+      body: [['Total Amount (Php)', ...threeMonthTrend.map((p) => fmt(p.total))]],
       theme: 'grid',
-      styles: { fontSize: 8.5, cellPadding: 4 },
+      styles: { fontSize: 9, cellPadding: 5 },
       headStyles: { fillColor: [240, 240, 240], textColor: 20, fontStyle: 'bold' },
-      footStyles: { fillColor: [255, 255, 255], textColor: 20, fontStyle: 'bold' },
-      columnStyles: { 3: { halign: 'right' }, 4: { halign: 'right' }, 5: { halign: 'right' } },
+      columnStyles: Object.fromEntries(threeMonthTrend.map((_, i) => [i + 1, { halign: 'right' }])),
     })
-    let finalY = doc.lastAutoTable.finalY + 20
-    doc.setFontSize(9)
-    doc.text(`Total Accounts: ${rows.length}    Total Increased: ${summary.increased}    Total Decreased: ${summary.decreased}`, margin, finalY)
-    if (summary.overall.status !== 'none') {
-      finalY += 14
-      doc.text(`Overall ${summary.overall.status === 'increase' ? 'Increased' : 'Decreased'} by ₱${fmt(Math.abs(summary.overall.diff))} (${Math.abs(summary.overall.pct).toFixed(1)}%)`, margin, finalY)
-    }
-    signatureBlock(doc, pageWidth, margin, finalY + 50)
+
+    const noteText = trendComparison.status !== 'none'
+      ? `${trendComparison.status === 'increase' ? 'Increased' : 'Decreased'} by ${Math.abs(trendComparison.pct).toFixed(2)}% compared to previous month`
+      : 'No prior month data available for comparison'
+    doc.setFont('helvetica', 'normal')
+    doc.setFontSize(10)
+    const noteBoxX = pageWidth / 2 + 10
+    const noteBoxWidth = pageWidth - margin - noteBoxX
+    doc.rect(noteBoxX, y, noteBoxWidth, doc.lastAutoTable.finalY - y)
+    doc.text(noteText, noteBoxX + noteBoxWidth / 2, (y + doc.lastAutoTable.finalY) / 2, { align: 'center', maxWidth: noteBoxWidth - 20 })
+
+    signatureBlock(doc, pageWidth, margin, doc.lastAutoTable.finalY + 60)
   } else {
     const body = rows.map((r) => [
       r.account_number, r.location, r.meter_number,

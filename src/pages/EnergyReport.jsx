@@ -155,12 +155,38 @@ export default function EnergyReport() {
     return { grandTotal: filteredRange.reduce((sum, r) => sum + r.amount, 0) }
   }, [mode, filteredComparison, filteredRange])
 
+  // Official printed report mirrors the GSO's paper template: a single
+  // "Monthly Electricity Consumption" table with the selected month and the
+  // 2 months before it as columns (oldest to newest, left to right), one
+  // "Total Amount" row aggregated across every account — no per-account
+  // breakdown, no location/meter columns. Only meaningful in comparison mode.
+  const threeMonthTrend = useMemo(() => {
+    if (mode !== 'comparison') return []
+    let period = { year, month }
+    const periods = [period]
+    for (let i = 0; i < 2; i++) {
+      period = previousPeriod(period.year, period.month)
+      periods.unshift(period)
+    }
+    return periods.map((p) => ({
+      month: p.month,
+      year: p.year,
+      label: MONTH_NAMES[p.month - 1],
+      total: bills.filter((b) => b.billing_month === p.month && b.billing_year === p.year)
+        .reduce((sum, b) => sum + Number(b.amount), 0),
+    }))
+  }, [mode, bills, month, year])
+
+  const trendComparison = threeMonthTrend.length === 3
+    ? compareAmounts(threeMonthTrend[2].total, threeMonthTrend[1].total)
+    : { diff: null, pct: null, status: 'none' }
+
   const periodLabel = mode === 'comparison'
     ? `${MONTH_NAMES[month - 1]} ${year}`
     : `${MONTH_NAMES[fromMonth - 1]} ${fromYear} – ${MONTH_NAMES[toMonth - 1]} ${toYear}`
 
   function handleExportPdf() {
-    generateEnergyReportPdf({ mode, periodLabel, rows: sortedRows, summary })
+    generateEnergyReportPdf({ mode, periodLabel, rows: sortedRows, summary, threeMonthTrend, trendComparison })
   }
   function handleExportExcel() {
     generateEnergyReportExcel({ mode, periodLabel, rows: sortedRows, summary })
@@ -340,6 +366,8 @@ export default function EnergyReport() {
           periodLabel={periodLabel}
           rows={sortedRows}
           summary={summary}
+          threeMonthTrend={threeMonthTrend}
+          trendComparison={trendComparison}
           onClose={() => setShowPrint(false)}
         />
       )}

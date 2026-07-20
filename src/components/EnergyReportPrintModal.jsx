@@ -3,7 +3,7 @@ import sealLogo from '../assets/alaminos-seal.png'
 import { fmt } from '../lib/fmt'
 import { MONTH_NAMES } from '../lib/energyUtils'
 
-export default function EnergyReportPrintModal({ mode, periodLabel, rows, summary, onClose }) {
+export default function EnergyReportPrintModal({ mode, periodLabel, rows, summary, threeMonthTrend, trendComparison, onClose }) {
   function handlePrint() {
     window.print()
   }
@@ -35,31 +35,30 @@ export default function EnergyReportPrintModal({ mode, periodLabel, rows, summar
           </div>
 
           {mode === 'comparison' ? (
-            <table>
-              <thead>
-                <tr>
-                  <th>Account Number</th><th>Location</th><th>Meter Number</th><th>Current Bill</th><th>Previous Bill</th><th>Difference</th><th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((r) => (
-                  <tr key={r.id} style={{ height: 26 }}>
-                    <td>{r.account_number}</td>
-                    <td>{r.location}</td>
-                    <td>{r.meter_number}</td>
-                    <td style={{ textAlign: 'right' }}>{r.current != null ? fmt(r.current) : '—'}</td>
-                    <td style={{ textAlign: 'right' }}>{r.previous != null ? fmt(r.previous) : '—'}</td>
-                    <td style={{ textAlign: 'right' }}>{r.diff != null ? `${r.diff >= 0 ? '+' : ''}${fmt(r.diff)}` : '—'}</td>
-                    <td>{r.status === 'increase' ? 'Increased' : r.status === 'decrease' ? 'Decreased' : 'No Change'}</td>
-                  </tr>
-                ))}
-                <tr>
-                  <td colSpan={3} style={{ textAlign: 'right', fontWeight: 700 }}>Grand Total</td>
-                  <td style={{ textAlign: 'right', fontWeight: 700 }}>{fmt(summary.grandTotal)}</td>
-                  <td colSpan={3}></td>
-                </tr>
-              </tbody>
-            </table>
+            <>
+              <p style={{ fontWeight: 700, marginBottom: 6 }}>Monthly Electricity Consumption</p>
+              <div style={{ display: 'flex', gap: 20, alignItems: 'stretch' }}>
+                <table style={{ flex: '0 0 auto' }}>
+                  <thead>
+                    <tr>
+                      <th></th>
+                      {threeMonthTrend.map((p) => <th key={`${p.year}-${p.month}`}>{p.label}</th>)}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr style={{ height: 26 }}>
+                      <td>Total Amount (Php)</td>
+                      {threeMonthTrend.map((p) => <td key={`${p.year}-${p.month}`} style={{ textAlign: 'right' }}>{fmt(p.total)}</td>)}
+                    </tr>
+                  </tbody>
+                </table>
+                <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #444', padding: '10px 16px', fontSize: 13, textAlign: 'center' }}>
+                  {trendComparison.status !== 'none'
+                    ? `${trendComparison.status === 'increase' ? 'Increased' : 'Decreased'} by ${Math.abs(trendComparison.pct).toFixed(2)}% compared to previous month`
+                    : 'No prior month data available for comparison'}
+                </div>
+              </div>
+            </>
           ) : (
             <table>
               <thead>
@@ -83,15 +82,6 @@ export default function EnergyReportPrintModal({ mode, periodLabel, rows, summar
                 </tr>
               </tbody>
             </table>
-          )}
-
-          {mode === 'comparison' && (
-            <p style={{ marginTop: 14, fontSize: 13 }}>
-              Total Accounts: {rows.length} &nbsp;·&nbsp; Total Increased: {summary.increased} &nbsp;·&nbsp; Total Decreased: {summary.decreased}
-              {summary.overall.status !== 'none' && (
-                <> &nbsp;·&nbsp; Overall {summary.overall.status === 'increase' ? 'Increased' : 'Decreased'} by ₱{fmt(Math.abs(summary.overall.diff))} ({Math.abs(summary.overall.pct).toFixed(1)}%)</>
-              )}
-            </p>
           )}
 
           <p style={{ marginTop: 20, fontSize: 13 }}>I hereby certify to the correctness of the above information.</p>
