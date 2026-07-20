@@ -10,6 +10,9 @@ import PublicFacilityReservationForm from './pages/PublicFacilityReservationForm
 import FacilityReservationsList from './pages/FacilityReservationsList'
 import FacilityReservationCalendar from './pages/FacilityReservationCalendar'
 import FacilityManagement from './pages/FacilityManagement'
+import EnergyDashboard from './pages/EnergyDashboard'
+import EnergyAccounts from './pages/EnergyAccounts'
+import EnergyReport from './pages/EnergyReport'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import PurchaseRequestsList from './pages/PurchaseRequestsList'
@@ -74,6 +77,9 @@ export default function App() {
       <Route path="/admin/facility-reservations" element={<PrivateRoute><FacilityReservationsList /></PrivateRoute>} />
       <Route path="/admin/facility-calendar" element={<PrivateRoute><FacilityReservationCalendar /></PrivateRoute>} />
       <Route path="/admin/facility-management" element={<PrivateRoute><FacilityManagement /></PrivateRoute>} />
+      <Route path="/admin/energy-dashboard" element={<PrivateRoute><EnergyDashboard /></PrivateRoute>} />
+      <Route path="/admin/energy-accounts" element={<PrivateRoute><EnergyAccounts /></PrivateRoute>} />
+      <Route path="/admin/energy-report" element={<PrivateRoute><EnergyReport /></PrivateRoute>} />
       <Route path="/admin/audit-logs" element={<PrivateRoute><AuditLogs /></PrivateRoute>} />
       <Route path="/admin/settings" element={<PrivateRoute><Settings /></PrivateRoute>} />
 

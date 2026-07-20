@@ -4,7 +4,7 @@ import {
   LayoutDashboard, FileText, Boxes, Tags,
   FileSpreadsheet, ScrollText, Settings, LogOut,
   Menu, X, ShoppingCart, ChevronDown, ClipboardList, ReceiptText, Warehouse,
-  Building2, ListChecks, CalendarRange,
+  Building2, ListChecks, CalendarRange, Zap,
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
@@ -49,6 +49,17 @@ const NAV_ITEMS = [
       { to: '/admin/facility-reservations', label: 'Reservations', icon: ListChecks },
       { to: '/admin/facility-calendar', label: 'Calendar', icon: CalendarRange },
       { to: '/admin/facility-management', label: 'Manage Facilities', icon: Tags },
+    ],
+  },
+  {
+    type: 'group',
+    sectionLabel: 'Utilities',
+    label: 'Energy Consumption',
+    icon: Zap,
+    children: [
+      { to: '/admin/energy-dashboard', label: 'Dashboard', icon: LayoutDashboard },
+      { to: '/admin/energy-accounts', label: 'Accounts', icon: Tags },
+      { to: '/admin/energy-report', label: 'Report', icon: FileSpreadsheet },
     ],
   },
   {
