@@ -11,11 +11,11 @@ export default function EnergyReportPrintModal({ mode, periodLabel, rows, summar
   return (
     <div className="modal-overlay">
       {/* Scoped to this modal only (removed on unmount) so other reports'
-          print output — RSMI, PR, RIS — stays portrait as before. @page must
-          be a top-level rule, not nested inside @media print, or some
-          browsers (incl. Chrome in testing) silently ignore it and print
-          portrait regardless. */}
-      <style>{'@page { size: landscape; margin: 14mm; }'}</style>
+          print output — RSMI, PR, RIS — stays portrait as before. Explicit
+          "11in 8.5in" instead of the bare "landscape" keyword — testing
+          showed Chrome's print dialog can silently ignore the keyword form
+          and fall back to portrait, but honors explicit swapped dimensions. */}
+      <style>{'@page { size: 11in 8.5in; margin: 14mm; }'}</style>
       <div className="modal-box">
         <button className="modal-close" aria-label="Close" onClick={onClose}><X size={16} /></button>
         <h3 className="modal-title">Print Preview — Energy Consumption Report</h3>
@@ -39,26 +39,28 @@ export default function EnergyReportPrintModal({ mode, periodLabel, rows, summar
 
           {mode === 'comparison' ? (
             <>
-              <p style={{ fontWeight: 700, marginBottom: 6 }}>Monthly Electricity Consumption</p>
-              <div style={{ display: 'flex', gap: 20, alignItems: 'stretch' }}>
-                <table style={{ flex: '0 0 auto' }}>
-                  <thead>
-                    <tr>
-                      <th></th>
-                      {threeMonthTrend.map((p) => <th key={`${p.year}-${p.month}`}>{p.label}</th>)}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr style={{ height: 26 }}>
-                      <td>Total Amount (Php)</td>
-                      {threeMonthTrend.map((p) => <td key={`${p.year}-${p.month}`} style={{ textAlign: 'right' }}>{fmt(p.total)}</td>)}
-                    </tr>
-                  </tbody>
-                </table>
-                <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #444', padding: '10px 16px', fontSize: 13, textAlign: 'center' }}>
-                  {trendComparison.status !== 'none'
-                    ? `${trendComparison.status === 'increase' ? 'Increased' : 'Decreased'} by ${Math.abs(trendComparison.pct).toFixed(2)}% compared to previous month`
-                    : 'No prior month data available for comparison'}
+              <p style={{ fontWeight: 700, marginBottom: 6, textAlign: 'center' }}>Monthly Electricity Consumption</p>
+              <div style={{ display: 'flex', justifyContent: 'center' }}>
+                <div style={{ display: 'flex', gap: 20, alignItems: 'stretch', width: '100%', maxWidth: 720 }}>
+                  <table style={{ flex: '0 0 auto' }}>
+                    <thead>
+                      <tr>
+                        <th></th>
+                        {threeMonthTrend.map((p) => <th key={`${p.year}-${p.month}`}>{p.label}</th>)}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr style={{ height: 26 }}>
+                        <td>Total Amount (Php)</td>
+                        {threeMonthTrend.map((p) => <td key={`${p.year}-${p.month}`} style={{ textAlign: 'right' }}>{fmt(p.total)}</td>)}
+                      </tr>
+                    </tbody>
+                  </table>
+                  <div style={{ flex: '1 1 260px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #444', padding: '10px 20px', fontSize: 16, fontWeight: 700, textAlign: 'center', lineHeight: 1.4 }}>
+                    {trendComparison.status !== 'none'
+                      ? `${trendComparison.status === 'increase' ? 'Increased' : 'Decreased'} by ${Math.abs(trendComparison.pct).toFixed(2)}% compared to previous month`
+                      : 'No prior month data available for comparison'}
+                  </div>
                 </div>
               </div>
             </>
