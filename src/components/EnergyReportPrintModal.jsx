@@ -11,8 +11,11 @@ export default function EnergyReportPrintModal({ mode, periodLabel, rows, summar
   return (
     <div className="modal-overlay">
       {/* Scoped to this modal only (removed on unmount) so other reports'
-          print output — RSMI, PR, RIS — stays portrait as before. */}
-      <style>{'@media print { @page { size: landscape; margin: 14mm; } }'}</style>
+          print output — RSMI, PR, RIS — stays portrait as before. @page must
+          be a top-level rule, not nested inside @media print, or some
+          browsers (incl. Chrome in testing) silently ignore it and print
+          portrait regardless. */}
+      <style>{'@page { size: landscape; margin: 14mm; }'}</style>
       <div className="modal-box">
         <button className="modal-close" aria-label="Close" onClick={onClose}><X size={16} /></button>
         <h3 className="modal-title">Print Preview — Energy Consumption Report</h3>
